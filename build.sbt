@@ -10,10 +10,11 @@ lazy val root = (project in file("."))
     name := "smockito",
     scalafmtOnCompile := true,
     scalacOptions ++= Seq(
+      "-encoding",
+      "utf8",
+      "-deprecation",
       "-language:implicitConversions",
       "-Wunused:all",
-      "-rewrite",
-      "-indent",
       "-feature",
       "-release",
       Dependencies.Versions.java

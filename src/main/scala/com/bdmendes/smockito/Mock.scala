@@ -1,7 +1,6 @@
 package com.bdmendes.smockito
 
 import org.mockito.Mockito
-
 import scala.reflect.ClassTag
 
 /** A `Mock` wraps an instance mocked by [[Mockito]]. One is required to work
@@ -19,6 +18,7 @@ import scala.reflect.ClassTag
 class Mock[T] private (private val underlying: T)
 
 object Mock:
+
   given [T]: Conversion[Mock[T], T] with
     def apply(mock: Mock[T]): T = mock.underlying
 
