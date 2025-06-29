@@ -1,6 +1,7 @@
 import sbt.*
 
 object Dependencies {
+
   object Versions {
     // We use the latest Scala LTS version, as advised for libraries.
     lazy val scala = "3.3.6"
