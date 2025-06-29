@@ -8,15 +8,18 @@ ThisBuild / organizationName := "bdmendes"
 lazy val root = (project in file("."))
   .settings(
     name := "smockito",
+    scalafmtOnCompile := true,
     scalacOptions ++= Seq(
+      "-language:implicitConversions",
       "-Wunused:all",
       "-indent",
       "new-syntax",
+      "-feature",
       "-release",
       Dependencies.Versions.java
     ),
     libraryDependencies ++= Seq(
       mockito,
       munit % Test
-    ),
+    )
   )

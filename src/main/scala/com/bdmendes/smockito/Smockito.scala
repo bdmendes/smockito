@@ -1,10 +1,13 @@
 package com.bdmendes.smockito
 
-import org.mockito.Mockito
-
 import scala.reflect.ClassTag
 
 trait Smockito:
-  def mock[T](using ct: ClassTag[T]): Mock[T] = Mock(
-    Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
-  )
+  /** Creates a [[Mock]] instance of `T`.
+    *
+    * @tparam T
+    *   the type to mock.
+    * @return
+    *   the mock instance.
+    */
+  def mock[T: ClassTag]: Mock[T] = Mock.apply

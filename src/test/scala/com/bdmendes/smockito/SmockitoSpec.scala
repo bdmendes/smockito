@@ -11,11 +11,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     User("fernandorego")
   )
 
-  test("wrap a Mockito instance") {
+  test("wrap a raw Mockito instance") {
     val repository = mock[Repository[User]]
-    Mockito.when(repository.inner.get).thenReturn(mockUsers)
 
-    val service = Service(repository.inner)
+    // A Mock[T] is implicitly converted to a `T`, so one can use Mockito
+    // methods on it.
+    // Of course, that is not the purpose of this library, but this is a
+    // showcase.
+    Mockito.when(repository.get).thenReturn(mockUsers)
+
+    val service = Service(repository)
 
     assertEquals(
       service.getWith(_.username.contains("mendes")).toSet,
