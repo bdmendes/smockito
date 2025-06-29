@@ -11,7 +11,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     User("fernandorego")
   )
 
-  test("wrap a raw Mockito instance") {
+  test("wrap a raw Mockito instance"):
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly converted to a `T`, so one can use Mockito
@@ -26,7 +26,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       service.getWith(_.username.contains("mendes")).toSet,
       Set(User("bdmendes"), User("apmendes"))
     )
-  }
 
 object SmockitoSpec:
   abstract class Repository[T](val name: String):

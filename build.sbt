@@ -12,8 +12,8 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-language:implicitConversions",
       "-Wunused:all",
+      "-rewrite",
       "-indent",
-      "new-syntax",
       "-feature",
       "-release",
       Dependencies.Versions.java
