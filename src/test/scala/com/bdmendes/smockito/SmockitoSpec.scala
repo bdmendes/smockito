@@ -5,14 +5,6 @@ import org.mockito.Mockito
 
 class SmockitoSpec extends munit.FunSuite with Smockito:
 
-  private val mockUsers =
-    List(
-      User("bdmendes"),
-      User("apmendes"),
-      User("sirze01"),
-      User("fernandorego")
-    )
-
   test("wrap a raw Mockito instance"):
     val repository = mock[Repository[User]]
 
@@ -21,6 +13,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // Of course, that is not the purpose of this library, but this is a
     // showcase.
     Mockito.when(repository.get).thenReturn(mockUsers)
+    Mockito.when(repository.exists("bdmendes")).thenReturn(true)
 
     val service = Service(repository)
 
@@ -28,14 +21,29 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       service.getWith(_.username.contains("mendes")).toSet,
       Set(User("bdmendes"), User("apmendes"))
     )
+    assert(service.exists("bdmendes"))
+
+    // This Mockito API is very weakly typed, so we need to call `underlying`
+    // explicitly.
+    Mockito.verify(repository.underlying).exists("bdmendes")
 
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
     val longName = s"${name}Repository"
     def get: List[T]
+    def exists(username: String): Boolean
 
   class Service[T](repository: Repository[T]):
     def getWith[K](f: T => Boolean): List[T] = repository.get.filter(f)
+    def exists(username: String): Boolean = repository.exists(username)
 
   case class User(username: String)
+
+  private val mockUsers =
+    List(
+      User("bdmendes"),
+      User("apmendes"),
+      User("sirze01"),
+      User("fernandorego")
+    )

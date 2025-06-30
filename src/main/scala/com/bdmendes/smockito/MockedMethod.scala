@@ -8,7 +8,7 @@ package com.bdmendes.smockito
   * @tparam R
   *   the return type.
   */
-abstract class MockedMethod[P, R]:
+trait MockedMethod[P, R]:
 
   /** Sets up an implementation for the method for the set of arguments in the
     * domain of the given partial function. If this method is called with other
