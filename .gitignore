@@ -2,5 +2,7 @@
 .idea
 .metals
 .bsp
+**.bloop/
 **target/
 .DS_Store
+**metals.sbt
