@@ -8,9 +8,11 @@ ThisBuild / organizationName := "bdmendes"
 lazy val root =
   project
     .in(file("."))
+    .enablePlugins(JavaAgent)
     .settings(
       name := "smockito",
       scalafmtOnCompile := true,
+      javaAgents := Seq(mockito % Test),
       scalacOptions ++=
         Seq(
           "-encoding",

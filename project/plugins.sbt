@@ -1,2 +1,2 @@
-addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.1.1")
+addSbtPlugin("com.github.sbt" % "sbt-javaagent" % "0.1.8")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
