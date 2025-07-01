@@ -23,9 +23,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     )
     assert(service.exists("bdmendes"))
 
-    // This Mockito API is very weakly typed, so we need to call `underlying`
-    // explicitly.
-    Mockito.verify(repository.underlying).exists("bdmendes")
+    Mockito.verify(repository).exists("bdmendes")
 
 object SmockitoSpec:
 
