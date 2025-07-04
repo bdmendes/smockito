@@ -12,3 +12,14 @@ trait Smockito:
     *   the mock instance.
     */
   def mock[T: ClassTag]: Mock[T] = Mock.apply
+
+  /** Retrieves the mock in scope.
+    *
+    * @param mock
+    *   the mock in scope.
+    * @tparam T
+    *   the mocked type.
+    * @return
+    *   the mock in scope.
+    */
+  def it[T](using mock: Mock[T]): T = mock

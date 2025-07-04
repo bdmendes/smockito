@@ -9,10 +9,10 @@ opaque type Mock[T] = T
 extension [T](mock: Mock[T])
 
   def on[A1, A2, R1, R2](
-      method: T => A1 => R1
+      method: Mock[T] ?=> A1 => R1
   )(using A1 =:= A2, R1 =:= R2)(stub: PartialFunction[A2, R2]): Mock[T] =
     Mockito
-      .when(method(mock).apply(ArgumentMatchers.any()))
+      .when(method(using mock).apply(ArgumentMatchers.any()))
       .thenAnswer { invocation =>
         val argument = invocation.getArgument[A1](0)
         stub.applyOrElse(
