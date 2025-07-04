@@ -24,6 +24,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     Mockito.verify(repository).exists("bdmendes")
 
+  test("provide a method to set up partial method stubs, on methods with 0 parameters"):
+    val repository =
+      mock[Repository[User]].on(() => it.get) { _ =>
+        mockUsers
+      }
+
+    assertEquals(repository.get, mockUsers)
+
   test("provide a method to set up partial method stubs, on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists) {
@@ -31,18 +39,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           true
       }
 
+    assert(typeChecks("repository.on(it.exists) { case Tuple1(\"bdmendes\") => true }"))
+    assert(typeChecks("repository.on(it.exists) { _ => true }"))
+    assert(!typeChecks("repository.on(it.exists) { case \"bdmendes\" => 1 }"))
+    assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
+
     assertEquals(repository.exists("bdmendes"), true)
     intercept[IllegalArgumentException](repository.exists("spider"))
 
-//  test("provide a method to setup partial method stubs, on methods with 2 parameters"):
-//    val a = mock[Repository[User]].getWith
-//    val repository =
-//      mock[Repository[User]].on(_.getWith) { case (start: String, end: String) =>
-//        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-//      }
-//
-//    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
-//    assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
+  test("provide a method to set up partial method stubs, on methods with 2 parameters"):
+    val repository =
+      mock[Repository[User]].on(it.getWith) { case (start: String, end: String) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      }
+
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+    assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
 object SmockitoSpec:
 
