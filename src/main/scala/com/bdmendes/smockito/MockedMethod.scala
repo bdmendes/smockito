@@ -1,6 +1,6 @@
 package com.bdmendes.smockito
 
-class MockedMethod[A <: Tuple, R](private[smockito] val underlying: A => R)
+class MockedMethod[A <: Tuple, R] private[smockito] (private[smockito] val underlying: A => R)
 
 object MockedMethod:
   // We may use `TupledFunction` from the standard library once it goes stable. See
