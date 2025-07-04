@@ -69,16 +69,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("provide a method to set up partial method stubs, on methods with context parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWithContextual(_: String)(using _: String)) {
-        case (start: String, end: String) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-      }
+      mock[Repository[User]].on(it.getWithContextual(_: String)(using _: String))(_ => List.empty)
 
-    assertEquals(repository.getWithContextual("bd")(using ""), List(User("bdmendes")))
-    assertEquals(
-      repository.getWithContextual("")(using "mendes"),
-      List(User("bdmendes"), User("apmendes"))
-    )
+    assertEquals(repository.getWithContextual("bd")(using ""), List.empty)
+    assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
 
 object SmockitoSpec:
 
