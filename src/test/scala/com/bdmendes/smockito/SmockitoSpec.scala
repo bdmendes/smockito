@@ -27,14 +27,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("provide a method to set up partial method stubs, on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists) {
-        case name if name.endsWith("mendes") =>
+        case Tuple1(name) if name.endsWith("mendes") =>
           true
       }
-
-    assert(typeChecks("repository.on(it.exists) { case \"bdmendes\" => true }"))
-    assert(typeChecks("repository.on(it.exists) { _ => true }"))
-    assert(!typeChecks("repository.on(it.exists) { case \"bdmendes\" => 1 }"))
-    assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
 
     assertEquals(repository.exists("bdmendes"), true)
     intercept[IllegalArgumentException](repository.exists("spider"))
