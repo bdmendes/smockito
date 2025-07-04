@@ -56,6 +56,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
+  test("provide a method to set up partial method stubs, on curried methods"):
+    val repository =
+      mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)) {
+        case (start: String, end: String) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      }
+
+    assertEquals(repository.getWithCurried("bd")(""), List(User("bdmendes")))
+    assertEquals(repository.getWithCurried("")("mendes"), List(User("bdmendes"), User("apmendes")))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -63,6 +73,7 @@ object SmockitoSpec:
     def get: List[T]
     def exists(username: String): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
+    def getWithCurried(startsWith: String)(endsWith: String): List[T]
 
   class Service[T](repository: Repository[T]):
     def getWith[K](f: T => Boolean): List[T] = repository.get.filter(f)
