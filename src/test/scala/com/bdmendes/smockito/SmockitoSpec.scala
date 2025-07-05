@@ -9,8 +9,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("wrap a raw Mockito instance"):
     val repository = mock[Repository[User]]
 
-    // A Mock[T] is implicitly converted to a `T`, so one can use Mockito methods on it.
-    // Of course, that is not the purpose of this library, but this is a showcase.
+    // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
     Mockito.when(repository.get).thenReturn(mockUsers)
     Mockito.when(repository.exists("bdmendes")).thenReturn(true)
 
@@ -23,6 +22,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(service.exists("bdmendes"))
 
     Mockito.verify(repository).exists("bdmendes")
+
+    // But, of course, the raw Mockito API is not very type safe, so use with caution.
+    Mockito.when(repository.getWith("bd", "mendes")).thenReturn(List(1, 2))
+    val users = repository.getWith("bd", "mendes")
+    intercept[ClassCastException] {
+      val _: User = users(0)
+    }
 
   test("provide a method to set up partial method stubs, on methods with 0 parameters"):
     val repository =
