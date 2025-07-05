@@ -17,10 +17,11 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
   private inline def searchStub[A <: Tuple, R: ClassTag](onExists: Boolean => Unit): Unit =
     val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
     val argClasses = summonClassTags[A].map(_.runtimeClass)
+    val returnClass = summon[ClassTag[R]].runtimeClass
     val exists =
       invocations.exists { invocation =>
         val mockitoMethod = invocation.getMethod
-        mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
+        returnClass == mockitoMethod.getReturnType &&
         argClasses.sameElements(mockitoMethod.getParameterTypes)
       }
     onExists(exists)
