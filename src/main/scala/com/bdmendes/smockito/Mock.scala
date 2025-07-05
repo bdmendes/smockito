@@ -69,8 +69,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
     inline erasedValue[A] match
       case _: EmptyTuple =>
         // Unfortunately, Mockito does not expose a reliable API for this use case.
-        // This is not resilient against multiple no-arg methods on the same class with the same
-        // return type.
+        // As such, we may yield a value higher than the actual number of calls to this method.
         val invocations = Mockito.mockingDetails(mock).getInvocations
         val matchingInvocations =
           invocations
