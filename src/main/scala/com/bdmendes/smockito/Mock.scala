@@ -15,7 +15,7 @@ extension [T](mock: Mock[T])
   inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
       method: Mock[T] ?=> MockedMethod[A1, R1]
   )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
-    val args = Tuple.fromArray(anyMatchers[A1]).asInstanceOf[A1]
+    val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
     Mockito
       .when(method(using mock).underlying.apply(args))
       .thenAnswer { invocation =>
@@ -50,7 +50,7 @@ extension [T](mock: Mock[T])
         List.fill(matchingInvocations)(EmptyTuple.asInstanceOf[A])
 
       case _ =>
-        val argCaptors = captors[A]
+        val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
         val _ =
           method(using Mockito.verify(mock, atLeast(0)))
             .underlying
@@ -63,26 +63,22 @@ extension [T](mock: Mock[T])
 
 object Mock:
 
-  private[smockito] inline def anyMatchers[T <: Tuple]: Array[Any] =
+  private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()
+  private[smockito] lazy val captor = [X] => () => ArgumentCaptor.captor[X]()
+
+  private[smockito] inline def mapTuple[T <: Tuple, R: ClassTag](
+      inline f: [X] => () => R
+  ): Array[R] =
     inline erasedValue[T] match
       case _: EmptyTuple =>
         Array.empty
       case _: (h *: t) =>
-        val head = ArgumentMatchers.any[h]
-        val tail = anyMatchers[t]
+        val head = f[h]()
+        val tail = mapTuple[t, R](f)
         head +: tail
-
-  private[smockito] inline def captors[T <: Tuple]: Array[ArgumentCaptor[?]] =
-    inline erasedValue[T] match
-      case _: EmptyTuple =>
-        Array.empty
-      case _: (h *: t) =>
-        val head = ArgumentCaptor.forClass(summonInline[ClassTag[h]].runtimeClass)
-        val tail = captors[t]
-        head +: tail
-
-  given [T]: Conversion[Mock[T], T] with
-    def apply(mock: Mock[T]): T = mock
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
+
+  given [T]: Conversion[Mock[T], T] with
+    def apply(mock: Mock[T]): T = mock
