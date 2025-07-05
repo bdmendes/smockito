@@ -28,7 +28,7 @@ object Smockito:
 
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
-      "If you think this is a bug, please open an issue."
+      "If you think this is a bug, please open an issue with a minimal reproducible example."
 
   enum SmockitoException(val msg: String) extends Exception(s"${msg}\n${exceptionTrailer}"):
 
@@ -38,9 +38,16 @@ object Smockito:
             "Are you performing eta-expansion correctly?"
         )
 
-    case UnstubbedMethod[T](ct: ClassTag[T])
+    case UnstubbedMethod
         extends SmockitoException(
           s"The received method was not stubbed, so you cannot reason about it. " +
             "Are you performing eta-expansion correctly? " +
             "Did you forget to set up the stub first?"
+        )
+
+    case AlreadyStubbedMethod
+        extends SmockitoException(
+          s"The received method already has a stub. If you need to perform a different action " +
+            "on a subsequent invocation, replace the mock or reflect that intent " +
+            "through a state lookup in the stub."
         )

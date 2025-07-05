@@ -195,13 +195,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     }
 
     // We should not be able to reason about unstubbed methods.
-    intercept[UnstubbedMethod[Repository[User]]] {
+    intercept[UnstubbedMethod.type] {
       assertEquals(repository.times(it.getWith), 1)
     }
 
     // That is even more useful when it comes to the unfortunate example above.
-    intercept[UnstubbedMethod[Repository[User]]] {
+    intercept[UnstubbedMethod.type] {
       assertEquals(repository.calls(it.get), List.empty)
+    }
+
+    intercept[AlreadyStubbedMethod.type] {
+      repository.on(() => it.get)(_ => mockUsers)
     }
 
 object SmockitoSpec:
