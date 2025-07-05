@@ -39,7 +39,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
     val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
     try
       Mockito
-        .when(method(using mock).underlying.apply(args))
+        .when(method(using mock).tupled.apply(args))
         .thenAnswer { invocation =>
           val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
           stub.applyOrElse(
@@ -86,7 +86,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
         val _ =
           method(using Mockito.verify(mock, atLeast(0)))
-            .underlying
+            .tupled
             .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
         argCaptors
           .map(_.getAllValues.toArray)
@@ -113,7 +113,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
         val _ =
           method(using Mockito.verify(mock, atLeast(0)))
-            .underlying
+            .tupled
             .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
         cap.getAllValues.size
 
