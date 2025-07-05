@@ -5,7 +5,8 @@ object Dependencies {
   object Versions {
     // We use the latest Scala LTS version, as advised for libraries.
     lazy val scala = "3.3.6"
-    lazy val java = "21"
+    // We want to be conservative with the Java version, but not too much.
+    lazy val java = "17"
     lazy val mockito = "5.18.0"
   }
 
