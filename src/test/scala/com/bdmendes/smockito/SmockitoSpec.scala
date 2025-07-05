@@ -74,6 +74,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWithContextual("bd")(using ""), List.empty)
     assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
 
+  test("provide a method to inspect calls, on methods with 1 parameter"):
+    val repository =
+      mock[Repository[String]].on(it.exists) {
+        case Tuple1("bdmendes") =>
+          true
+        case _ =>
+          false
+      }
+
+    assertEquals(repository.calls(it.exists), List.empty)
+
+    assert(repository.exists("bdmendes"))
+    assert(!repository.exists("apmendes"))
+
+    assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("apmendes")))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
