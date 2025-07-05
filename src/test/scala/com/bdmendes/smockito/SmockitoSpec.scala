@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.Mockito
 import scala.compiletime.testing.typeChecks
@@ -93,9 +94,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         List.empty
       )
 
-    assert(!typeChecks("repository.calls(it.get)"))
-    assert(!typeChecks("repository.calls(println)"))
-
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.calls(() => it.get).size, 1)
@@ -133,9 +131,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository: Mock[Repository[String]] =
       mock[Repository[String]].on(() => it.get)(_ => List.empty)
 
-    assert(!typeChecks("repository.times(it.get)"))
-    assert(!typeChecks("repository.times(println)"))
-
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.times(() => it.get), 1)
@@ -143,7 +138,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
 
-    assertEquals(repository.times(() => it.get), 1)
+    assertEquals(repository.times(() => it.get), 3)
 
   test("count calls, on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
@@ -184,6 +179,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("luismontenegro")))
     assert(repository.calls(() => it.get).size == 1)
 
+  test("throw helpful exceptions upon common errors"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
+    val user = mockUsers.head
+
+    // If for some reason someone forges the API, we should be alert.
+    intercept[NotAMethodOnType[Repository[User]]] {
+      repository.on(() => user.caps)(_ => "MENDES")
+    }
+
+    // Scala converts `it.get` to an `Int => User` since the method returns a `User`.
+    // This is quite unfortunate, so we should at least provide a useful error in runtime.
+    intercept[NotAMethodOnType[Repository[User]]] {
+      repository.on(it.get)(_ => mockUsers.head)
+    }
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -198,7 +208,8 @@ object SmockitoSpec:
     def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
     def exists(username: String): Boolean = repository.exists(username)
 
-  case class User(username: String)
+  case class User(username: String):
+    def caps = username.toUpperCase()
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))

@@ -1,8 +1,10 @@
 package com.bdmendes.smockito
 
 import Mock.*
+import com.bdmendes.smockito.Smockito.SmockitoException.*
 import org.mockito.*
 import org.mockito.Mockito.*
+import org.mockito.exceptions.misusing.*
 import scala.Tuple.Size
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -10,29 +12,35 @@ import scala.reflect.ClassTag
 
 opaque type Mock[T] = T
 
-extension [T](mock: Mock[T])
+extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
   inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
       method: Mock[T] ?=> MockedMethod[A1, R1]
   )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
     val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
-    Mockito
-      .when(method(using mock).underlying.apply(args))
-      .thenAnswer { invocation =>
-        val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
-        stub.applyOrElse(
-          arguments,
-          _ =>
-            throw new IllegalArgumentException(
-              s"Mocked method received unexpected arguments: $arguments"
-            )
-        )
-      }
+    try
+      Mockito
+        .when(method(using mock).underlying.apply(args))
+        .thenAnswer { invocation =>
+          val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
+          stub.applyOrElse(
+            arguments,
+            _ =>
+              throw new IllegalArgumentException(
+                s"Mocked method received unexpected arguments: $arguments"
+              )
+          )
+        }
+    catch
+      case _: InvalidUseOfMatchersException | _: MissingMethodInvocationException =>
+        throw NotAMethodOnType(ct)
+      case e =>
+        throw e
     mock
 
   inline def calls[A <: Tuple: ClassTag, R: ClassTag](
       method: Mock[T] ?=> MockedMethod[A, R]
-  ): List[A] =
+  )(using ValueOf[Size[A]]): List[A] =
     inline erasedValue[A] match
       case _: EmptyTuple =>
         // Unfortunately, Mockito does not expose a reliable API for this use case.
@@ -61,7 +69,9 @@ extension [T](mock: Mock[T])
           .map(Tuple.fromArray(_).asInstanceOf[A])
           .toList
 
-  inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R]): Int =
+  inline def times[A <: Tuple: ClassTag, R: ClassTag](
+      method: Mock[T] ?=> MockedMethod[A, R]
+  )(using ValueOf[Size[A]]): Int =
     inline erasedValue[A] match
       case _: EmptyTuple =>
         mock.calls[A, R](method).size

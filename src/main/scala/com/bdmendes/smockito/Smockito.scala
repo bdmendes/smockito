@@ -23,3 +23,17 @@ trait Smockito:
     *   the mock in scope.
     */
   def it[T](using mock: Mock[T]): T = mock
+
+object Smockito:
+
+  private lazy val exceptionTrailer =
+    s"Please review the documentation at https://github.com/bdmendes/smockito. " +
+      "If you think this is a bug, please open an issue."
+
+  enum SmockitoException(val msg: String) extends Exception(s"${msg}\n${exceptionTrailer}"):
+
+    case NotAMethodOnType[T](ct: ClassTag[T])
+        extends SmockitoException(
+          s"The received method does not exist on ${ct.toString()}. " +
+            "Are you performing eta-expansion correctly?"
+        )
