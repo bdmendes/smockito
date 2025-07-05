@@ -24,7 +24,7 @@ extension [T](mock: Mock[T])
           arguments,
           _ =>
             throw new IllegalArgumentException(
-              s"Mocked method received unexpected parameters: $arguments"
+              s"Mocked method received unexpected arguments: $arguments"
             )
         )
       }

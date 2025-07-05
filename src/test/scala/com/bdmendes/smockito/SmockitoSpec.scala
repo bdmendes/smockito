@@ -27,7 +27,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     Mockito.when(repository.getWith("bd", "mendes")).thenReturn(List(1, 2))
     val users = repository.getWith("bd", "mendes")
     intercept[ClassCastException] {
-      val _: User = users(0)
+      val _: User = users.head
     }
 
   test("provide a method to set up partial method stubs, on methods with 0 parameters"):
@@ -107,13 +107,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(sideEffectfulCounter, 3)
 
   test("provide a method to inspect calls, on methods with 1 parameter"):
-    val repository =
-      mock[Repository[String]].on(it.exists) {
-        case Tuple1("bdmendes") =>
-          true
-        case _ =>
-          false
-      }
+    val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
 
     assertEquals(repository.calls(it.exists), List.empty)
 
