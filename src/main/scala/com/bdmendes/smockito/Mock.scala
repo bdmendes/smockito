@@ -15,22 +15,26 @@ opaque type Mock[T] = T
 extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
   private inline def searchStub[A <: Tuple, R: ClassTag](onExists: Boolean => Unit): Unit =
-    val invocations = Mockito.mockingDetails(mock).getStubbings().asScala.map(_.getInvocation)
+    val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
+    val argClasses = summonClassTags[A].map(_.runtimeClass)
     val exists =
       invocations.exists { invocation =>
         val mockitoMethod = invocation.getMethod
         mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
-        mockitoMethod.getParameterCount == constValue[Tuple.Size[A]]
+        argClasses.sameElements(mockitoMethod.getParameterTypes)
       }
     onExists(exists)
 
   inline def on[A1 <: Tuple, A2 <: Tuple, R1: ClassTag, R2: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A1, R1]
+      method: Mock[T] ?=> MockedMethod[A1, R1],
+      strict: Boolean = true
   )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
-    searchStub[A1, R1] { exists =>
-      if exists then
-        throw AlreadyStubbedMethod
-    }
+    if strict then
+      searchStub[A1, R1] { exists =>
+        if exists then
+          throw AlreadyStubbedMethod
+      }
+
     val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
     try
       Mockito
@@ -52,13 +56,16 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         throw e
     mock
 
-  inline def calls[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(using
-      ValueOf[Size[A]]
-  ): List[A] =
-    searchStub[A, R](exists =>
-      if !exists then
-        throw UnstubbedMethod
-    )
+  inline def calls[A <: Tuple: ClassTag, R: ClassTag](
+      method: Mock[T] ?=> MockedMethod[A, R],
+      strict: Boolean = true
+  )(using ValueOf[Size[A]]): List[A] =
+    if strict then
+      searchStub[A, R](exists =>
+        if !exists then
+          throw UnstubbedMethod
+      )
+
     inline erasedValue[A] match
       case _: EmptyTuple =>
         // Unfortunately, Mockito does not expose a reliable API for this use case.
@@ -88,17 +95,20 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
           .toList
 
   inline def times[A <: Tuple: ClassTag, R: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A, R]
+      method: Mock[T] ?=> MockedMethod[A, R],
+      strict: Boolean = true
   )(using ValueOf[Size[A]]): Int =
     inline erasedValue[A] match
       case _: EmptyTuple =>
-        mock.calls[A, R](method).size
+        mock.calls[A, R](method, strict).size
       case _: (h *: t) =>
-        searchStub[A, R](exists =>
-          if !exists then
-            throw UnstubbedMethod
-        )
-        // We do a little trick here: capturing the first parameter is enough for counting the
+        if strict then
+          searchStub[A, R](exists =>
+            if !exists then
+              throw UnstubbedMethod
+          )
+
+        // We do a little trick here: capturing the first argument is enough for counting the
         // number of calls.
         val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
         val _ =
@@ -119,9 +129,14 @@ object Mock:
       case _: EmptyTuple =>
         Array.empty
       case _: (h *: t) =>
-        val head = f[h]()
-        val tail = mapTuple[t, R](f)
-        head +: tail
+        f[h]() +: mapTuple[t, R](f)
+
+  private[smockito] inline def summonClassTags[T <: Tuple]: Array[ClassTag[?]] =
+    inline erasedValue[T] match
+      case _: EmptyTuple =>
+        Array.empty
+      case _: (h *: t) =>
+        summonInline[ClassTag[h]] +: summonClassTags[t]
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])

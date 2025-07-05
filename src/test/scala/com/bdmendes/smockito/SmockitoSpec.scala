@@ -179,8 +179,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("luismontenegro")))
     assert(repository.calls(() => it.get).size == 1)
 
-  test("throw helpful exceptions upon common errors"):
-    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
+  test("alert on invalid received method"):
+    val repository = mock[Repository[User]]
     val user = mockUsers.head
 
     // If for some reason someone forges the API, we should be alert.
@@ -188,11 +188,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(() => user.caps)(_ => "MENDES")
     }
 
-    // Scala converts `it.get` to an `Int => User` since the method returns a `User`.
+    // Scala converts `it.get` to an `Int => User` since the method returns a `List[User]`.
     // This is quite unfortunate, so we should at least provide a useful error in runtime.
     intercept[NotAMethodOnType[Repository[User]]] {
       repository.on(it.get)(_ => mockUsers.head)
     }
+
+  test("alert on reasoning on unstubbed methods"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
     // We should not be able to reason about unstubbed methods.
     intercept[UnstubbedMethod.type] {
@@ -204,9 +207,24 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       assertEquals(repository.calls(it.get), List.empty)
     }
 
+    // But we can disable this check at the call site, if really wanted.
+    assertEquals(repository.times(it.getWith, strict = false), 0)
+    assertEquals(repository.calls(it.getWith, strict = false), List.empty)
+
+  test("alert on duplicate stub tentative"):
+    val repository =
+      mock[Repository[User]]
+        .on(() => it.get)(_ => List.empty)
+        .on(it.exists)(args => mockUsers.exists(_.username == args._1))
+        .on(it.contains)(args => mockUsers.contains(args._1))
+
+    // One should not stub a method twice.
     intercept[AlreadyStubbedMethod.type] {
       repository.on(() => it.get)(_ => mockUsers)
     }
+
+    // But this can be disabled in the call site, falling back to Mockito overrides.
+    val _ = repository.on(() => it.get, strict = false)(_ => mockUsers)
 
 object SmockitoSpec:
 
@@ -214,6 +232,7 @@ object SmockitoSpec:
     val longName = s"${name}Repository"
     def get: List[T]
     def exists(username: String): Boolean
+    def contains(user: User): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def getWithContextual(startsWith: String)(using endsWith: String): List[T]

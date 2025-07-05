@@ -49,5 +49,8 @@ object Smockito:
         extends SmockitoException(
           s"The received method already has a stub. If you need to perform a different action " +
             "on a subsequent invocation, replace the mock or reflect that intent " +
-            "through a state lookup in the stub."
+            "through a state lookup in the stub.\n" +
+            "Mind that Smockito identifies stubbed methods by signature. If you previously mocked " +
+            "a different method with the same signature, this behaviour might be undesired. " +
+            "In that case, you may disable this check at the call site."
         )
