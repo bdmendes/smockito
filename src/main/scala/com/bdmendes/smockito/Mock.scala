@@ -61,6 +61,20 @@ extension [T](mock: Mock[T])
           .map(Tuple.fromArray(_).asInstanceOf[A])
           .toList
 
+  inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R]): Int =
+    inline erasedValue[A] match
+      case _: EmptyTuple =>
+        mock.calls[A, R](method).size
+      case _: (h *: t) =>
+        // We do a little trick here: capturing the first parameter is enough for counting the
+        // number of calls.
+        val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
+        val _ =
+          method(using Mockito.verify(mock, atLeast(0)))
+            .underlying
+            .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
+        cap.getAllValues.size
+
 object Mock:
 
   private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()

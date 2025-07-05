@@ -34,7 +34,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)
 
     assert(typeChecks("repository.on(() => it.get)(_ => List.empty)"))
+    assert(!typeChecks("repository.on(() => it.get)(List.empty)"))
     assert(!typeChecks("repository.on(it.get)(_ => List.empty)"))
+    assert(!typeChecks("repository.on(it.get)(List.empty)"))
     assert(!typeChecks("repository.on(println)(_ => List.empty)"))
 
     assertEquals(repository.get, mockUsers)
@@ -46,8 +48,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           true
       }
 
+    assert(typeChecks("repository.on(it.exists)(_._1.startsWith(\"bdmendes\"))"))
     assert(typeChecks("repository.on(it.exists) { case Tuple1(\"bdmendes\") => true }"))
     assert(typeChecks("repository.on(it.exists) { _ => true }"))
+    assert(!typeChecks("repository.on(it.exists)(println)"))
     assert(!typeChecks("repository.on(it.exists) { case Tuple1(\"bdmendes\") => 1 }"))
     assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
     assert(!typeChecks("repository.on(it.exists) { case Tuple1(1) => \"bdmendes\" }"))
@@ -89,8 +93,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         List.empty
       )
 
-    assert(!typeChecks("repository.calls(() => it.get)(_ => List.empty[Int])"))
-    assert(!typeChecks("repository.calls(println)(_ => List.empty)"))
+    assert(!typeChecks("repository.calls(it.get)"))
+    assert(!typeChecks("repository.calls(println)"))
 
     assertEquals(repository.get, List.empty)
 
@@ -120,8 +124,47 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       }
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
 
-    assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
+    assertEquals(repository.calls(it.getWith), List(("bd", "mendes"), ("bd", "")))
+
+  test("count calls, on methods with 0 parameters"):
+
+    val repository: Mock[Repository[String]] =
+      mock[Repository[String]].on(() => it.get)(_ => List.empty)
+
+    assert(!typeChecks("repository.times(it.get)"))
+    assert(!typeChecks("repository.times(println)"))
+
+    assertEquals(repository.get, List.empty)
+
+    assertEquals(repository.times(() => it.get), 1)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository.get, List.empty)
+
+    assertEquals(repository.times(() => it.get), 1)
+
+  test("count calls, on methods with 1 parameter"):
+    val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
+
+    assertEquals(repository.calls(it.exists), List.empty)
+
+    assert(repository.exists("bdmendes"))
+    assert(!repository.exists("apmendes"))
+
+    assertEquals(repository.times(it.exists), 2)
+
+  test("count calls, on methods with 2 parameters"):
+    val repository =
+      mock[Repository[User]].on(it.getWith) { case (start, end) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      }
+
+    assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+
+    assertEquals(repository.times(it.getWith), 2)
 
   test("chain stubs"):
     val repository =
