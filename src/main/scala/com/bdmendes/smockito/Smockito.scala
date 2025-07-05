@@ -37,3 +37,10 @@ object Smockito:
           s"The received method does not exist on ${ct.toString()}. " +
             "Are you performing eta-expansion correctly?"
         )
+
+    case UnstubbedMethod[T](ct: ClassTag[T])
+        extends SmockitoException(
+          s"The received method was not stubbed, so you cannot reason about it. " +
+            "Are you performing eta-expansion correctly? " +
+            "Did you forget to set up the stub first?"
+        )

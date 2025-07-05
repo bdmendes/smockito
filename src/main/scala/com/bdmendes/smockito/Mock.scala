@@ -14,6 +14,17 @@ opaque type Mock[T] = T
 
 extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
+  private inline def assertMethodWasStubbed[A <: Tuple, R: ClassTag]: Unit =
+    val invocations = Mockito.mockingDetails(mock).getStubbings().asScala.map(_.getInvocation)
+    val exists =
+      invocations.exists { invocation =>
+        val mockitoMethod = invocation.getMethod
+        mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
+        mockitoMethod.getParameterCount == constValue[Tuple.Size[A]]
+      }
+    if !exists then
+      throw UnstubbedMethod(ct)
+
   inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
       method: Mock[T] ?=> MockedMethod[A1, R1]
   )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
@@ -38,9 +49,10 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         throw e
     mock
 
-  inline def calls[A <: Tuple: ClassTag, R: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A, R]
-  )(using ValueOf[Size[A]]): List[A] =
+  inline def calls[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(using
+      ValueOf[Size[A]]
+  ): List[A] =
+    assertMethodWasStubbed[A, R]
     inline erasedValue[A] match
       case _: EmptyTuple =>
         // Unfortunately, Mockito does not expose a reliable API for this use case.
@@ -76,6 +88,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
       case _: EmptyTuple =>
         mock.calls[A, R](method).size
       case _: (h *: t) =>
+        assertMethodWasStubbed[A, R]
         // We do a little trick here: capturing the first parameter is enough for counting the
         // number of calls.
         val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
