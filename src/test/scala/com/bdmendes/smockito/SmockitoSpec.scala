@@ -78,7 +78,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
 
   test("provide a method to inspect calls, on methods with 0 parameters"):
-    val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
+    var sideEffectfulCounter = 0
+
+    val repository =
+      mock[Repository[String]].on(() => it.get)(_ =>
+        sideEffectfulCounter += 1
+        List.empty
+      )
 
     assert(!typeChecks("repository.calls(() => it.get)(_ => List.empty[Int])"))
     assert(!typeChecks("repository.calls(println)(_ => List.empty)"))
@@ -86,11 +92,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.calls(() => it.get).size, 1)
+    assertEquals(sideEffectfulCounter, 1)
 
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.calls(() => it.get).size, 3)
+    assertEquals(sideEffectfulCounter, 3)
 
   test("provide a method to inspect calls, on methods with 1 parameter"):
     val repository =
@@ -118,6 +126,24 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
 
+  test("allow chaining"):
+    val repository =
+      mock[Repository[User]]
+        .on(it.exists)(name => mockUsers.map(_.username).contains(name._1))
+        .on(() => it.get)(_ => mockUsers)
+        .on(it.getWith) { case (start, end) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+        }
+
+    val service = Service(repository)
+
+    assert(service.exists("bdmendes"))
+    assert(!service.exists("luismontenegro"))
+    assertEquals(service.getWith(_.username.contains("01")), List(User("sirze01")))
+
+    assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("luismontenegro")))
+    assert(repository.calls(() => it.get).size == 1)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -129,7 +155,7 @@ object SmockitoSpec:
     def getWithContextual(startsWith: String)(using endsWith: String): List[T]
 
   class Service[T](repository: Repository[T]):
-    def getWith[K](f: T => Boolean): List[T] = repository.get.filter(f)
+    def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
     def exists(username: String): Boolean = repository.exists(username)
 
   case class User(username: String)
