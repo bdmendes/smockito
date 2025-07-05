@@ -36,15 +36,16 @@ extension [T](mock: Mock[T])
     inline erasedValue[A] match
       case _: EmptyTuple =>
         // Unfortunately, Mockito does not expose a reliable API for this use case.
-        // This is not resilient againt multiple no-arg methods with the same return type.
-        val invocations = Mockito.mockingDetails(mock).getInvocations()
+        // This is not resilient against multiple no-arg methods on the same class with the same
+        // return type.
+        val invocations = Mockito.mockingDetails(mock).getInvocations
         val matchingInvocations =
           invocations
             .asScala
             .count { invocation =>
-              val mockitoMethod = invocation.getMethod()
-              mockitoMethod.getReturnType() == summon[ClassTag[R]].runtimeClass &&
-              mockitoMethod.getParameterCount() == 0
+              val mockitoMethod = invocation.getMethod
+              mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
+              mockitoMethod.getParameterCount == 0
             }
         List.fill(matchingInvocations)(EmptyTuple.asInstanceOf[A])
 
