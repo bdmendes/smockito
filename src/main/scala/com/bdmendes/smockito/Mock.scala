@@ -5,6 +5,7 @@ import org.mockito.*
 import org.mockito.Mockito.*
 import scala.Tuple.Size
 import scala.compiletime.*
+import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
 opaque type Mock[T] = T
@@ -29,15 +30,35 @@ extension [T](mock: Mock[T])
       }
     mock
 
-  inline def calls[A <: Tuple, R](
+  inline def calls[A <: Tuple: ClassTag, R: ClassTag](
       method: Mock[T] ?=> MockedMethod[A, R]
-  )(using ValueOf[Size[A]], ClassTag[A]): List[A] =
-    val argCaptors = captors[A]
-    val _ =
-      method(using Mockito.verify(mock, atLeast(0)))
-        .underlying
-        .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
-    argCaptors.map(_.getAllValues.toArray).transpose.map(Tuple.fromArray(_).asInstanceOf[A]).toList
+  ): List[A] =
+    inline erasedValue[A] match
+      case _: EmptyTuple =>
+        // Unfortunately, Mockito does not expose a reliable API for this use case.
+        // This is not resilient againt multiple no-arg methods with the same return type.
+        val invocations = Mockito.mockingDetails(mock).getInvocations()
+        val matchingInvocations =
+          invocations
+            .asScala
+            .count { invocation =>
+              val mockitoMethod = invocation.getMethod()
+              mockitoMethod.getReturnType() == summon[ClassTag[R]].runtimeClass &&
+              mockitoMethod.getParameterCount() == 0
+            }
+        List.fill(matchingInvocations)(EmptyTuple.asInstanceOf[A])
+
+      case _ =>
+        val argCaptors = captors[A]
+        val _ =
+          method(using Mockito.verify(mock, atLeast(0)))
+            .underlying
+            .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
+        argCaptors
+          .map(_.getAllValues.toArray)
+          .transpose
+          .map(Tuple.fromArray(_).asInstanceOf[A])
+          .toList
 
 object Mock:
 
