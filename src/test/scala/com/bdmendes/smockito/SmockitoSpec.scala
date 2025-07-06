@@ -31,7 +31,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       val _: User = users.head
     }
 
-  test("set up partial method stubs, on methods with 0 parameters"):
+  test("set up method stubs, on methods with 0 parameters"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)
 
     assert(typeChecks("repository.on(() => it.get)(_ => List.empty)"))
@@ -42,7 +42,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, mockUsers)
 
-  test("set up partial method stubs, on methods with 1 parameter"):
+  test("set up method stubs, on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists) {
         case Tuple1(name) if name.endsWith("mendes") =>
@@ -60,7 +60,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("bdmendes"), true)
     intercept[IllegalArgumentException](repository.exists("spider"))
 
-  test("set up partial method stubs, on methods with 2 parameters"):
+  test("set up method stubs, on methods with 2 parameters"):
     val repository =
       mock[Repository[User]].on(it.getWith) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
@@ -69,7 +69,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
-  test("set up partial method stubs, on curried methods"):
+  test("set up method stubs, on curried methods"):
     val repository =
       mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
@@ -78,7 +78,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWithCurried("bd")(""), List(User("bdmendes")))
     assertEquals(repository.getWithCurried("")("mendes"), List(User("bdmendes"), User("apmendes")))
 
-  test("set up partial method stubs, on methods with context parameters"):
+  test("set up method stubs, on methods with contextual parameters"):
     val repository =
       mock[Repository[User]].on(it.getWithContextual(_: String)(using _: String))(_ => List.empty)
 
