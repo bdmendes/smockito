@@ -14,141 +14,143 @@ import scala.reflect.ClassTag
   */
 opaque type Mock[T] = T
 
-extension [T](mock: Mock[T])(using ct: ClassTag[T])
+private[smockito] trait MockSyntax:
 
-  private inline def searchStub[A <: Tuple, R: ClassTag](onExists: Boolean => Unit): Unit =
-    val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
-    val argClasses = summonClassTags[A].map(_.runtimeClass)
-    val returnClass = summon[ClassTag[R]].runtimeClass
-    val exists =
-      invocations.exists { invocation =>
-        val mockitoMethod = invocation.getMethod
-        returnClass == mockitoMethod.getReturnType &&
-        argClasses.sameElements(mockitoMethod.getParameterTypes)
-      }
-    onExists(exists)
+  extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
-  /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
-    *
-    * @param method
-    *   the method to mock.
-    * @param strict
-    *   whether to throw if the method was already stubbed.
-    * @param stub
-    *   the stub implementation.
-    * @return
-    *   the mocked type.
-    */
-  inline def on[A1 <: Tuple, A2 <: Tuple, R1: ClassTag, R2: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A1, R1],
-      strict: Boolean = true
-  )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
-    if strict then
-      searchStub[A1, R1] { exists =>
-        if exists then
-          throw AlreadyStubbedMethod
-      }
-
-    val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
-    try
-      Mockito
-        .when(method(using mock).tupled.apply(args))
-        .thenAnswer { invocation =>
-          val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
-          stub.applyOrElse(
-            arguments,
-            _ =>
-              throw new IllegalArgumentException(
-                s"Mocked method received unexpected arguments: $arguments"
-              )
-          )
+    private inline def searchStub[A <: Tuple, R: ClassTag](onExists: Boolean => Unit): Unit =
+      val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
+      val argClasses = summonClassTags[A].map(_.runtimeClass)
+      val returnClass = summon[ClassTag[R]].runtimeClass
+      val exists =
+        invocations.exists { invocation =>
+          val mockitoMethod = invocation.getMethod
+          returnClass == mockitoMethod.getReturnType &&
+          argClasses.sameElements(mockitoMethod.getParameterTypes)
         }
-    catch
-      case _: InvalidUseOfMatchersException | _: MissingMethodInvocationException =>
-        throw NotAMethodOnType
-      case e =>
-        throw e
-    mock
+      onExists(exists)
 
-  /** Yields the captured arguments received by a stubbed method, in chronological order, in the
-    * form of a tuple with the same shape as the method arguments. Refer to [[Smockito]] for a usage
-    * example.
-    *
-    * @param method
-    *   the mocked method.
-    * @param strict
-    *   whether to throw if the method was not stubbed.
-    * @return
-    *   the received arguments.
-    */
-  inline def calls[A <: Tuple: ClassTag, R: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A, R],
-      strict: Boolean = true
-  )(using ValueOf[Size[A]]): List[A] =
-    if strict then
-      searchStub[A, R](exists =>
-        if !exists then
-          throw UnstubbedMethod
-      )
+    /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
+      *
+      * @param method
+      *   the method to mock.
+      * @param strict
+      *   whether to throw if the method was already stubbed.
+      * @param stub
+      *   the stub implementation.
+      * @return
+      *   the mocked type.
+      */
+    inline def on[A1 <: Tuple, A2 <: Tuple, R1: ClassTag, R2: ClassTag](
+        method: Mock[T] ?=> MockedMethod[A1, R1],
+        strict: Boolean = true
+    )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
+      if strict then
+        searchStub[A1, R1] { exists =>
+          if exists then
+            throw AlreadyStubbedMethod
+        }
 
-    inline erasedValue[A] match
-      case _: EmptyTuple =>
-        // Unfortunately, Mockito does not expose a reliable API for this use case.
-        // As such, we may yield a value higher than the actual number of calls to this method.
-        val invocations = Mockito.mockingDetails(mock).getInvocations
-        val matchingInvocations =
-          invocations
-            .asScala
-            .count { invocation =>
-              val mockitoMethod = invocation.getMethod
-              mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
-              mockitoMethod.getParameterCount == 0
-            }
-        List.fill(matchingInvocations)(EmptyTuple.asInstanceOf[A])
+      val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
+      try
+        Mockito
+          .when(method(using mock).tupled.apply(args))
+          .thenAnswer { invocation =>
+            val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
+            stub.applyOrElse(
+              arguments,
+              _ =>
+                throw new IllegalArgumentException(
+                  s"Mocked method received unexpected arguments: $arguments"
+                )
+            )
+          }
+      catch
+        case _: InvalidUseOfMatchersException | _: MissingMethodInvocationException =>
+          throw NotAMethodOnType
+        case e =>
+          throw e
+      mock
 
-      case _ =>
-        val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
-        val _ =
-          method(using Mockito.verify(mock, atLeast(0)))
-            .tupled
-            .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
-        argCaptors
-          .map(_.getAllValues.toArray)
-          .transpose
-          .map(Tuple.fromArray(_).asInstanceOf[A])
-          .toList
+    /** Yields the captured arguments received by a stubbed method, in chronological order, in the
+      * form of a tuple with the same shape as the method arguments. Refer to [[Smockito]] for a
+      * usage example.
+      *
+      * @param method
+      *   the mocked method.
+      * @param strict
+      *   whether to throw if the method was not stubbed.
+      * @return
+      *   the received arguments.
+      */
+    inline def calls[A <: Tuple: ClassTag, R: ClassTag](
+        method: Mock[T] ?=> MockedMethod[A, R],
+        strict: Boolean = true
+    )(using ValueOf[Size[A]]): List[A] =
+      if strict then
+        searchStub[A, R](exists =>
+          if !exists then
+            throw UnstubbedMethod
+        )
 
-  /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
-    *
-    * @param method
-    *   the mocked method.
-    * @param strict
-    *   whether to throw if the method was not stubbed.
-    * @return
-    *   the number of calls to the stub.
-    */
-  inline def times[A <: Tuple: ClassTag, R: ClassTag](
-      method: Mock[T] ?=> MockedMethod[A, R],
-      strict: Boolean = true
-  )(using ValueOf[Size[A]]): Int =
-    inline erasedValue[A] match
-      case _: EmptyTuple =>
-        mock.calls[A, R](method, strict).size
-      case _: (h *: t) =>
-        if strict then
-          searchStub[A, R](exists =>
-            if !exists then
-              throw UnstubbedMethod
-          )
+      inline erasedValue[A] match
+        case _: EmptyTuple =>
+          // Unfortunately, Mockito does not expose a reliable API for this use case.
+          // As such, we may yield a value higher than the actual number of calls to this method.
+          val invocations = Mockito.mockingDetails(mock).getInvocations
+          val matchingInvocations =
+            invocations
+              .asScala
+              .count { invocation =>
+                val mockitoMethod = invocation.getMethod
+                mockitoMethod.getReturnType == summon[ClassTag[R]].runtimeClass &&
+                mockitoMethod.getParameterCount == 0
+              }
+          List.fill(matchingInvocations)(EmptyTuple.asInstanceOf[A])
 
-        // We do a little trick here: capturing the first argument is enough for counting the
-        // number of calls.
-        val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
-        val _ =
-          method(using Mockito.verify(mock, atLeast(0)))
-            .tupled
-            .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
-        cap.getAllValues.size
+        case _ =>
+          val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
+          val _ =
+            method(using Mockito.verify(mock, atLeast(0)))
+              .tupled
+              .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
+          argCaptors
+            .map(_.getAllValues.toArray)
+            .transpose
+            .map(Tuple.fromArray(_).asInstanceOf[A])
+            .toList
+
+    /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
+      *
+      * @param method
+      *   the mocked method.
+      * @param strict
+      *   whether to throw if the method was not stubbed.
+      * @return
+      *   the number of calls to the stub.
+      */
+    inline def times[A <: Tuple: ClassTag, R: ClassTag](
+        method: Mock[T] ?=> MockedMethod[A, R],
+        strict: Boolean = true
+    )(using ValueOf[Size[A]]): Int =
+      inline erasedValue[A] match
+        case _: EmptyTuple =>
+          mock.calls[A, R](method, strict).size
+        case _: (h *: t) =>
+          if strict then
+            searchStub[A, R](exists =>
+              if !exists then
+                throw UnstubbedMethod
+            )
+
+          // We do a little trick here: capturing the first argument is enough for counting the
+          // number of calls.
+          val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
+          val _ =
+            method(using Mockito.verify(mock, atLeast(0)))
+              .tupled
+              .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
+          cap.getAllValues.size
 
 object Mock:
 

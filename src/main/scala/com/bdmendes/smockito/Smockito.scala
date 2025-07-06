@@ -54,7 +54,7 @@ import scala.reflect.ClassTag
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   */
-trait Smockito:
+trait Smockito extends MockSyntax:
 
   /** Creates a [[Mock]] instance of `T`.
     *

@@ -1,7 +1,7 @@
 import Dependencies.*
 
 ThisBuild / scalaVersion := Dependencies.Versions.scala
-ThisBuild / version := "0.1.0-rc1"
+ThisBuild / version := "0.1.0-rc2"
 ThisBuild / organization := "com.bdmendes"
 ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
 ThisBuild / description := "Tiny Scala facade for Mockito."
