@@ -36,3 +36,5 @@ class MockedMethodSpec extends munit.FunSuite:
       (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
       (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
+    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
+      (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
