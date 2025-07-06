@@ -10,6 +10,8 @@ import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
+/** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
+  */
 opaque type Mock[T] = T
 
 extension [T](mock: Mock[T])(using ct: ClassTag[T])
@@ -26,6 +28,21 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
       }
     onExists(exists)
 
+  /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
+    *
+    * @param method
+    *   the method to mock.
+    * @param strict
+    *   whether to throw if the method was already stubbed.
+    * @param stub
+    *   the stub implementation.
+    * @return
+    *   the mocked type.
+    * @throws AlreadyStubbedMethod
+    *   if the method was already stubbed.
+    * @throws NotAMethodOnType
+    *   if the method is not a part of the mocked object.
+    */
   inline def on[A1 <: Tuple, A2 <: Tuple, R1: ClassTag, R2: ClassTag](
       method: Mock[T] ?=> MockedMethod[A1, R1],
       strict: Boolean = true
@@ -57,6 +74,17 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         throw e
     mock
 
+  /** Yields the captured arguments received by a stubbed method, in chronological order, in the
+    * form of a tuple with the same shape as the method arguments. Refer to [[Smockito]] for a usage
+    * example.
+    *
+    * @param method
+    *   the mocked method.
+    * @param strict
+    *   whether to throw if the method was not stubbed.
+    * @return
+    *   the received arguments.
+    */
   inline def calls[A <: Tuple: ClassTag, R: ClassTag](
       method: Mock[T] ?=> MockedMethod[A, R],
       strict: Boolean = true
@@ -94,6 +122,15 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
           .map(Tuple.fromArray(_).asInstanceOf[A])
           .toList
 
+  /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
+    *
+    * @param method
+    *   the mocked method.
+    * @param strict
+    *   whether to throw if the method was not stubbed.
+    * @return
+    *   the number of calls to the stub.
+    */
   inline def times[A <: Tuple: ClassTag, R: ClassTag](
       method: Mock[T] ?=> MockedMethod[A, R],
       strict: Boolean = true
