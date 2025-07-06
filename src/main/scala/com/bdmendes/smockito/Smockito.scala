@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
   *         def getWith(startsWith: String, endsWith: String): List[T]
   *      case class User(username: String)
   *
-  *   trait Specification extends Smockito:
+  *   class Specification extends Smockito:
   *      val mockUsers = List(User("johndoe"), User("barackobama"))
   *
   *      // Chain stubs to set up a mock instance.
