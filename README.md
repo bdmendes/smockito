@@ -16,7 +16,7 @@ Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://githu
 
 ## Motivation
 
-Even when designed software components make use of proper dependency injection, a mocking framework is useful as a construction and interception sugar. [scalamock](https://scalamock.org/) is an excellent native tool for that use case, but has [its limitations](https://scalamock.org/). [Mockito](https://github.com/mockito/mockito), on the other hand, is very powerful and popular, but exposes a very Java-like API that arguably does not fit well with Scala's expressiveness and safety.
+Even when designed software components make use of proper dependency injection, a mocking framework is useful as a construction and interception sugar. [scalamock](https://scalamock.org/) is an excellent native tool for that use case, but has [its limitations](https://scalamock.org/faq#what-is-not-mockable). [Mockito](https://github.com/mockito/mockito), on the other hand, is very powerful and popular, but exposes a Java API that arguably does not fit well with Scala's expressiveness and safety.
 
 Smockito leverages a subset of Mockito’s features and offers a minimal, opinionated interface, guided by a few core principles:
 
@@ -92,13 +92,13 @@ A matter of personal taste. I would say - the bare minimum to increase your test
 
 You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. The Smockito API should support most sane use cases, though. Can you express your test following the above guidelines?
 
-### Smockito flagged *overriden method stub*/X/Y/Z incorrectly.
+### Smockito flagged *already stubbed method*/X/Y/Z incorrectly.
 
-Smockito relies on a method's type signature to identify the stubbings in the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, the error will be raised. In that case, disable the check at the call site. If the behavior still does not make sense to you, see below.
+Smockito relies on a method's type signature to identify the stubbings in the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behavior still does not make sense to you, you might be facing a bug.
 
 ### I can't seem to stub a method/I found a bug.
 
-Are you using eta-expansion correctly? If everything looks fine on your side, please file an issue with a minimal reproducible example.
+Are you performing eta-expansion correctly? If everything looks fine on your side, please file an issue with a minimal reproducible example.
 
 ### What can I do with the source code?
 
