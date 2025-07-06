@@ -86,7 +86,11 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 ### What should I mock?
 
-A matter of personal taste. I would say - the bare minimum to increase your test surface. If possible, use simple higher order-functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
+A matter of personal taste. I would say - the bare minimum to increase your test surface. If possible, use simple higher-order functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
+
+### Is Smockito thread-safe?
+
+[As thread-safe as Mockito](https://github.com/mockito/mockito/wiki/FAQ#is-mockito-thread-safe).
 
 ### I need to override stubs/reset mocks/X/Y/Z.
 
@@ -94,7 +98,7 @@ You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be pass
 
 ### Smockito flagged *already stubbed method*/X/Y/Z incorrectly.
 
-Smockito relies on a method's type signature to identify the stubbings in the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behavior still does not make sense to you, you might be facing a bug.
+Smockito relies on a method's type signature to identify the stubbings in the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behaviour still does not make sense to you, you might be facing a bug.
 
 ### I can't seem to stub a method/I found a bug.
 
