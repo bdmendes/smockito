@@ -2,8 +2,9 @@
 
 <!-- <img src="" width="" height="" align="right"> !-->
 
-[![Build Status](https://github.com/bdmendes/smockito/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/bdmendes/smockito/actions?query=workflow%3ACI+branch%3Amaster)
-<!-- [![Coverage Status](https://coveralls.io/repos/bdmendes/smockito/badge.svg?branch=master)](https://coveralls.io/bdmendes/smockito?branch=master) !-->
+[![Build](https://img.shields.io/github/actions/workflow/status/bdmendes/smockito/ci.yml)](https://github.com/bdmendes/smockito/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/bdmendes/smockito/master)](https://app.codecov.io/gh/bdmendes/smockito)
+<!-- [![Release](https://img.shields.io/github/v/release/bdmendes/smockito?color=orange)](https://github.com/bdmendes/smockito/releases) !-->
 <!-- [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.bdmendes.smockito/smockito_3/badge.svg)](https://search.maven.org/artifact/com.bdmendes.smockito/smockito_3) --!>
 <!-- [![Scaladoc](https://javadoc.io/badge/com.bdmendes.smockito/smockito_3.svg)](https://javadoc.io/page/com.bdmendes.smockito/smockito_3/latest/smockito/index.html) -->
 
