@@ -1,7 +1,7 @@
 import Dependencies.*
 
 ThisBuild / scalaVersion := Dependencies.Versions.scala
-ThisBuild / version := "0.1.0-rc2"
+ThisBuild / version := "0.1.0-rc4"
 ThisBuild / organization := "com.bdmendes"
 ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
 ThisBuild / description := "Tiny Scala facade for Mockito."
@@ -29,5 +29,11 @@ lazy val root =
           "-release",
           Dependencies.Versions.java
         ),
-      libraryDependencies ++= Seq(mockito, munit % Test)
+      libraryDependencies ++= Seq(mockito, munit % Test),
+      Compile / packageBin / packageOptions +=
+        Package.ManifestAttributes(
+          "Premain-Class" -> "com.bdmendes.smockito.internal.MockitoAgent",
+          "Can-Redefine-Classes" -> "true",
+          "Can-Retransform-Classes" -> "true"
+        )
     )
