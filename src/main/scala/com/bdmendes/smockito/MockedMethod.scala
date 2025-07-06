@@ -11,27 +11,27 @@ object MockedMethod:
 
   // scalafmt: { maxColumn = 150 }
 
-  given conv0[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: EmptyTuple) => f()
+  given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: EmptyTuple) => f()
 
-  given conv1[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: Tuple1[A]) => f(arg._1)
+  given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: Tuple1[A]) => f(arg._1)
 
-  given conv2[A1, A2, R]: Conversion[(A1, A2) => R, MockedMethod[(A1, A2), R]] = f => f.tupled
+  given conv02[A1, A2, R]: Conversion[(A1, A2) => R, MockedMethod[(A1, A2), R]] = f => f.tupled
 
-  given conv3[A1, A2, A3, R]: Conversion[(A1, A2, A3) => R, MockedMethod[(A1, A2, A3), R]] = f => f.tupled
+  given conv03[A1, A2, A3, R]: Conversion[(A1, A2, A3) => R, MockedMethod[(A1, A2, A3), R]] = f => f.tupled
 
-  given conv4[A1, A2, A3, A4, R]: Conversion[(A1, A2, A3, A4) => R, MockedMethod[(A1, A2, A3, A4), R]] = f => f.tupled
+  given conv04[A1, A2, A3, A4, R]: Conversion[(A1, A2, A3, A4) => R, MockedMethod[(A1, A2, A3, A4), R]] = f => f.tupled
 
-  given conv5[A1, A2, A3, A4, A5, R]: Conversion[(A1, A2, A3, A4, A5) => R, MockedMethod[(A1, A2, A3, A4, A5), R]] = f => f.tupled
+  given conv05[A1, A2, A3, A4, A5, R]: Conversion[(A1, A2, A3, A4, A5) => R, MockedMethod[(A1, A2, A3, A4, A5), R]] = f => f.tupled
 
-  given conv6[A1, A2, A3, A4, A5, A6, R]: Conversion[(A1, A2, A3, A4, A5, A6) => R, MockedMethod[(A1, A2, A3, A4, A5, A6), R]] = f => f.tupled
+  given conv06[A1, A2, A3, A4, A5, A6, R]: Conversion[(A1, A2, A3, A4, A5, A6) => R, MockedMethod[(A1, A2, A3, A4, A5, A6), R]] = f => f.tupled
 
-  given conv7[A1, A2, A3, A4, A5, A6, A7, R]: Conversion[(A1, A2, A3, A4, A5, A6, A7) => R, MockedMethod[(A1, A2, A3, A4, A5, A6, A7), R]] =
+  given conv07[A1, A2, A3, A4, A5, A6, A7, R]: Conversion[(A1, A2, A3, A4, A5, A6, A7) => R, MockedMethod[(A1, A2, A3, A4, A5, A6, A7), R]] =
     f => f.tupled
 
-  given conv8[A1, A2, A3, A4, A5, A6, A7, A8, R]
+  given conv08[A1, A2, A3, A4, A5, A6, A7, A8, R]
       : Conversion[(A1, A2, A3, A4, A5, A6, A7, A8) => R, MockedMethod[(A1, A2, A3, A4, A5, A6, A7, A8), R]] = f => f.tupled
 
-  given conv9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]
+  given conv09[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]
       : Conversion[(A1, A2, A3, A4, A5, A6, A7, A8, A9) => R, MockedMethod[(A1, A2, A3, A4, A5, A6, A7, A8, A9), R]] = f => f.tupled
 
   given conv10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R]

@@ -183,13 +183,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val user = mockUsers.head
 
     // If for some reason someone forges the API, we should be alert.
-    intercept[NotAMethodOnType[Repository[User]]] {
+    intercept[NotAMethodOnType.type] {
       repository.on(() => user.caps)(_ => "MENDES")
     }
 
     // Scala converts `it.get` to an `Int => User` since the method returns a `List[User]`.
     // This is quite unfortunate, so we should at least provide a useful error in runtime.
-    intercept[NotAMethodOnType[Repository[User]]] {
+    intercept[NotAMethodOnType.type] {
       repository.on(it.get)(_ => mockUsers.head)
     }
 

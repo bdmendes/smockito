@@ -38,10 +38,6 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
     *   the stub implementation.
     * @return
     *   the mocked type.
-    * @throws AlreadyStubbedMethod
-    *   if the method was already stubbed.
-    * @throws NotAMethodOnType
-    *   if the method is not a part of the mocked object.
     */
   inline def on[A1 <: Tuple, A2 <: Tuple, R1: ClassTag, R2: ClassTag](
       method: Mock[T] ?=> MockedMethod[A1, R1],
@@ -69,7 +65,7 @@ extension [T](mock: Mock[T])(using ct: ClassTag[T])
         }
     catch
       case _: InvalidUseOfMatchersException | _: MissingMethodInvocationException =>
-        throw NotAMethodOnType(ct)
+        throw NotAMethodOnType
       case e =>
         throw e
     mock

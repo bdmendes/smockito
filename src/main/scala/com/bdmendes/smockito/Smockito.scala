@@ -6,16 +6,25 @@ import scala.reflect.ClassTag
   * `Mockito`.
   *
   * {{{
+  *   object Specification:
+  *      abstract class Repository[T](val name: String):
+  *         def get: List[T]
+  *         def exists(username: String): Boolean
+  *         def getWith(startsWith: String, endsWith: String): List[T]
+  *      case class User(username: String)
+  *
   *   trait Specification extends Smockito:
+  *      val mockUsers = List(User("johndoe"), User("barackobama"))
+  *
   *      // Chain stubs to set up a mock instance.
   *      val repository = mock[Repository[User]]
-  *         .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
-  *         .on(() => it.get)(_ => mockUsers)
-  *         .on(it.getWith) { case (start, end) =>
-  *           mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-  *         } // Mock[Repository[T]]
+  *          .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
+  *          .on(() => it.get)(_ => mockUsers)
+  *          .on(it.getWith) { case (start, end) =>
+  *            mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+  *          } // Mock[Repository[T]]
   *
-  *      // A `Mock[T]` is effectively a `T`, both at compile and runtimes.
+  *      // A `Mock[T]` is effectively a `T`, both at compile and runtime.
   *      assert(repository.getWith("john", "doe") == User("johndoe")
   *
   *      // Observe the past method interactions.
@@ -27,21 +36,21 @@ import scala.reflect.ClassTag
   * [[https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html eta-expanded method]] as the
   * first argument. The [[it]] shorthand is a terse way of capturing the mocked type in context.
   *
-  * Method stubs are set up with [[Mock.on]]. Besides the method to mock, it requires a
+  * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
   * [[PartialFunction]] to handle the expected inputs, represented as a well-typed tuple, with the
   * same shape as the mocked method arguments, that one may destructure.
   *
-  * [[Mock.calls]] provides the captured arguments of all the past invocations of a stubbed method,
-  * in chronological order, in the form of a tuple with the same shape as the method arguments, à la
-  * `scalamock`. If one only cares about the number of times a stub was called, [[Mock.times]] is
-  * more efficient.
+  * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
+  * chronological order, in the form of a tuple with the same shape as the method arguments, à la
+  * `scalamock`. If one only cares about the number of times a stub was called, [[times]] is more
+  * efficient.
   *
   * Besides the obvious type safety differences at compile time, [[Smockito]] is more opinionated
   * than `Mockito` regarding the way one is allowed to set up mocks at runtime:
   *   - It will throw when a stub override is provided, discouraging a change of behaviour during
   *     the lifetime of a mock. The stub should be unique, predictable and handle all relevant cases
   *     upfront.
-  *   - It will throw when `calls` or `times` is called on an unstubbed method.
+  *   - It will throw when `calls` or `times` are called on an unstubbed method.
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   */
@@ -52,8 +61,6 @@ trait Smockito:
     * A `Mock[T]` is the [[Smockito]] compile time representation of a type mocked by Mockito,
     * erased at runtime. As such, after you set up method stubs, you may pass a mock anywhere a `T`
     * is needed.
-    *
-    * See [[Mock.on]], [[Mock.calls]] and [[Mock.times]] for the methods available on `Mock`.
     *
     * @tparam T
     *   the type to mock.
@@ -82,9 +89,9 @@ object Smockito:
 
   enum SmockitoException(val msg: String) extends Exception(s"$msg\n$exceptionTrailer"):
 
-    case NotAMethodOnType[T](ct: ClassTag[T])
+    case NotAMethodOnType
         extends SmockitoException(
-          s"The received method does not exist on ${ct.toString()}. " +
+          s"The received method does not exist on the mocked type. " +
             "Are you performing eta-expansion correctly?"
         )
 
