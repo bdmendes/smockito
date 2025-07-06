@@ -12,20 +12,20 @@ import scala.reflect.ClassTag
   *         def exists(username: String): Boolean
   *         def getWith(startsWith: String, endsWith: String): List[T]
   *      case class User(username: String)
+  *      val mockUsers = List(User("johndoe"), User("barackobama"))
   *
   *   class Specification extends Smockito:
-  *      val mockUsers = List(User("johndoe"), User("barackobama"))
   *
   *      // Chain stubs to set up a mock instance.
   *      val repository = mock[Repository[User]]
-  *          .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
   *          .on(() => it.get)(_ => mockUsers)
+  *          .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
   *          .on(it.getWith) { case (start, end) =>
   *            mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-  *          } // Mock[Repository[T]]
+  *          } // Mock[Repository[User]]
   *
   *      // A `Mock[T]` is effectively a `T`, both at compile and runtime.
-  *      assert(repository.getWith("john", "doe") == User("johndoe")
+  *      assert(repository.getWith("john", "doe") == User("johndoe"))
   *
   *      // Observe the past method interactions.
   *      assert(repository.calls(it.getWith) == List(("john", "doe")))
