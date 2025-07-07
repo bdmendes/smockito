@@ -2,9 +2,9 @@ package com.bdmendes.smockito
 
 import Mock.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
+import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
-import org.mockito.invocation.Invocation
 import scala.Tuple.Size
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -20,7 +20,7 @@ private[smockito] trait MockSyntax:
   extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
     private inline def matching[A <: Tuple, R: ClassTag](
-        invocations: Iterable[Invocation]
+        invocations: Iterable[invocation.Invocation]
     ): List[Method] =
       // Get all methods that may correspond to our types.
       // Due to erasure, we might get extra matches.
@@ -33,9 +33,12 @@ private[smockito] trait MockSyntax:
         }
         .toList
 
-    private inline def matchingStubs[A <: Tuple, R: ClassTag]: List[Method] =
+    private inline def assertStubbedBefore[A <: Tuple, R: ClassTag]: Unit =
+      // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
+      // runtime without introducing complicated state management in this trait.
       val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
-      matching[A, R](invocations)
+      if matching[A, R](invocations).isEmpty then
+        throw UnstubbedMethod
 
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
       *
@@ -56,13 +59,10 @@ private[smockito] trait MockSyntax:
           val arguments = invocation.getArguments
 
           // If this stub is invoked with nulls, assume we are in the process of setting up
-          // another stub (i.e. using ArgumentMatchers.any ~ null).
-          // Assuming a method won't normally receive null should not be a problem in the Scala
-          // world.
-          // Also, this does not collide with our verifications, as at least one argument captor
-          // is used.
-          if !arguments.isEmpty && matchingStubs[A1, R1].nonEmpty &&
-            arguments.sameElements(Array.fill[Any](arguments.size)(null))
+          // a stub override (i.e. using ArgumentMatchers.any ~ null).
+          // Assuming a method won't receive null should not be a problem in the Scala world.
+          // Also, this does not collide with our verifications, as at least one captor is used.
+          if !arguments.isEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
           then
             throw AlreadyStubbedMethod
 
@@ -92,9 +92,7 @@ private[smockito] trait MockSyntax:
           List.fill(times[A, R](method))(EmptyTuple.asInstanceOf[A])
 
         case _ =>
-          if matchingStubs[A, R].isEmpty then
-            throw UnstubbedMethod
-
+          assertStubbedBefore[A, R]
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
           val _ =
             method(using Mockito.verify(mock, Mockito.atLeast(0)))
@@ -116,9 +114,7 @@ private[smockito] trait MockSyntax:
     inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
         using ValueOf[Size[A]]
     ): Int =
-      if matchingStubs[A, R].isEmpty then
-        throw UnstubbedMethod
-
+      assertStubbedBefore[A, R]
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Unfortunately, Mockito does not expose a reliable API for this use case.
@@ -148,22 +144,6 @@ object Mock:
 
   private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()
   private[smockito] lazy val captor = [X] => () => ArgumentCaptor.captor[X]()
-
-  private[smockito] inline def mapTuple[T <: Tuple, R: ClassTag](
-      inline f: [X] => () => R
-  ): Array[R] =
-    inline erasedValue[T] match
-      case _: EmptyTuple =>
-        Array.empty
-      case _: (h *: t) =>
-        f[h]() +: mapTuple[t, R](f)
-
-  private[smockito] inline def summonClassTags[T <: Tuple]: Array[ClassTag[?]] =
-    inline erasedValue[T] match
-      case _: EmptyTuple =>
-        Array.empty
-      case _: (h *: t) =>
-        summonInline[ClassTag[h]] +: summonClassTags[t]
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
