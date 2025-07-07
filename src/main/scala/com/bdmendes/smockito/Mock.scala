@@ -94,15 +94,13 @@ private[smockito] trait MockSyntax:
           // the result.
           val invocations =
             matching[EmptyTuple, R](Mockito.mockingDetails(mock).getInvocations.asScala).size
-          val validInvocations = (1 to invocations)
-            .reverse
-            .find { count =>
-              Try(
-                method(using Mockito.verify(mock, Mockito.times(count)))
-                  .tupled
-                  .apply(EmptyTuple.asInstanceOf[A])
-              ).isSuccess
-            }
+          val validInvocations = (invocations to 1 by -1).find { count =>
+            Try(
+              method(using Mockito.verify(mock, Mockito.times(count)))
+                .tupled
+                .apply(EmptyTuple.asInstanceOf[A])
+            ).isSuccess
+          }
           List.fill(validInvocations.getOrElse(0))(EmptyTuple.asInstanceOf[A])
 
         case _ =>
