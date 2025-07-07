@@ -215,14 +215,28 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("luismontenegro")))
     assert(repository.calls(() => it.get).size == 1)
 
-  test("alert on invalid received method"):
-    val repository = mock[Repository[User]]
-    val user = mockUsers.head
+  test("throw on repeated stub set up"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
-    // If for some reason someone forges the API, we should be alert.
-    intercept[NotAMethodOnType.type] {
-      repository.on(() => user.caps)(_ => "MENDES")
+    // We can't perform this check for methods with no arguments.
+    val _ = repository.on(() => it.get)(_ => List.empty)
+
+    repository.on(it.contains) { case Tuple1(User("bdmendes")) =>
+      true
     }
+
+    intercept[AlreadyStubbedMethod.type] {
+      repository.on(it.contains)(_ => false)
+    }
+
+    val _ = repository.on(it.getWith)(_ => List.empty)
+
+    intercept[AlreadyStubbedMethod.type] {
+      repository.on(it.getWith)(_ => List.empty)
+    }
+
+  test("throw on invalid received method"):
+    val repository = mock[Repository[User]]
 
     // Scala converts `it.get` to an `Int => User` since the method returns a `List[User]`.
     // This is quite unfortunate, so we should at least provide a useful error in runtime.
@@ -230,7 +244,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.get)(_ => mockUsers.head)
     }
 
-  test("alert on reasoning on unstubbed methods"):
+  test("throw on reasoning on unstubbed methods"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
     // We should not be able to reason about unstubbed methods.

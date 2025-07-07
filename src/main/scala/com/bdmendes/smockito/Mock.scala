@@ -54,9 +54,15 @@ private[smockito] trait MockSyntax:
           .when(method(using mock).tupled.apply(args))
           .thenAnswer { invocation =>
             val arguments = invocation.getArguments
+
+            // If this stub is invoked with nulls, assume we are in the process of setting up
+            // another stub (i.e. using ArgumentMatchers.any ~ null).
+            // Assuming a method won't normally receive null should not be a problem in the Scala
+            // world.
             if !arguments.isEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
             then
               throw AlreadyStubbedMethod
+
             stub.applyOrElse(
               Tuple.fromArray(arguments).asInstanceOf[A2],
               _ => throw UnexpectedArguments(arguments)
