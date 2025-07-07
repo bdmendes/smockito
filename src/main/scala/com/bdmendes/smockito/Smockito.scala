@@ -6,22 +6,19 @@ import scala.reflect.ClassTag
   * `Mockito`.
   *
   * {{{
-  *   object Specification:
-  *      abstract class Repository[T](val name: String):
-  *         def get: List[T]
-  *         def exists(username: String): Boolean
-  *         def getWith(startsWith: String, endsWith: String): List[T]
-  *      case class User(username: String)
-  *      val mockUsers = List(User("johndoe"), User("barackobama"))
+  *   abstract class Repository[T](val name: String):
+  *      def get: List[T]
+  *      def exists(username: String): Boolean
+  *      def getWith(startsWith: String, endsWith: String): List[T]
   *
-  *   class Specification extends Smockito:
+  *   case class User(username: String)
   *
+  *   class RepositorySpecification extends Smockito:
   *      // Chain stubs to set up a mock instance.
   *      val repository = mock[Repository[User]]
-  *          .on(() => it.get)(_ => mockUsers)
-  *          .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
-  *          .on(it.getWith) { case (start, end) =>
-  *            mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+  *          .on(() => it.get)(_ => List(User("johndoe")))
+  *          .on(it.getWith) {
+  *              case ("john", "doe") => User("johndoe")
   *          } // Mock[Repository[User]]
   *
   *      // A `Mock[T]` is effectively a `T`, both at compile and runtime.

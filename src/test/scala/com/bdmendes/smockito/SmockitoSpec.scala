@@ -203,9 +203,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // We can't perform this check for methods with no arguments.
     val _ = repository.on(() => it.get)(_ => List.empty)
 
-    repository.on(it.contains) { case Tuple1(User("bdmendes")) =>
-      true
-    }
+    val _ =
+      repository.on(it.contains) { case Tuple1(User("bdmendes")) =>
+        true
+      }
 
     intercept[AlreadyStubbedMethod.type] {
       repository.on(it.contains)(_ => false)
@@ -247,8 +248,7 @@ object SmockitoSpec:
     def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
     def exists(username: String): Boolean = repository.exists(username)
 
-  case class User(username: String):
-    def caps = username.toUpperCase()
+  case class User(username: String)
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))
