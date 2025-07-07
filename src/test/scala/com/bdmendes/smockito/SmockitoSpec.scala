@@ -111,6 +111,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         .on(() => it.get)(_ => List.empty)
         .on(() => it.getNames)(_ => List.empty)
 
+    assertEquals(repository.calls(() => it.get), List.empty)
+    assertEquals(repository.calls(() => it.getNames), List.empty)
+
     assertEquals(repository.get, List.empty)
     assertEquals(repository.getNames, List.empty)
     assertEquals(repository.getNames, List.empty)
@@ -151,6 +154,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.times(() => it.get), 3)
+
+  test("count calls, on methods with 0 parameters, even when runtime return types collide"):
+    val repository =
+      mock[Repository[String]]
+        .on(() => it.get)(_ => List.empty)
+        .on(() => it.getNames)(_ => List.empty)
+
+    assertEquals(repository.times(() => it.get), 0)
+    assertEquals(repository.times(() => it.getNames), 0)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository.getNames, List.empty)
+    assertEquals(repository.getNames, List.empty)
+
+    assertEquals(repository.times(() => it.get), 1)
+    assertEquals(repository.times(() => it.getNames), 2)
 
   test("count calls, on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
