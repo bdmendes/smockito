@@ -21,13 +21,11 @@ Even when designed software components make use of proper dependency injection, 
 
 Smockito leverages a subset of Mockito’s features and offers a minimal, opinionated interface, guided by a few core principles:
 
-- A method may be stubbed only once, and use the same implementation for the lifetime of the mock.
-- A method stub should handle all inputs it is interested on; partiality is automatically handled.
-- A method stub is always executed, as the real method would; there is no equivalent of the `thenReturn` Mockito counterpart.
+- A method should be stubbed only once, and use the same implementation for the lifetime of the mock.
+- A method stub should handle all inputs it expects; partiality is automatically handled.
+- A method stub is always executed, as the real method would.
 - One may reason directly about the received arguments and number of calls of a stub.
 - One may not reason about the history of a method that was not stubbed.
-
-Some of these checks may be disabled at the call site, if needed. Check the API docs for more details.
 
 ## Quick Start
 
@@ -96,10 +94,6 @@ A matter of personal taste. Arguably, the bare minimum to increase your test sur
 ### I need to override stubs/reset mocks/X/Y/Z.
 
 You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. The Smockito API should support most sane use cases, though. Can you express your test following the above guidelines?
-
-### Smockito flagged *already stubbed method*/X/Y/Z incorrectly.
-
-Smockito relies on a method's runtime type signature to identify the stubbings at the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behaviour still does not make sense to you, you might be facing a bug.
 
 ### I can't seem to stub a method/I found a bug.
 

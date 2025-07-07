@@ -96,14 +96,27 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, List.empty)
 
-    assertEquals(repository.calls(() => it.get).size, 1)
+    assertEquals(repository.calls(() => it.get), List(EmptyTuple))
     assertEquals(sideEffectfulCounter, 1)
 
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
 
-    assertEquals(repository.calls(() => it.get).size, 3)
+    assertEquals(repository.calls(() => it.get), List(EmptyTuple, EmptyTuple, EmptyTuple))
     assertEquals(sideEffectfulCounter, 3)
+
+  test("inspect calls, on methods with 0 parameters, even when runtime return types collide"):
+    val repository =
+      mock[Repository[String]]
+        .on(() => it.get)(_ => List.empty)
+        .on(() => it.getNames)(_ => List.empty)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository.getNames, List.empty)
+    assertEquals(repository.getNames, List.empty)
+
+    assertEquals(repository.calls(() => it.get), List(EmptyTuple))
+    assertEquals(repository.calls(() => it.getNames), List(EmptyTuple, EmptyTuple))
 
   test("inspect calls, on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
@@ -210,26 +223,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.getWith, strict = false), 0)
     assertEquals(repository.calls(it.getWith, strict = false), List.empty)
 
-  test("alert on duplicate stub tentative"):
-    val repository =
-      mock[Repository[User]]
-        .on(() => it.get)(_ => List.empty)
-        .on(it.exists)(args => mockUsers.exists(_.username == args._1))
-        .on(it.contains)(args => mockUsers.contains(args._1))
-
-    // One should not stub a method twice.
-    intercept[AlreadyStubbedMethod.type] {
-      repository.on(() => it.get)(_ => mockUsers)
-    }
-
-    // But this can be disabled in the call site, falling back to Mockito overrides.
-    val _ = repository.on(() => it.get, strict = false)(_ => mockUsers)
-
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
     val longName = s"${name}Repository"
     def get: List[T]
+    def getNames: List[String]
     def exists(username: String): Boolean
     def contains(user: User): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]

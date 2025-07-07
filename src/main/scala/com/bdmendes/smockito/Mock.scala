@@ -19,17 +19,16 @@ private[smockito] trait MockSyntax:
 
   extension [T](mock: Mock[T])(using ct: ClassTag[T])
 
-    private inline def approximateMethod[A <: Tuple, R: ClassTag]: Option[Method] =
+    private inline def matchingMethods[A <: Tuple, R: ClassTag]: List[Method] =
       val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
       val argClasses = summonClassTags[A].map(_.runtimeClass)
       val returnClass = summon[ClassTag[R]].runtimeClass
       invocations
-        .find { invocation =>
-          val mockitoMethod = invocation.getMethod
-          returnClass == mockitoMethod.getReturnType &&
-          argClasses.sameElements(mockitoMethod.getParameterTypes)
-        }
         .map(_.getMethod)
+        .filter { method =>
+          returnClass == method.getReturnType && argClasses.sameElements(method.getParameterTypes)
+        }
+        .toList
 
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
       *
@@ -46,9 +45,6 @@ private[smockito] trait MockSyntax:
         method: Mock[T] ?=> MockedMethod[A1, R1],
         strict: Boolean = true
     )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
-      if strict && approximateMethod[A1, R1].isDefined then
-        throw AlreadyStubbedMethod
-
       val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
       try
         Mockito
@@ -85,7 +81,7 @@ private[smockito] trait MockSyntax:
         method: Mock[T] ?=> MockedMethod[A, R],
         strict: Boolean = true
     )(using ValueOf[Size[A]]): List[A] =
-      if strict && approximateMethod[A, R].isEmpty then
+      if strict && matchingMethods[A, R].isEmpty then
         throw UnstubbedMethod
 
       inline erasedValue[A] match
@@ -132,7 +128,7 @@ private[smockito] trait MockSyntax:
         case _: EmptyTuple =>
           mock.calls[A, R](method, strict).size
         case _: (h *: t) =>
-          if strict && approximateMethod[A, R].isEmpty then
+          if strict && matchingMethods[A, R].isEmpty then
             throw UnstubbedMethod
 
           // We do a little trick here: capturing the first argument is enough for counting the

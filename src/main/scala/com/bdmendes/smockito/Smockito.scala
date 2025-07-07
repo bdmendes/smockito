@@ -45,13 +45,6 @@ import scala.reflect.ClassTag
   * `scalamock`. If one only cares about the number of times a stub was called, [[times]] is more
   * efficient.
   *
-  * Besides the obvious type safety differences at compile time, [[Smockito]] is more opinionated
-  * than `Mockito` regarding the way one is allowed to set up mocks at runtime:
-  *   - It will throw when a stub override is provided, discouraging a change of behaviour during
-  *     the lifetime of a mock. The stub should be unique, predictable and handle all relevant cases
-  *     upfront.
-  *   - It will throw when `calls` or `times` are called on an unstubbed method.
-  *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   */
 trait Smockito extends MockSyntax:
@@ -100,14 +93,4 @@ object Smockito:
           s"The received method was not stubbed, so you cannot reason about it. " +
             "Are you performing eta-expansion correctly? " +
             "Did you forget to set up the stub first?"
-        )
-
-    case AlreadyStubbedMethod
-        extends SmockitoException(
-          s"The received method already has a stub. If you need to perform a different action " +
-            "on a subsequent invocation, replace the mock or reflect that intent " +
-            "through a state lookup in the stub.\n" +
-            "Mind that Smockito identifies stubbed methods by signature. If you previously mocked " +
-            "a different method with the same signature, this behaviour might be undesired. " +
-            "In that case, you may disable this check at the call site."
         )
