@@ -80,29 +80,26 @@ object Smockito:
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
       "If you think this is a bug, please open an issue with a minimal reproducible example."
 
-  enum SmockitoException(val msg: String) extends Exception(s"$msg\n$exceptionTrailer"):
+  sealed trait SmockitoException(val msg: String) extends Exception:
+    override def getMessage(): String = s"$msg\n$exceptionTrailer"
 
-    case NotAMethodOnType
-        extends SmockitoException(
-          s"The received method does not exist on the mocked type. " +
-            "Are you performing eta-expansion correctly?"
-        )
+  object SmockitoException:
 
-    case UnstubbedMethod
+    case object UnstubbedMethod
         extends SmockitoException(
           s"The received method was not stubbed, so you cannot reason about it. " +
             "Are you performing eta-expansion correctly? " +
             "Did you forget to set up the stub first?"
         )
 
-    case AlreadyStubbedMethod
+    case object AlreadyStubbedMethod
         extends SmockitoException(
           s"The received method already has a stub. If you need to perform a different action " +
             "on a subsequent invocation, replace the mock or reflect that intent " +
             "through a state lookup in the stub."
         )
 
-    case UnexpectedArguments(arguments: Array[Object])
+    case class UnexpectedArguments(arguments: Array[Object])
         extends SmockitoException(
           s"The method received unexpected arguments: (${arguments.mkString(", ")}). " +
             "Did you forget to handle this case at the stub?"

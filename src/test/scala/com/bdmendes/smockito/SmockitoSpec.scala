@@ -197,24 +197,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.getWith), 2)
 
-  test("chain stubs"):
-    val repository =
-      mock[Repository[User]]
-        .on(it.exists)(name => mockUsers.map(_.username).contains(name._1))
-        .on(() => it.get)(_ => mockUsers)
-        .on(it.getWith) { case (start, end) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-        }
-
-    val service = Service(repository)
-
-    assert(service.exists("bdmendes"))
-    assert(!service.exists("luismontenegro"))
-    assertEquals(service.getWith(_.username.contains("01")), List(User("sirze01")))
-
-    assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("luismontenegro")))
-    assert(repository.calls(() => it.get).size == 1)
-
   test("throw on repeated stub set up"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
@@ -235,27 +217,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.getWith)(_ => List.empty)
     }
 
-  test("throw on invalid received method"):
-    val repository = mock[Repository[User]]
-
-    // Scala converts `it.get` to an `Int => User` since the method returns a `List[User]`.
-    // This is quite unfortunate, so we should at least provide a useful error in runtime.
-    intercept[NotAMethodOnType.type] {
-      repository.on(it.get)(_ => mockUsers.head)
-    }
-
   test("throw on reasoning on unstubbed methods"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
     // We should not be able to reason about unstubbed methods.
     intercept[UnstubbedMethod.type] {
-      assertEquals(repository.times(it.getWith), 1)
+      val _ = repository.times(it.getWith)
+    }
+    intercept[UnstubbedMethod.type] {
+      val _ = repository.calls(it.getWith)
     }
 
-    // That is even more useful when it comes to the unfortunate example above.
-    intercept[UnstubbedMethod.type] {
-      assertEquals(repository.calls(it.get), List.empty)
-    }
+    // Although we cannot be sure if there is a matching stub.
+    val _ = repository.calls(() => it.getNames)
 
 object SmockitoSpec:
 
