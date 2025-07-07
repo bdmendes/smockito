@@ -17,15 +17,15 @@ Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://githu
 
 ## Motivation
 
-Even when designed software components make use of proper dependency injection, a mocking framework is useful as a construction and interception sugar. [scalamock](https://scalamock.org/) is an excellent native tool for that use case, but has [its limitations](https://scalamock.org/faq#what-is-not-mockable). [Mockito](https://github.com/mockito/mockito), on the other hand, is very powerful and popular, but exposes a Java API that arguably does not fit well with Scala's expressiveness and safety.
+Even when software components make use of proper dependency injection, a mocking framework is useful as a construction and interception sugar. [scalamock](https://scalamock.org/) is an excellent native tool for that use case, but has [its limitations](https://scalamock.org/faq#what-is-not-mockable). [Mockito](https://github.com/mockito/mockito), on the other hand, is very powerful and popular, but exposes a Java API that arguably does not fit well with Scala's expressiveness and safety.
 
 Smockito leverages a subset of Mockito’s features and offers a minimal, opinionated interface, guided by a few core principles:
 
 - A method should be stubbed only once, and use the same implementation for the lifetime of the mock.
-- A method stub should handle all inputs it expects; partiality is automatically handled.
-- A method stub is always executed, as the real method would.
+- A method stub should handle only the inputs it expects; errors should be handled by the framework.
+- A method stub should always be executed, as the real method would.
 - One may reason directly about the received arguments and number of calls of a stub.
-- One may not reason about the history of a method that was not stubbed.
+- One should not reason about the history of a method that was not stubbed.
 
 ## Quick Start
 
@@ -47,20 +47,18 @@ javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
 In your specification, extend `Smockito`. This will bring the `mock` method and relevant conversions to scope. To set up a mock, add stub definitions with the `on` method, which requires a [eta-expanded](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) method reference, that you may easily express with `it`, and a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html) on the tupled arguments to handle the relevant inputs.
 
 ```scala
-object Specification:
-    abstract class Repository[T](val name: String):
-        def get: List[T]
-        def exists(username: String): Boolean
-        def getWith(startsWith: String, endsWith: String): List[T]
-    case class User(username: String)
-    val mockUsers = List(User("johndoe"), User("barackobama"))
+abstract class Repository[T](val name: String):
+    def get: List[T]
+    def exists(username: String): Boolean
+    def getWith(startsWith: String, endsWith: String): List[T]
 
-class Specification extends Smockito:
+case class User(username: String)
+
+class RepositorySpecification extends Smockito:
     val repository = mock[Repository[User]]
-        .on(() => it.get)(_ => mockUsers)
-        .on(it.exists)(args => mockUsers.map(_.username).contains(args._1))
-        .on(it.getWith) { case (start, end) =>
-            mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+        .on(() => it.get)(_ => List(User("johndoe")))
+        .on(it.getWith) { 
+            case ("john", "doe") => User("johndoe")
         } // Mock[Repository[User]]
 ```
 
@@ -83,6 +81,10 @@ You may reason about method interactions with `calls` and `times`. If arguments 
 
 No. Smockito leverages a handful of powerful Scala 3 features, such as inlining, opaque types and contextual functions. If you are on the process of migrating a Scala 2 codebase, it might be a good opportunity to replace the likes of [specs2-mock](https://mvnrepository.com/artifact/org.specs2/specs2-mock) or [mockito-scala](https://github.com/mockito/mockito-scala) as you migrate your modules.
 
+### Is this really a mocking framework?
+
+This is a facade for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
+
 ### What should I mock?
 
 A matter of personal taste. Arguably, the bare minimum to increase your test surface. If possible, use simple higher-order functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
@@ -91,9 +93,9 @@ A matter of personal taste. Arguably, the bare minimum to increase your test sur
 
 [As thread-safe as Mockito](https://github.com/mockito/mockito/wiki/FAQ#is-mockito-thread-safe).
 
-### I need to override stubs/reset mocks/X/Y/Z.
+### I need to override stubs/assert invocation orders/X/Y/Z.
 
-You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. The Smockito API should support most sane use cases, though. Can you express your test following the above guidelines?
+You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
 
 ### I can't seem to stub a method/I found a bug.
 
