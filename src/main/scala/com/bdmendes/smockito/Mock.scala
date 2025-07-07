@@ -23,6 +23,8 @@ private[smockito] trait MockSyntax:
     private inline def matching[A <: Tuple, R: ClassTag](
         invocations: Iterable[Invocation]
     ): List[Method] =
+      // Get all methods that may correspond to our types.
+      // Due to erasure, we might get extra matches.
       val argClasses = summonClassTags[A].map(_.runtimeClass)
       val returnClass = summon[ClassTag[R]].runtimeClass
       invocations
@@ -59,7 +61,10 @@ private[smockito] trait MockSyntax:
             // another stub (i.e. using ArgumentMatchers.any ~ null).
             // Assuming a method won't normally receive null should not be a problem in the Scala
             // world.
-            if !arguments.isEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
+            // Also, this does not collide with our verifications, as at least one argument captor
+            // is used.
+            if !arguments.isEmpty && matchingStubs[A1, R1].nonEmpty &&
+              arguments.sameElements(Array.fill[Any](arguments.size)(null))
             then
               throw AlreadyStubbedMethod
 
@@ -84,29 +89,19 @@ private[smockito] trait MockSyntax:
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
-        using ValueOf[Size[A]]
-    ): List[A] =
-      if matchingStubs[A, R].isEmpty then
-        throw UnstubbedMethod
-
+    inline def calls[A <: Tuple: ClassTag, R: ClassTag](
+        method: Mock[T] ?=> MockedMethod[A, R]
+    )(using ValueOf[Size[A]]): List[A] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          // Unfortunately, Mockito does not expose a reliable API for this use case.
-          // We have to check all matching invocations, minding type erasure, and manually
-          // validate the result.
-          val invocations =
-            matching[EmptyTuple, R](Mockito.mockingDetails(mock).getInvocations.asScala).size
-          val validInvocations = (invocations to 1 by -1).find { count =>
-            Try(
-              method(using Mockito.verify(mock, Mockito.times(count)))
-                .tupled
-                .apply(EmptyTuple.asInstanceOf[A])
-            ).isSuccess
-          }
-          List.fill(validInvocations.getOrElse(0))(EmptyTuple.asInstanceOf[A])
+          // We could prevent calling this method in this case,
+          // but for keeping the API homogeneous, let's allow it.
+          List.fill(times[A, R](method))(EmptyTuple.asInstanceOf[A])
 
         case _ =>
+          if matchingStubs[A, R].isEmpty then
+            throw UnstubbedMethod
+
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
           val _ =
             method(using Mockito.verify(mock, Mockito.atLeast(0)))
@@ -125,16 +120,28 @@ private[smockito] trait MockSyntax:
       * @return
       *   the number of calls to the stub.
       */
-    inline def times[A <: Tuple: ClassTag, R: ClassTag](
-        method: Mock[T] ?=> MockedMethod[A, R]
-    )(using ValueOf[Size[A]]): Int =
+    inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
+        using ValueOf[Size[A]]
+    ): Int =
+      if matchingStubs[A, R].isEmpty then
+        throw UnstubbedMethod
+
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          mock.calls[A, R](method).size
+          // Unfortunately, Mockito does not expose a reliable API for this use case.
+          // We have to check all matching invocations, minding type erasure, and manually
+          // validate the result.
+          val invocations =
+            matching[EmptyTuple, R](Mockito.mockingDetails(mock).getInvocations.asScala).size
+          val validInvocations = (invocations to 1 by -1).find { count =>
+            Try(
+              method(using Mockito.verify(mock, Mockito.times(count)))
+                .tupled
+                .apply(EmptyTuple.asInstanceOf[A])
+            ).isSuccess
+          }
+          validInvocations.getOrElse(0)
         case _: (h *: t) =>
-          if matchingStubs[A, R].isEmpty then
-            throw UnstubbedMethod
-
           // We do a little trick here: capturing the first argument is enough for counting the
           // number of calls.
           val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
