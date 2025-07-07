@@ -99,7 +99,7 @@ You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be pass
 
 ### Smockito flagged *already stubbed method*/X/Y/Z incorrectly.
 
-Smockito relies on a method's type signature to identify the stubbings in the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behaviour still does not make sense to you, you might be facing a bug.
+Smockito relies on a method's runtime type signature to identify the stubbings at the core side. As such, e.g. if you mocked a `effect(): Unit` and a `setUp(): Unit`, both `() => Unit`, an error will be raised. In that case, disable the check at the call site. If the said behaviour still does not make sense to you, you might be facing a bug.
 
 ### I can't seem to stub a method/I found a bug.
 
