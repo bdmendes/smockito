@@ -58,13 +58,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!typeChecks("repository.on(it.exists) { case Tuple1(1) => \"bdmendes\" }"))
 
     assertEquals(repository.exists("bdmendes"), true)
-    intercept[IllegalArgumentException](repository.exists("spider"))
+    intercept[UnexpectedArguments](repository.exists("spider"))
 
   test("set up method stubs, on methods with 2 parameters"):
     val repository =
       mock[Repository[User]].on(it.getWith) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
       }
+
+    assert(typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => List.empty }"))
+    assert(!typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => true }"))
+    assert(!typeChecks("repository.on(it.getWith){ case (\"bd\", 1) => List.empty }"))
+    assert(!typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => List(1) }"))
 
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
@@ -237,10 +242,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod.type] {
       assertEquals(repository.calls(it.get), List.empty)
     }
-
-    // But we can disable this check at the call site, if really wanted.
-    assertEquals(repository.times(it.getWith, strict = false), 0)
-    assertEquals(repository.calls(it.getWith, strict = false), List.empty)
 
 object SmockitoSpec:
 

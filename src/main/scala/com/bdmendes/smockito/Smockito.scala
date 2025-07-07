@@ -94,3 +94,16 @@ object Smockito:
             "Are you performing eta-expansion correctly? " +
             "Did you forget to set up the stub first?"
         )
+
+    case AlreadyStubbedMethod
+        extends SmockitoException(
+          s"The received method already has a stub. If you need to perform a different action " +
+            "on a subsequent invocation, replace the mock or reflect that intent " +
+            "through a state lookup in the stub."
+        )
+
+    case UnexpectedArguments(arguments: Array[Object])
+        extends SmockitoException(
+          s"The method received unexpected arguments: (${arguments.mkString(", ")}). " +
+            "Did you forget to handle this case at the stub?"
+        )

@@ -53,13 +53,13 @@ private[smockito] trait MockSyntax:
         Mockito
           .when(method(using mock).tupled.apply(args))
           .thenAnswer { invocation =>
-            val arguments = Tuple.fromArray(invocation.getArguments).asInstanceOf[A2]
+            val arguments = invocation.getArguments
+            if !arguments.isEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
+            then
+              throw AlreadyStubbedMethod
             stub.applyOrElse(
-              arguments,
-              _ =>
-                throw new IllegalArgumentException(
-                  s"Mocked method received unexpected arguments: $arguments"
-                )
+              Tuple.fromArray(arguments).asInstanceOf[A2],
+              _ => throw UnexpectedArguments(arguments)
             )
           }
       catch
@@ -75,23 +75,20 @@ private[smockito] trait MockSyntax:
       *
       * @param method
       *   the mocked method.
-      * @param strict
-      *   whether to throw if the method was not stubbed.
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R: ClassTag](
-        method: Mock[T] ?=> MockedMethod[A, R],
-        strict: Boolean = true
-    )(using ValueOf[Size[A]]): List[A] =
-      if strict && matchingStubs[A, R].isEmpty then
+    inline def calls[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
+        using ValueOf[Size[A]]
+    ): List[A] =
+      if matchingStubs[A, R].isEmpty then
         throw UnstubbedMethod
 
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Unfortunately, Mockito does not expose a reliable API for this use case.
-          // We have to check all matching invocations, minding type erasure, and manually validate
-          // the result.
+          // We have to check all matching invocations, minding type erasure, and manually
+          // validate the result.
           val invocations =
             matching[EmptyTuple, R](Mockito.mockingDetails(mock).getInvocations.asScala).size
           val validInvocations = (invocations to 1 by -1).find { count =>
@@ -119,20 +116,17 @@ private[smockito] trait MockSyntax:
       *
       * @param method
       *   the mocked method.
-      * @param strict
-      *   whether to throw if the method was not stubbed.
       * @return
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple: ClassTag, R: ClassTag](
-        method: Mock[T] ?=> MockedMethod[A, R],
-        strict: Boolean = true
+        method: Mock[T] ?=> MockedMethod[A, R]
     )(using ValueOf[Size[A]]): Int =
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          mock.calls[A, R](method, strict).size
+          mock.calls[A, R](method).size
         case _: (h *: t) =>
-          if strict && matchingStubs[A, R].isEmpty then
+          if matchingStubs[A, R].isEmpty then
             throw UnstubbedMethod
 
           // We do a little trick here: capturing the first argument is enough for counting the
