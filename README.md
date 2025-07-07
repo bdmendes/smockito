@@ -40,7 +40,7 @@ libraryDependencies += "com.bdmendes" %% "smockito" % "<version>" % Test
 
 Do not depend on Mockito directly.
 
-If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enable the runtime byte code manipulation Mockito depends on. If you use the [sbt-javaagent plugin](https://github.com/sbt/sbt-javaagent), you can simply add to your `build.sbt`:
+If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enable the runtime bytecode manipulation Mockito depends on. If you use the [sbt-javaagent plugin](https://github.com/sbt/sbt-javaagent), you can simply add to your `build.sbt`:
 
 ```scala
 javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
@@ -72,7 +72,7 @@ A `Mock[T]` is a `T` both at compile and runtime.
     assert(repository.getWith("john", "doe") == User("johndoe"))
 ```
 
-You may reason about the method interactions with `calls` and `times`. If the arguments are not needed, `times` is more efficient.
+You may reason about method interactions with `calls` and `times`. If arguments are not needed, `times` is more efficient.
 
 ```scala
     assert(repository.calls(it.getWith) == List(("john", "doe")))
@@ -87,7 +87,7 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 ### What should I mock?
 
-A matter of personal taste. I would say - the bare minimum to increase your test surface. If possible, use simple higher-order functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
+A matter of personal taste. Arguably, the bare minimum to increase your test surface. If possible, use simple higher-order functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
 
 ### Is Smockito thread-safe?
 
