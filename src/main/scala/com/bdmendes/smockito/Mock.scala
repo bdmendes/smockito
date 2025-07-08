@@ -33,7 +33,7 @@ private[smockito] trait MockSyntax:
         }
         .toList
 
-    private inline def assertStubbedBefore[A <: Tuple, R: ClassTag]: Unit =
+    private inline def assertStubbedBefore[A <: Tuple, R: ClassTag](): Unit =
       // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
       // runtime without introducing complicated state management in this trait.
       val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
@@ -62,7 +62,7 @@ private[smockito] trait MockSyntax:
           // a stub override (i.e. using ArgumentMatchers.any ~ null).
           // Assuming a method won't receive null should not be a problem in the Scala world.
           // Also, this does not collide with our verifications, as at least one captor is used.
-          if !arguments.isEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
+          if arguments.nonEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
           then
             throw AlreadyStubbedMethod
 
@@ -92,7 +92,7 @@ private[smockito] trait MockSyntax:
           List.fill(times[A, R](method))(EmptyTuple.asInstanceOf[A])
 
         case _ =>
-          assertStubbedBefore[A, R]
+          assertStubbedBefore[A, R]()
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
           val _ =
             method(using Mockito.verify(mock, Mockito.atLeast(0)))
@@ -114,7 +114,7 @@ private[smockito] trait MockSyntax:
     inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
         using ValueOf[Size[A]]
     ): Int =
-      assertStubbedBefore[A, R]
+      assertStubbedBefore[A, R]()
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Unfortunately, Mockito does not expose a reliable API for this use case.
