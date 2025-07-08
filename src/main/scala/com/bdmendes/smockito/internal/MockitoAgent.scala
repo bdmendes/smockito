@@ -5,5 +5,5 @@ import org.mockito.internal.PremainAttach
 
 object MockitoAgent:
 
-  def premain(args: String, intrumentation: Instrumentation): Unit =
-    PremainAttach.premain(args, intrumentation)
+  def premain(args: String, instrumentation: Instrumentation): Unit =
+    PremainAttach.premain(args, instrumentation)
