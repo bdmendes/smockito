@@ -61,7 +61,6 @@ private[smockito] trait MockSyntax:
           // If this stub is invoked with nulls, assume we are in the process of setting up
           // a stub override (i.e. using ArgumentMatchers.any ~ null).
           // Assuming a method won't receive null should not be a problem in the Scala world.
-          // Also, this does not collide with our verifications, as at least one captor is used.
           if arguments.nonEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
           then
             throw AlreadyStubbedMethod

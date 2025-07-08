@@ -2,6 +2,7 @@ package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import scala.compiletime.testing.typeChecks
 
@@ -30,6 +31,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[ClassCastException] {
       val _: User = users.head
     }
+
+  test("interoperate with raw Mockito verifications"):
+    val repository = mock[Repository[User]].on(it.exists)(_ => true)
+
+    assert(repository.exists("pedronuno"))
+
+    Mockito.verify(repository).exists(ArgumentMatchers.any)
+
+    assertEquals(repository.calls(it.exists), List(Tuple1("pedronuno")))
 
   test("set up method stubs, on methods with 0 parameters"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)
