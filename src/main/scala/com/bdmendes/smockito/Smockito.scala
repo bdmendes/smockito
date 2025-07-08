@@ -19,11 +19,11 @@ import scala.reflect.ClassTag
   *      val repository = mock[Repository[User]]
   *          .on(() => it.get)(_ => List(User("johndoe")))
   *          .on(it.getWith) {
-  *              case ("john", "doe") => User("johndoe")
+  *              case ("john", name) if name.nonEmpty => List(User("johndoe"))
   *          } // Mock[Repository[User]]
   *
   *      // A `Mock[T]` is effectively a `T`, both at compile and runtime.
-  *      assert(repository.getWith("john", "doe") == User("johndoe"))
+  *      assert(repository.getWith("john", "doe") == List(User("johndoe")))
   *
   *      // Observe the past method interactions.
   *      assert(repository.calls(it.getWith) == List(("john", "doe")))

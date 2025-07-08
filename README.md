@@ -58,14 +58,14 @@ class RepositorySpecification extends Smockito:
     val repository = mock[Repository[User]]
         .on(() => it.get)(_ => List(User("johndoe")))
         .on(it.getWith) { 
-            case ("john", "doe") => User("johndoe")
+            case ("john", name) if name.nonEmpty => List(User("johndoe"))
         } // Mock[Repository[User]]
 ```
 
 A `Mock[T]` is a `T` both at compile and runtime.
 
 ```scala
-    assert(repository.getWith("john", "doe") == User("johndoe"))
+    assert(repository.getWith("john", "doe") == List(User("johndoe")))
 ```
 
 You may reason about method interactions with `calls` and `times`. If arguments are not needed, `times` is more efficient.
