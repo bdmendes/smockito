@@ -218,13 +218,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         true
       }
 
-    intercept[AlreadyStubbedMethod.type] {
+    intercept[AlreadyStubbedMethod] {
       repository.on(it.contains)(_ => false)
     }
 
     val _ = repository.on(it.getWith)(_ => List.empty)
 
-    intercept[AlreadyStubbedMethod.type] {
+    intercept[AlreadyStubbedMethod] {
       repository.on(it.getWith)(_ => List.empty)
     }
 

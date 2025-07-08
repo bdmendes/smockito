@@ -63,11 +63,11 @@ private[smockito] trait MockSyntax:
           // Assuming a method won't receive null should not be a problem in the Scala world.
           if arguments.nonEmpty && arguments.sameElements(Array.fill[Any](arguments.size)(null))
           then
-            throw AlreadyStubbedMethod
+            throw AlreadyStubbedMethod(invocation.getMethod)
 
           stub.applyOrElse(
             Tuple.fromArray(arguments).asInstanceOf[A2],
-            _ => throw UnexpectedArguments(arguments)
+            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
           )
         }
       mock

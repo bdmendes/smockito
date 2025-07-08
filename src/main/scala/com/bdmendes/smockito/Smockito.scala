@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
 /** [[https://github.com/bdmendes/smockito Smockito]] is a tiny framework-agnostic facade for
@@ -77,6 +78,9 @@ object Smockito:
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
       "If you think this is a bug, please open an issue with a minimal reproducible example."
 
+  private def describeMethod(method: Method): String =
+    s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
+
   sealed trait SmockitoException(val msg: String) extends Exception:
     override def getMessage(): String = s"$msg\n$exceptionTrailer"
 
@@ -89,15 +93,18 @@ object Smockito:
             "Did you forget to set up the stub first?"
         )
 
-    case object AlreadyStubbedMethod
+    case class AlreadyStubbedMethod(method: Method)
         extends SmockitoException(
-          s"The received method already has a stub. If you need to perform a different action " +
+          s"${describeMethod(
+              method
+            )} is already stubbed. If you need to perform a different action " +
             "on a subsequent invocation, replace the mock or reflect that intent " +
             "through a state lookup in the stub."
         )
 
-    case class UnexpectedArguments(arguments: Array[Object])
+    case class UnexpectedArguments(method: Method, arguments: Array[Object])
         extends SmockitoException(
-          s"The method received unexpected arguments: (${arguments.mkString(", ")}). " +
-            "Did you forget to handle this case at the stub?"
+          s"${describeMethod(method)} received unexpected arguments: (${arguments.mkString(
+              ", "
+            )}). " + "Did you forget to handle this case at the stub?"
         )
