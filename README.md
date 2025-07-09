@@ -1,6 +1,6 @@
 # Smockito
 
-<!-- <img src="" width="" height="" align="right"> !-->
+<img src="./assets/logo.svg" width="120" height="120" align="right">
 
 [![Build](https://img.shields.io/github/actions/workflow/status/bdmendes/smockito/ci.yml)](https://github.com/bdmendes/smockito/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bdmendes/smockito/master)](https://app.codecov.io/gh/bdmendes/smockito)
@@ -10,10 +10,9 @@
 
 Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://github.com/mockito/mockito). It enables setting up unique method stubs for any type in a type-safe manner, while providing an expressive interface for inspecting received arguments and call counts.
 
-> ⚠️ Smockito is in testing stage. The API is subject to change, and the artifacts below may not be published yet. If you are interested, all feedback is appreciated!
-
 <br clear="right">
 
+> ⚠️ Smockito is in testing stage. The API is subject to change, and the artifacts below may not be published yet. If you are interested, all feedback is appreciated!
 
 ## Motivation
 
@@ -38,7 +37,7 @@ libraryDependencies += "com.bdmendes" %% "smockito" % "<version>" % Test
 
 Do not depend on Mockito directly.
 
-If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enable the runtime bytecode manipulation Mockito depends on. If you use the [sbt-javaagent plugin](https://github.com/sbt/sbt-javaagent), you can simply add to your `build.sbt`:
+If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enable the runtime bytecode manipulation that Mockito depends on. If you use the [sbt-javaagent plugin](https://github.com/sbt/sbt-javaagent), you can simply add to your `build.sbt`:
 
 ```scala
 javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
@@ -109,3 +108,4 @@ Mostly anything you want to. Check the license. All contributions are appreciate
 
 - [Mockito](https://github.com/mockito/mockito): for the reliable core.
 - [Scalamock](https://scalamock.org/): for the excellent Stubs API design that inspired this library.
+- [@biromiro](https://github.com/biromiro): for designing the cute cocktail logo.
