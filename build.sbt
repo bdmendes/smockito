@@ -4,6 +4,7 @@ ThisBuild / organization := "com.bdmendes"
 ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
 ThisBuild / description := "Tiny Scala facade for Mockito."
 ThisBuild / licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+ThisBuild / versionScheme := Some("semver-spec")
 
 ThisBuild / scmInfo :=
   Some(
