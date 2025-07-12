@@ -24,6 +24,9 @@ jobs:
       - name: Compile and check format
         run: sbt Test/compile scalafmtSbt && git diff --exit-code
 
+      - name: Compile API documentation
+        run: sbt doc
+
       - name: Run tests
         run: sbt coverage test
 
