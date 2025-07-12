@@ -3,7 +3,7 @@
 <!--
 Use the following schema when setting up the Changelog for a new release.
 
-## [Major-Minor-Patch] - YYYY-MM-DD
+## Major-Minor-Patch - YYYY-MM-DD
 
 Description.
 

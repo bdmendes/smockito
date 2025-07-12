@@ -4,7 +4,7 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/bdmendes/smockito/ci.yml)](https://github.com/bdmendes/smockito/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bdmendes/smockito/master)](https://app.codecov.io/gh/bdmendes/smockito)
-[![Release](https://img.shields.io/github/v/release/bdmendes/smockito?color=orange)](https://github.com/bdmendes/smockito/releases)
+[![Release](https://img.shields.io/github/v/release/bdmendes/smockito)](https://github.com/bdmendes/smockito/releases)
 <!-- [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.bdmendes.smockito/smockito_3/badge.svg)](https://search.maven.org/artifact/com.bdmendes.smockito/smockito_3) --!>
 <!-- [![Scaladoc](https://javadoc.io/badge/com.bdmendes.smockito/smockito_3.svg)](https://javadoc.io/page/com.bdmendes.smockito/smockito_3/latest/smockito/index.html) -->
 
