@@ -1,10 +1,19 @@
 import Dependencies.*
+import ReleaseTransformations.*
 
-ThisBuild / scalaVersion := Dependencies.Versions.scala
-ThisBuild / version := "0.1.0-rc6"
 ThisBuild / organization := "com.bdmendes"
 ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
 ThisBuild / description := "Tiny Scala facade for Mockito."
+ThisBuild / licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+ThisBuild / versionScheme := Some("semver-spec")
+
+ThisBuild / scmInfo :=
+  Some(
+    ScmInfo(
+      url("https://github.com/bdmendes/smockito"),
+      "scm:git:ssh://git@github.com/bdmendes/smockito.git"
+    )
+  )
 
 ThisBuild / developers :=
   List(Developer("bdmendes", "Bruno Mendes", "bd_mendes@outlook.com", url("https://bdmendes.com")))
@@ -15,7 +24,7 @@ lazy val root =
     .enablePlugins(JavaAgent)
     .settings(
       name := "smockito",
-      autoAPIMappings := true,
+      scalaVersion := Dependencies.Versions.scala,
       scalafmtOnCompile := true,
       javaAgents := Seq(mockito % Test),
       scalacOptions ++=
@@ -35,5 +44,35 @@ lazy val root =
           "Premain-Class" -> "com.bdmendes.smockito.internal.MockitoAgent",
           "Can-Redefine-Classes" -> "true",
           "Can-Retransform-Classes" -> "true"
-        )
+        ),
+      publishTo := {
+        val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+        if (isSnapshot.value)
+          Some("central-snapshots".at(centralSnapshots))
+        else
+          localStaging.value
+      },
+      autoAPIMappings := true,
+      publishMavenStyle := true,
+      Test / publishArtifact := false,
+      pomIncludeRepository := (_ => false)
     )
+
+releaseTagComment := s"Release ${(ThisBuild / version).value}"
+releaseCommitMessage := s"Set version to ${(ThisBuild / version).value}"
+
+releaseProcess :=
+  Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("publishSigned"),
+    releaseStepCommand("sonaRelease"),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
