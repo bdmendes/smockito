@@ -1,4 +1,5 @@
 import Dependencies.*
+import ReleaseTransformations.*
 
 ThisBuild / organization := "com.bdmendes"
 ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
@@ -56,3 +57,22 @@ lazy val root =
       Test / publishArtifact := false,
       pomIncludeRepository := (_ => false)
     )
+
+releaseTagComment := s"Release ${(ThisBuild / version).value}"
+releaseCommitMessage := s"Set version to ${(ThisBuild / version).value}"
+
+releaseProcess :=
+  Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("publishSigned"),
+    releaseStepCommand("sonaRelease"),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
