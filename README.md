@@ -1,6 +1,6 @@
 # Smockito
 
-<img src="./assets/logo.svg" width="120" height="120" align="right">
+<img src="./assets/logo.svg" width="125" height="125" align="right">
 
 [![Build](https://img.shields.io/github/actions/workflow/status/bdmendes/smockito/ci.yml)](https://github.com/bdmendes/smockito/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/bdmendes/smockito/master)](https://app.codecov.io/gh/bdmendes/smockito)
