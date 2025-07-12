@@ -7,8 +7,7 @@
 [![Release](https://img.shields.io/github/v/release/bdmendes/smockito)](https://github.com/bdmendes/smockito/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.bdmendes/smockito_3
 )](https://central.sonatype.com/artifact/com.bdmendes/smockito_3/overview)
-
-<!-- [![Scaladoc](https://javadoc.io/badge/com.bdmendes.smockito/smockito_3.svg)](https://javadoc.io/page/com.bdmendes.smockito/smockito_3/latest/smockito/index.html) -->
+[![Javadoc](https://javadoc.io/badge2/com.bdmendes/smockito_3/javadoc.svg)](https://javadoc.io/doc/com.bdmendes/smockito_3)
 
 Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://github.com/mockito/mockito). It enables setting up unique method stubs for any type in a type-safe manner, while providing an expressive interface for inspecting received arguments and call counts.
 
