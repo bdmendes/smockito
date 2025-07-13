@@ -19,13 +19,13 @@ private[smockito] trait MockSyntax:
 
   extension [T](mock: Mock[T])
 
-    private inline def matching[A <: Tuple, R: ClassTag](
+    private inline def matching[A <: Tuple, R](
         invocations: Iterable[invocation.Invocation]
     ): List[Method] =
       // Get all methods that may correspond to our types.
       // Due to erasure, we might get extra matches.
       val argClasses = summonClassTags[A].map(_.runtimeClass)
-      val returnClass = summon[ClassTag[R]].runtimeClass
+      val returnClass = summonInline[ClassTag[R]].runtimeClass
       invocations
         .map(_.getMethod)
         .filter { method =>
@@ -33,7 +33,7 @@ private[smockito] trait MockSyntax:
         }
         .toList
 
-    private inline def assertStubbedBefore[A <: Tuple, R: ClassTag](): Unit =
+    private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
       // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
       // runtime without introducing complicated state management in this trait.
       val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
@@ -80,7 +80,7 @@ private[smockito] trait MockSyntax:
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R: ClassTag](
+    inline def calls[A <: Tuple: ClassTag, R](
         method: Mock[T] ?=> MockedMethod[A, R]
     )(using ValueOf[Size[A]]): List[A] =
       inline erasedValue[A] match
@@ -109,9 +109,7 @@ private[smockito] trait MockSyntax:
       * @return
       *   the number of calls to the stub.
       */
-    inline def times[A <: Tuple: ClassTag, R: ClassTag](method: Mock[T] ?=> MockedMethod[A, R])(
-        using ValueOf[Size[A]]
-    ): Int =
+    inline def times[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): Int =
       assertStubbedBefore[A, R]()
       inline erasedValue[A] match
         case _: EmptyTuple =>
