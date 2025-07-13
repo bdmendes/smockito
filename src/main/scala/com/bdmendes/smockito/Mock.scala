@@ -17,7 +17,7 @@ opaque type Mock[T] = T
 
 private[smockito] trait MockSyntax:
 
-  extension [T](mock: Mock[T])(using ct: ClassTag[T])
+  extension [T](mock: Mock[T])
 
     private inline def matching[A <: Tuple, R: ClassTag](
         invocations: Iterable[invocation.Invocation]
