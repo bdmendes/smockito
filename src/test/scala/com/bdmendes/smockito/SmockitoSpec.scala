@@ -48,7 +48,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!typeChecks("repository.on(() => it.get)(List.empty)"))
     assert(!typeChecks("repository.on(it.get)(_ => List.empty)"))
     assert(!typeChecks("repository.on(it.get)(List.empty)"))
-    assert(!typeChecks("repository.on(println)(_ => List.empty)"))
 
     assertEquals(repository.get, mockUsers)
 

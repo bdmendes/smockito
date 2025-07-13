@@ -5,7 +5,6 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
-import scala.Tuple.Size
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
@@ -51,7 +50,7 @@ private[smockito] trait MockSyntax:
       */
     inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
         method: Mock[T] ?=> MockedMethod[A1, R1]
-    )(using A1 =:= A2, R1 =:= R2, ValueOf[Size[A1]])(stub: PartialFunction[A2, R2]): Mock[T] =
+    )(using A1 =:= A2, R1 =:= R2)(stub: PartialFunction[A2, R2]): Mock[T] =
       val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
       Mockito
         .when(method(using mock).tupled.apply(args))
@@ -80,9 +79,7 @@ private[smockito] trait MockSyntax:
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R](
-        method: Mock[T] ?=> MockedMethod[A, R]
-    )(using ValueOf[Size[A]]): List[A] =
+    inline def calls[A <: Tuple: ClassTag, R](method: Mock[T] ?=> MockedMethod[A, R]): List[A] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // We could prevent calling this method in this case,
