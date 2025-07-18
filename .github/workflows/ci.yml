@@ -22,7 +22,7 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Compile and check format
-        run: sbt Test/compile scalafmtSbt && git diff --exit-code
+        run: sbt scalafmtCheckAll scalafmtSbtCheck && git diff --exit-code
 
       - name: Compile API documentation
         run: sbt doc
