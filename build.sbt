@@ -25,7 +25,6 @@ lazy val root =
     .settings(
       name := "smockito",
       scalaVersion := Dependencies.Versions.scala,
-      scalafmtOnCompile := true,
       javaAgents := Seq(mockito % Test),
       scalacOptions ++=
         Seq(
