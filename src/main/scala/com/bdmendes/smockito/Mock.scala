@@ -69,7 +69,13 @@ private[smockito] trait MockSyntax:
 
           stub.applyOrElse(
             Tuple.fromArray(arguments).asInstanceOf[A2],
-            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+            {
+              case _ if arguments.forall(_ == null) =>
+                // We are overriding this stub; provide a sentinel value.
+                null
+              case _ =>
+                throw UnexpectedArguments(invocation.getMethod, arguments)
+            }
           )
         }
       mock

@@ -77,8 +77,15 @@ object Smockito:
 
   enum SmockitoMode:
 
-    case Strict,
-      Relaxed
+    /** In strict mode, Smockito performs soundness verifications of one's testing flow, namely
+      * overriding a method stub and reasoning about unstubbed methods.
+      */
+    case Strict extends SmockitoMode
+
+    /** In relaxed mode, Smockito does not perform soundness verifications. This may be useful
+      * during migrations from other mocking frameworks.
+      */
+    case Relaxed extends SmockitoMode
 
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
@@ -103,7 +110,8 @@ object Smockito:
         extends SmockitoException(
           s"${describeMethod(method)} is already stubbed. " +
             "If you need to perform a different action on a subsequent invocation, " +
-            "replace the mock or reflect that intent through a state lookup in the stub."
+            "replace the mock or reflect that intent through a state lookup in the stub. " +
+            "If you really want to override the stub, disable strict mode."
         )
 
     case class UnexpectedArguments(method: Method, arguments: Array[Object])
