@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import com.bdmendes.smockito.Smockito.SmockitoMode
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
@@ -44,8 +45,11 @@ import scala.reflect.ClassTag
   * efficient.
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
+  *
+  * @param mode
+  *   The [[SmockitoMode]] used.
   */
-trait Smockito extends MockSyntax:
+trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
   /** Creates a [[Mock]] instance of `T`.
     *
@@ -74,6 +78,20 @@ trait Smockito extends MockSyntax:
 
 object Smockito:
 
+  /** Specifies whether to perform opinionated soundness verifications.
+    */
+  enum SmockitoMode:
+
+    /** In strict mode, Smockito performs soundness verifications of one's testing flow, namely
+      * overriding a method stub and reasoning about unstubbed methods.
+      */
+    case Strict extends SmockitoMode
+
+    /** In relaxed mode, Smockito does not perform soundness verifications. This may be useful
+      * during migrations from other mocking frameworks.
+      */
+    case Relaxed extends SmockitoMode
+
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
       "If you think this is a bug, please open an issue with a minimal reproducible example."
@@ -95,16 +113,14 @@ object Smockito:
 
     case class AlreadyStubbedMethod(method: Method)
         extends SmockitoException(
-          s"${describeMethod(
-              method
-            )} is already stubbed. If you need to perform a different action " +
-            "on a subsequent invocation, replace the mock or reflect that intent " +
-            "through a state lookup in the stub."
+          s"${describeMethod(method)} is already stubbed. " +
+            "If you need to perform a different action on a subsequent invocation, " +
+            "replace the mock or reflect that intent through a state lookup in the stub. " +
+            "If you really want to override the stub, disable strict mode."
         )
 
     case class UnexpectedArguments(method: Method, arguments: Array[Object])
         extends SmockitoException(
-          s"${describeMethod(method)} received unexpected arguments: (${arguments.mkString(
-              ", "
-            )}). " + "Did you forget to handle this case at the stub?"
+          s"${describeMethod(method)} received unexpected arguments: " +
+            s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
         )

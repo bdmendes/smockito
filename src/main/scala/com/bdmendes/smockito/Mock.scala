@@ -2,6 +2,7 @@ package com.bdmendes.smockito
 
 import Mock.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
+import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
@@ -15,6 +16,8 @@ import scala.util.Try
 opaque type Mock[T] <: T = T
 
 private[smockito] trait MockSyntax:
+
+  val mode: SmockitoMode
 
   extension [T](mock: Mock[T])
 
@@ -33,11 +36,12 @@ private[smockito] trait MockSyntax:
         .toList
 
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
-      // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
-      // runtime without introducing complicated state management in this trait.
-      val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
-      if matching[A, R](invocations).isEmpty then
-        throw UnstubbedMethod
+      if mode == SmockitoMode.Strict then
+        // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
+        // runtime without introducing complicated state management in this trait.
+        val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
+        if matching[A, R](invocations).isEmpty then
+          throw UnstubbedMethod
 
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
       *
@@ -60,12 +64,18 @@ private[smockito] trait MockSyntax:
           // If this stub is invoked with nulls, assume we are in the process of setting up
           // a stub override (i.e. using ArgumentMatchers.any ~ null).
           // Assuming a method won't receive null should not be a problem in the Scala world.
-          if arguments.nonEmpty && arguments.forall(_ == null) then
+          if mode == SmockitoMode.Strict && arguments.nonEmpty && arguments.forall(_ == null) then
             throw AlreadyStubbedMethod(invocation.getMethod)
 
           stub.applyOrElse(
             Tuple.fromArray(arguments).asInstanceOf[A2],
-            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+            {
+              case _ if arguments.forall(_ == null) =>
+                // We are overriding this stub; provide a sentinel value.
+                null
+              case _ =>
+                throw UnexpectedArguments(invocation.getMethod, arguments)
+            }
           )
         }
       mock

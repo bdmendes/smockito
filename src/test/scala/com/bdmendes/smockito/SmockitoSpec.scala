@@ -1,6 +1,7 @@
 package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Smockito.SmockitoException.*
+import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -225,20 +226,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("throw on repeated stub set up"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
-    // We can't perform this check for methods with no arguments.
-    val _ = repository.on(() => it.get)(_ => List.empty)
+    // Start by setting up stubs in relaxed mode. Next stubs won't throw.
+    new Smockito(SmockitoMode.Relaxed):
+      repository.on(it.contains)(_ => true)
+      repository.on(it.getWith)(_ => List.empty)
 
-    val _ =
-      repository.on(it.contains) { case Tuple1(User("bdmendes")) =>
-        true
-      }
+    repository.on(it.contains)(_ => true)
+    repository.on(it.getWith)(_ => List.empty)
 
+    // Previous stubs were set up in strict mode, so expect failures.
     intercept[AlreadyStubbedMethod] {
       repository.on(it.contains)(_ => false)
     }
-
-    val _ = repository.on(it.getWith)(_ => List.empty)
-
     intercept[AlreadyStubbedMethod] {
       repository.on(it.getWith)(_ => List.empty)
     }
@@ -256,6 +255,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Although we cannot be sure if there is a matching stub.
     val _ = repository.calls(() => it.getNames)
+
+    // Unstubbed method verification is disabled in relaxed mode.
+    new Smockito(SmockitoMode.Relaxed):
+      val _ = repository.times(it.getWith)
+      val _ = repository.calls(it.getWith)
 
 object SmockitoSpec:
 
