@@ -101,7 +101,7 @@ object Smockito:
     s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
 
   sealed trait SmockitoException(val msg: String) extends Exception:
-    override def getMessage(): String = s"$msg\n$exceptionTrailer"
+    override def getMessage: String = s"$msg\n$exceptionTrailer"
 
   object SmockitoException:
 
