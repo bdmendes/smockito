@@ -48,7 +48,7 @@ import scala.reflect.ClassTag
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   *
   * @param mode
-  *   The [[SmockitoMode]] used.
+  *   The [[Smockito.SmockitoMode]] used.
   */
 trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
@@ -101,7 +101,7 @@ object Smockito:
     s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
 
   sealed trait SmockitoException(val msg: String) extends Exception:
-    override def getMessage(): String = s"$msg\n$exceptionTrailer"
+    override def getMessage: String = s"$msg\n$exceptionTrailer"
 
   object SmockitoException:
 
