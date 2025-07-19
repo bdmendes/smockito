@@ -45,6 +45,9 @@ import scala.reflect.ClassTag
   * efficient.
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
+  *
+  * @param mode
+  *   The [[SmockitoMode]] used.
   */
 trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
@@ -75,6 +78,8 @@ trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
 object Smockito:
 
+  /** Specifies whether to perform opinionated soundness verifications.
+    */
   enum SmockitoMode:
 
     /** In strict mode, Smockito performs soundness verifications of one's testing flow, namely

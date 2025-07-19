@@ -91,9 +91,17 @@ A matter of personal taste. Arguably, the bare minimum to increase your test sur
 
 [As thread-safe as Mockito](https://github.com/mockito/mockito/wiki/FAQ#is-mockito-thread-safe).
 
-### I need to override stubs/assert invocation orders/X/Y/Z.
+### I need to override stubs or reason about unstubbed methods.
 
-You may fallback to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
+If you are in the process of migrating from another mocking framework and stumble across Smockito opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
+
+```scala
+trait MySpec extends Smockito(SmockitoMode.Relaxed)
+```
+
+### I need to assert invocation orders/X/Y/Z.
+
+You may fall back to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
 
 ### I can't seem to stub a method/I found a bug.
 
