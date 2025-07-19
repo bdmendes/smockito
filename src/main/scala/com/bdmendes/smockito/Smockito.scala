@@ -95,16 +95,13 @@ object Smockito:
 
     case class AlreadyStubbedMethod(method: Method)
         extends SmockitoException(
-          s"${describeMethod(
-              method
-            )} is already stubbed. If you need to perform a different action " +
-            "on a subsequent invocation, replace the mock or reflect that intent " +
-            "through a state lookup in the stub."
+          s"${describeMethod(method)} is already stubbed. " +
+            "If you need to perform a different action on a subsequent invocation, " +
+            "replace the mock or reflect that intent through a state lookup in the stub."
         )
 
     case class UnexpectedArguments(method: Method, arguments: Array[Object])
         extends SmockitoException(
-          s"${describeMethod(method)} received unexpected arguments: (${arguments.mkString(
-              ", "
-            )}). " + "Did you forget to handle this case at the stub?"
+          s"${describeMethod(method)} received unexpected arguments: " +
+            s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
         )
