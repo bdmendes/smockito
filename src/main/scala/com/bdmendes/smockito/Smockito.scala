@@ -19,6 +19,7 @@ import scala.reflect.ClassTag
   *      // Chain stubs to set up a mock instance.
   *      val repository = mock[Repository[User]]
   *          .on(() => it.get)(_ => List(User("johndoe")))
+  *          .on(it.exists)(args => args._1 == "johndoe")
   *          .on(it.getWith) {
   *              case ("john", name) if name.nonEmpty => List(User("johndoe"))
   *          } // Mock[Repository[User]]

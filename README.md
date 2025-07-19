@@ -55,6 +55,7 @@ case class User(username: String)
 class RepositorySpecification extends Smockito:
     val repository = mock[Repository[User]]
         .on(() => it.get)(_ => List(User("johndoe")))
+        .on(it.exists)(args => args._1 == "johndoe")
         .on(it.getWith) { 
             case ("john", name) if name.nonEmpty => List(User("johndoe"))
         } // Mock[Repository[User]]
