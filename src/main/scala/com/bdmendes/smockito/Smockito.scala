@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import com.bdmendes.smockito.Smockito.SmockitoMode
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
@@ -45,7 +46,7 @@ import scala.reflect.ClassTag
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   */
-trait Smockito extends MockSyntax:
+trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
   /** Creates a [[Mock]] instance of `T`.
     *
@@ -73,6 +74,11 @@ trait Smockito extends MockSyntax:
   def it[T](using mock: Mock[T]): T = mock
 
 object Smockito:
+
+  enum SmockitoMode:
+
+    case Strict,
+      Relaxed
 
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
