@@ -94,7 +94,7 @@ A matter of personal taste. Arguably, the bare minimum to increase your test sur
 
 ### I need to override stubs or reason about unstubbed methods.
 
-If you are in the process of migrating from another mocking framework and stumble across Smockito opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
+If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
 
 ```scala
 trait MySpec extends Smockito(SmockitoMode.Relaxed)
