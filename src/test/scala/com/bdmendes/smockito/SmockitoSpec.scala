@@ -247,19 +247,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // We should not be able to reason about unstubbed methods.
     intercept[UnstubbedMethod.type] {
-      val _ = repository.times(it.getWith)
+      repository.times(it.getWith)
     }
     intercept[UnstubbedMethod.type] {
-      val _ = repository.calls(it.getWith)
+      repository.calls(it.getWith)
     }
 
     // Although we cannot be sure if there is a matching stub.
-    val _ = repository.calls(() => it.getNames)
+    repository.calls(() => it.getNames)
 
     // Unstubbed method verification is disabled in relaxed mode.
     new Smockito(SmockitoMode.Relaxed):
-      val _ = repository.times(it.getWith)
-      val _ = repository.calls(it.getWith)
+      repository.times(it.getWith)
+      repository.calls(it.getWith)
 
 object SmockitoSpec:
 
