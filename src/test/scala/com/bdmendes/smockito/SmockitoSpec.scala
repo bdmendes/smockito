@@ -4,6 +4,7 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
 
 class SmockitoSpec extends munit.FunSuite with Smockito:
@@ -40,6 +41,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     Mockito.verify(repository).exists(ArgumentMatchers.any)
 
     assertEquals(repository.calls(it.exists), List(Tuple1("pedronuno")))
+
+  test("be a subtype of T"):
+    inline def isSubtypeOf[A, B] =
+      summonFrom {
+        case _: (A <:< B) =>
+          true
+        case _ =>
+          false
+      }
+
+    assert(isSubtypeOf[Mock[User], User])
+    assert(isSubtypeOf[Mock[Repository[User]], Repository[User]])
+    assert(!isSubtypeOf[Mock[User], String])
+    assert(!isSubtypeOf[Mock[User], Repository[User]])
+    assert(!isSubtypeOf[Mock[Repository[User]], User])
 
   test("set up method stubs, on methods with 0 parameters"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)

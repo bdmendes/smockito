@@ -12,7 +12,7 @@ import scala.util.Try
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
-opaque type Mock[T] = T
+opaque type Mock[T] <: T = T
 
 private[smockito] trait MockSyntax:
 
@@ -140,6 +140,3 @@ object Mock:
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
-
-  given [T]: Conversion[Mock[T], T] with
-    def apply(mock: Mock[T]): T = mock
