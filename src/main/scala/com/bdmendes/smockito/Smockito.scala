@@ -48,7 +48,7 @@ import scala.reflect.ClassTag
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   *
   * @param mode
-  *   The [[SmockitoMode]] used.
+  *   The [[Smockito.SmockitoMode]] used.
   */
 trait Smockito(val mode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
 
