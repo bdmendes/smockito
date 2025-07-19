@@ -58,7 +58,8 @@ lazy val root =
     )
 
 releaseTagComment := s"Release ${(ThisBuild / version).value}"
-releaseCommitMessage := s"Set version to ${(ThisBuild / version).value}"
+releaseCommitMessage := s"Bump version to ${(ThisBuild / version).value}"
+releaseNextCommitMessage := s"Bump version to ${(ThisBuild / version).value}"
 
 releaseProcess :=
   Seq[ReleaseStep](
