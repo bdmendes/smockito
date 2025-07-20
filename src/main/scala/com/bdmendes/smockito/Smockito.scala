@@ -9,27 +9,27 @@ import scala.reflect.ClassTag
   *
   * {{{
   *   abstract class Repository[T](val name: String):
-  *      def get: List[T]
-  *      def exists(username: String): Boolean
-  *      def getWith(startsWith: String, endsWith: String): List[T]
+  *     def get: List[T]
+  *     def exists(username: String): Boolean
+  *     def getWith(startsWith: String, endsWith: String): List[T]
   *
   *   case class User(username: String)
   *
   *   class RepositorySpecification extends Smockito:
-  *      // Chain stubs to set up a mock instance.
-  *      val repository = mock[Repository[User]]
-  *          .on(() => it.get)(_ => List(User("johndoe")))
-  *          .on(it.exists)(args => args._1 == "johndoe")
-  *          .on(it.getWith) {
-  *              case ("john", name) if name.nonEmpty => List(User("johndoe"))
-  *          } // Mock[Repository[User]]
+  *     // Chain stubs to set up a mock instance.
+  *     val repository = mock[Repository[User]]
+  *       .on(() => it.get)(_ => List(User("johndoe")))
+  *       .on(it.exists)(args => args._1 == "johndoe")
+  *       .on(it.getWith) {
+  *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
+  *       } // Mock[Repository[User]]
   *
-  *      // A `Mock[T]` is effectively a `T`, both at compile and runtime.
-  *      assert(repository.getWith("john", "doe") == List(User("johndoe")))
+  *     // A `Mock[T]` is effectively a `T`, both at compile and runtime.
+  *     assert(repository.getWith("john", "doe") == List(User("johndoe")))
   *
-  *      // Observe the past method interactions.
-  *      assert(repository.calls(it.getWith) == List(("john", "doe")))
-  *      assert(repository.times(it.getWith) == 1)
+  *     // Observe the past method interactions.
+  *     assert(repository.calls(it.getWith) == List(("john", "doe")))
+  *     assert(repository.times(it.getWith) == 1)
   * }}}
   *
   * All methods on [[Mock]] require an

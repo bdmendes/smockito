@@ -44,32 +44,32 @@ In your specification, extend `Smockito`. This will bring the `mock` method and 
 
 ```scala
 abstract class Repository[T](val name: String):
-    def get: List[T]
-    def exists(username: String): Boolean
-    def getWith(startsWith: String, endsWith: String): List[T]
+  def get: List[T]
+  def exists(username: String): Boolean
+  def getWith(startsWith: String, endsWith: String): List[T]
 
 case class User(username: String)
 
 class RepositorySpecification extends Smockito:
-    val repository = mock[Repository[User]]
-        .on(() => it.get)(_ => List(User("johndoe")))
-        .on(it.exists)(args => args._1 == "johndoe")
-        .on(it.getWith) { 
-            case ("john", name) if name.nonEmpty => List(User("johndoe"))
-        } // Mock[Repository[User]]
+  val repository = mock[Repository[User]]
+    .on(() => it.get)(_ => List(User("johndoe")))
+    .on(it.exists)(args => args._1 == "johndoe")
+    .on(it.getWith) { 
+      case ("john", name) if name.nonEmpty => List(User("johndoe"))
+    } // Mock[Repository[User]]
 ```
 
 A `Mock[T]` is a `T` both at compile and runtime.
 
 ```scala
-    assert(repository.getWith("john", "doe") == List(User("johndoe")))
+  assert(repository.getWith("john", "doe") == List(User("johndoe")))
 ```
 
 You may reason about method interactions with `calls` and `times`. If arguments are not needed, `times` is more efficient.
 
 ```scala
-    assert(repository.calls(it.getWith) == List(("john", "doe")))
-    assert(repository.times(it.getWith) == 1)
+  assert(repository.calls(it.getWith) == List(("john", "doe")))
+  assert(repository.times(it.getWith) == 1)
 ```
 
 ## FAQ
