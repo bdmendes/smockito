@@ -14,13 +14,22 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.1.1 - 2025-07-20
+
+This release adds a `forward` method on `Mock[T]` to quickly stub a method that forwards to a real instance. This is somewhat similar to a Mockito `spy`.
+
+### What's Changed
+* Add a forward method for spying by @bdmendes in https://github.com/bdmendes/smockito/pull/22
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.1.0...v1.1.1
+
 ## 1.1.0 - 2025-07-19
 
 This release adds a parameter to the `Smockito` trait named `mode`, with default value `Strict`. By changing it to `Relaxed`, Smockito will refrain from performing its opinionated soundness verifications. This might be useful when migrating from other mocking frameworks that incentivize a different test architecture.
 
 In addition, `Mock[T]` is now a proper subtype of `T`, rather than being implicitly converted to `T` as needed. This change avoids previously encountered quirks when overriding a field of type `T` with a `Mock[T]`.
 
-## What's Changed
+### What's Changed
 * Remove some unneeded `ClassTag` and `Tuple.Size` requirements by @bdmendes in https://github.com/bdmendes/smockito/pull/10
 * Make Mock[T] a proper subtype of T by @bdmendes in https://github.com/bdmendes/smockito/pull/12
 * Allow disabling strict mode by @bdmendes in https://github.com/bdmendes/smockito/pull/13
