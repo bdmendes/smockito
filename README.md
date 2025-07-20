@@ -90,6 +90,21 @@ A matter of personal taste. Arguably, the bare minimum to increase your test sur
 
 [As thread-safe as Mockito](https://github.com/mockito/mockito/wiki/FAQ#is-mockito-thread-safe).
 
+### How do I spy on a real instance?
+
+Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
+
+```scala
+val repository = {
+  val realInstance = Repository[User].fromDatabase
+  mock[Repository[User]].forward(it.exists, realInstance)
+}
+
+assert(repository.times(it.exists) == 0)
+```
+
+That said, make sure you also test the real instance in isolation.
+
 ### I need to override stubs or reason about unstubbed methods.
 
 If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
