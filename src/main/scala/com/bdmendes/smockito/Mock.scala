@@ -143,7 +143,24 @@ private[smockito] trait MockSyntax:
               .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
           cap.getAllValues.size
 
-    inline def forward[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R], realInstance: T) =
+    /** Sets up a stub for a method that calls the respective method of a real instance. At a high
+      * level, this desugars to:
+      *
+      * {{{
+      *   mock.on(it.someMethod)(realInstance.someMethod)
+      * }}}
+      *
+      * @param method
+      *   the mocked method.
+      * @param realInstance
+      *   the real instance.
+      * @return
+      *   the mocked type.
+      */
+    inline def forward[A <: Tuple, R](
+        method: Mock[T] ?=> MockedMethod[A, R],
+        realInstance: T
+    ): Mock[T] =
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).tupled
       mock.on(method)(PartialFunctionProxy(realMethod))
 
