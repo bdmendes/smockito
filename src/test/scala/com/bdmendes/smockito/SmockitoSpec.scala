@@ -261,6 +261,46 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.times(it.getWith)
       repository.calls(it.getWith)
 
+  test("provide a forward sugar for spying on a real instance"):
+    val repository =
+      new Repository[User]("dummy"):
+        override def get: List[User] = mockUsers
+        override def getNames: List[String] = mockUsers.map(_.username)
+        override def exists(username: String): Boolean = getNames.exists(_ == username)
+        override def contains(user: User): Boolean = mockUsers.contains(user)
+        override def getWith(startsWith: String, endsWith: String): List[User] =
+          mockUsers.filter { user =>
+            user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
+          }
+        override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
+          getWith(startsWith, endsWith)
+        override def getWithContextual(startsWith: String)(using endsWith: String): List[User] =
+          getWith(startsWith, endsWith)
+
+    val mockRepository = mock[Repository[User]].forward(it.exists, repository)
+
+    assert(mockRepository.exists("bdmendes"))
+    assert(!mockRepository.exists("luismontenegro"))
+
+    assertEquals(
+      mockRepository.calls(it.exists),
+      List(Tuple1("bdmendes"), Tuple1("luismontenegro"))
+    )
+
+    assert(repository.exists("bdmendes"))
+    assert(!repository.exists("luismontenegro"))
+
+    // Invocations of the real instance are not intercepted.
+    assertEquals(mockRepository.times(it.exists), 2)
+
+    // This method was not forwarded, so expect the sentinel Mockito response.
+    assertEquals(mockRepository.get, null)
+
+    // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
+    intercept[UnstubbedMethod.type] {
+      mockRepository.times(it.getWith)
+    }
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):

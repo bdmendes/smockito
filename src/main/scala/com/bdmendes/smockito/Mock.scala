@@ -94,7 +94,7 @@ private[smockito] trait MockSyntax:
         case _: EmptyTuple =>
           // We could prevent calling this method in this case,
           // but for keeping the API homogeneous, let's allow it.
-          List.fill(times[A, R](method))(EmptyTuple.asInstanceOf[A])
+          List.fill(mock.times[A, R](method))(EmptyTuple.asInstanceOf[A])
 
         case _ =>
           assertStubbedBefore[A, R]()
@@ -143,10 +143,36 @@ private[smockito] trait MockSyntax:
               .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
           cap.getAllValues.size
 
+    /** Sets up a stub for a method that calls the respective method of a real instance. At a high
+      * level, this desugars to:
+      *
+      * {{{
+      *   mock.on(it.someMethod)(realInstance.someMethod)
+      * }}}
+      *
+      * @param method
+      *   the mocked method.
+      * @param realInstance
+      *   the real instance.
+      * @return
+      *   the mocked type.
+      */
+    inline def forward[A <: Tuple, R](
+        method: Mock[T] ?=> MockedMethod[A, R],
+        realInstance: T
+    ): Mock[T] =
+      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).tupled
+      mock.on(method)(PartialFunctionProxy(realMethod))
+
 object Mock:
 
   private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()
   private[smockito] lazy val captor = [X] => () => ArgumentCaptor.captor[X]()
+
+  private[smockito] class PartialFunctionProxy[A <: Tuple, R](f: A => R)
+      extends PartialFunction[A, R]:
+    override def apply(args: A): R = f(args)
+    override def isDefinedAt(x: A): Boolean = true
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
