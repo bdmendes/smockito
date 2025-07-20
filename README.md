@@ -96,7 +96,7 @@ Though not the main Smockito use case, you may achieve so by setting up a stub o
 
 ```scala
 val repository = {
-  val realInstance = Repository[User].fromDatabase
+  val realInstance = Repository.fromDatabase[User]
   mock[Repository[User]].forward(it.exists, realInstance)
 }
 
