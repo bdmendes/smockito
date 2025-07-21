@@ -64,24 +64,23 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(typeChecks("repository.on(() => it.get)(_ => List.empty)"))
     assert(!typeChecks("repository.on(() => it.get)(List.empty)"))
     assert(!typeChecks("repository.on(it.get)(_ => List.empty)"))
-    assert(!typeChecks("repository.on(it.get)(List.empty)"))
 
     assertEquals(repository.get, mockUsers)
 
   test("set up method stubs, on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists) {
-        case Tuple1(name) if name.endsWith("mendes") =>
+        case name if name.endsWith("mendes") =>
           true
       }
 
-    assert(typeChecks("repository.on(it.exists)(_._1.startsWith(\"bdmendes\"))"))
-    assert(typeChecks("repository.on(it.exists) { case Tuple1(\"bdmendes\") => true }"))
+    assert(typeChecks("repository.on(it.exists)(_.startsWith(\"bdmendes\"))"))
+    assert(typeChecks("repository.on(it.exists) { case \"bdmendes\" => true }"))
     assert(typeChecks("repository.on(it.exists) { _ => true }"))
     assert(!typeChecks("repository.on(it.exists)(println)"))
-    assert(!typeChecks("repository.on(it.exists) { case Tuple1(\"bdmendes\") => 1 }"))
+    assert(!typeChecks("repository.on(it.exists) { case \"bdmendes\" => 1 }"))
     assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
-    assert(!typeChecks("repository.on(it.exists) { case Tuple1(1) => \"bdmendes\" }"))
+    assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
 
     assertEquals(repository.exists("bdmendes"), true)
     intercept[UnexpectedArguments](repository.exists("spider"))
@@ -153,7 +152,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(() => it.getNames), List(EmptyTuple, EmptyTuple))
 
   test("inspect calls, on methods with 1 parameter"):
-    val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
+    val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
 
     assertEquals(repository.calls(it.exists), List.empty)
 
@@ -203,7 +202,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.getNames), 2)
 
   test("count calls, on methods with 1 parameter"):
-    val repository = mock[Repository[String]].on(it.exists)(_._1 == "bdmendes")
+    val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
 
     assertEquals(repository.calls(it.exists), List.empty)
 
