@@ -14,6 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.2.0 - 2025-07-21
+
+This release updates the API for unary methods. Instead of using `Tuple1[A]`, you should now work directly with `A`. This change improves clarity and reduces coupling with internal representations.
+
+Smockito also now prevents using `calls` on nullary methods at compile time. Please use `times` instead.
+
+### What's Changed
+* Introduce proxy `Pack` type to simplify mocking unary functions by @bdmendes in https://github.com/bdmendes/smockito/pull/25
+* Disallow calls on nullary methods by @bdmendes in https://github.com/bdmendes/smockito/pull/26
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.1.1...v1.2.0
+
 ## 1.1.1 - 2025-07-20
 
 This release adds a `forward` method on `Mock[T]` to quickly stub a method that forwards to a real instance. This is somewhat similar to a Mockito `spy`.
