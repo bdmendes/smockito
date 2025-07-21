@@ -81,9 +81,8 @@ private[smockito] trait MockSyntax:
         }
       mock
 
-    /** Yields the captured arguments received by a stubbed method, in chronological order, in the
-      * form of a tuple with the same shape as the method arguments. Refer to [[Smockito]] for a
-      * usage example.
+    /** Yields the captured arguments received by a stubbed method, in chronological order. Refer to
+      * [[Smockito]] for a usage example.
       *
       * @param method
       *   the mocked method.
