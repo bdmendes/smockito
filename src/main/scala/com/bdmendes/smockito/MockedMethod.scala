@@ -1,5 +1,7 @@
 package com.bdmendes.smockito
 
+/** The internal representation of a method to mock.
+  */
 opaque type MockedMethod[A <: Tuple, R] = Pack[A] => R
 
 extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])

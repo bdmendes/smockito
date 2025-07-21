@@ -1,5 +1,7 @@
 package com.bdmendes.smockito
 
+/** A `Tuple` proxy, especially relevant in the case of `Tuple1[A]`, treated as A.
+  */
 type Pack[A <: Tuple] =
   A match
     case EmptyTuple =>
