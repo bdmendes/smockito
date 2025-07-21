@@ -41,7 +41,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     Mockito.verify(repository).exists(ArgumentMatchers.any)
 
-    assertEquals(repository.calls(it.exists), List(Tuple1("pedronuno")))
+    assertEquals(repository.calls(it.exists), List("pedronuno"))
 
   test("be a subtype of T"):
     inline def isSubtypeOf[A, B] =
@@ -126,13 +126,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, List.empty)
 
-    assertEquals(repository.calls(() => it.get), List(EmptyTuple))
+    assertEquals(repository.calls(() => it.get), List(()))
     assertEquals(sideEffectfulCounter, 1)
 
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
 
-    assertEquals(repository.calls(() => it.get), List(EmptyTuple, EmptyTuple, EmptyTuple))
+    assertEquals(repository.calls(() => it.get), List((), (), ()))
     assertEquals(sideEffectfulCounter, 3)
 
   test("inspect calls, on methods with 0 parameters, even when runtime return types collide"):
@@ -148,8 +148,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getNames, List.empty)
     assertEquals(repository.getNames, List.empty)
 
-    assertEquals(repository.calls(() => it.get), List(EmptyTuple))
-    assertEquals(repository.calls(() => it.getNames), List(EmptyTuple, EmptyTuple))
+    assertEquals(repository.calls(() => it.get), List(()))
+    assertEquals(repository.calls(() => it.getNames), List((), ()))
 
   test("inspect calls, on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
@@ -159,7 +159,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.exists("bdmendes"))
     assert(!repository.exists("apmendes"))
 
-    assertEquals(repository.calls(it.exists), List(Tuple1("bdmendes"), Tuple1("apmendes")))
+    assertEquals(repository.calls(it.exists), List("bdmendes", "apmendes"))
 
   test("inspect calls, on methods with 2 parameters"):
     val repository =
@@ -281,10 +281,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(mockRepository.exists("bdmendes"))
     assert(!mockRepository.exists("luismontenegro"))
 
-    assertEquals(
-      mockRepository.calls(it.exists),
-      List(Tuple1("bdmendes"), Tuple1("luismontenegro"))
-    )
+    assertEquals(mockRepository.calls(it.exists), List("bdmendes", "luismontenegro"))
 
     assert(repository.exists("bdmendes"))
     assert(!repository.exists("luismontenegro"))

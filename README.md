@@ -40,7 +40,7 @@ If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enabl
 javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
 ```
 
-In your specification, extend `Smockito`. This will bring the `mock` method and relevant conversions to scope. To set up a mock, add stub definitions with the `on` method, which requires an [eta-expanded](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) method reference, that you may easily express with `it`, and a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html) on the tupled arguments to handle the relevant inputs.
+In your specification, extend `Smockito`. This will bring the `mock` method and relevant conversions to scope. To set up a mock, add stub definitions with the `on` method, which requires an [eta-expanded](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) method reference, that you may easily express with `it`, and a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html) to handle the relevant inputs.
 
 ```scala
 abstract class Repository[T](val name: String):
@@ -53,7 +53,7 @@ case class User(username: String)
 class RepositorySpecification extends Smockito:
   val repository = mock[Repository[User]]
     .on(() => it.get)(_ => List(User("johndoe")))
-    .on(it.exists)(args => args._1 == "johndoe")
+    .on(it.exists)(_ == "johndoe")
     .on(it.getWith) { 
       case ("john", name) if name.nonEmpty => List(User("johndoe"))
     } // Mock[Repository[User]]

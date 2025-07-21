@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
   *     // Chain stubs to set up a mock instance.
   *     val repository = mock[Repository[User]]
   *       .on(() => it.get)(_ => List(User("johndoe")))
-  *       .on(it.exists)(args => args._1 == "johndoe")
+  *       .on(it.exists)(_ == "johndoe")
   *       .on(it.getWith) {
   *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
   *       } // Mock[Repository[User]]
@@ -37,13 +37,12 @@ import scala.reflect.ClassTag
   * first argument. The [[it]] shorthand is a terse way of capturing the mocked type in context.
   *
   * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
-  * [[PartialFunction]] to handle the expected inputs, represented as a well-typed tuple, with the
-  * same shape as the mocked method arguments, that one may destructure.
+  * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
+  * method arguments, that one may destructure.
   *
   * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
-  * chronological order, in the form of a tuple with the same shape as the method arguments, à la
-  * `scalamock`. If one only cares about the number of times a stub was called, [[times]] is more
-  * efficient.
+  * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
+  * one only cares about the number of times a stub was called, [[times]] is more efficient.
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
   *

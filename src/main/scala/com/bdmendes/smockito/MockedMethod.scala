@@ -12,7 +12,7 @@ object MockedMethod:
 
   // scalafmt: { maxColumn = 150 }
 
-  given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: EmptyTuple) => f()
+  given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: Unit) => f()
 
   given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: A) => f(arg)
 

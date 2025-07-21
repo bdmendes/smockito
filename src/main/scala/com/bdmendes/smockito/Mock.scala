@@ -90,12 +90,12 @@ private[smockito] trait MockSyntax:
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R](method: Mock[T] ?=> MockedMethod[A, R]): List[A] =
+    inline def calls[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): List[Pack[A]] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // We could prevent calling this method in this case,
           // but for keeping the API homogeneous, let's allow it.
-          List.fill(mock.times[A, R](method))(EmptyTuple.asInstanceOf[A])
+          List.fill(mock.times[A, R](method))(pack(EmptyTuple.asInstanceOf[A]))
 
         case _ =>
           assertStubbedBefore[A, R]()
@@ -107,8 +107,9 @@ private[smockito] trait MockSyntax:
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
-            .map(Tuple.fromArray(_).asInstanceOf[A])
+            .map(Tuple.fromArray(_))
             .toList
+            .map(args => pack(args.asInstanceOf[A]))
 
     /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
       *
