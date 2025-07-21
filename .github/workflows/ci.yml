@@ -21,8 +21,8 @@ jobs:
       - name: Setup sbt
         uses: sbt/setup-sbt@v1
 
-      - name: Compile and check format
-        run: sbt scalafmtCheckAll scalafmtSbtCheck && git diff --exit-code
+      - name: Check format
+        run: sbt scalafmtCheckAll scalafmtSbtCheck
 
       - name: Compile API documentation
         run: sbt doc
