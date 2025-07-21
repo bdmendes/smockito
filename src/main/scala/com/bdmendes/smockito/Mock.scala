@@ -107,9 +107,8 @@ private[smockito] trait MockSyntax:
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
-            .map(Tuple.fromArray(_))
             .toList
-            .map(args => pack(args.asInstanceOf[A]))
+            .map(args => pack(Tuple.fromArray(args).asInstanceOf[A]))
 
     /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
       *
