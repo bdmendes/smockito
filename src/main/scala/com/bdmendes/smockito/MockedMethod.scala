@@ -1,9 +1,12 @@
 package com.bdmendes.smockito
 
-opaque type MockedMethod[A <: Tuple, R] = A => R
+/** The internal representation of a method to mock.
+  */
+opaque type MockedMethod[A <: Tuple, R] = Pack[A] => R
 
 extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])
-  def tupled: A => R = mockedMethod
+  def tupled: A => R = (args: A) => mockedMethod(pack(args))
+  def packed: Pack[A] => R = mockedMethod
 
 object MockedMethod:
   // We may use `TupledFunction` from the standard library once it goes stable. See
@@ -11,9 +14,9 @@ object MockedMethod:
 
   // scalafmt: { maxColumn = 150 }
 
-  given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: EmptyTuple) => f()
+  given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (arg: Unit) => f()
 
-  given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: Tuple1[A]) => f(arg._1)
+  given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: A) => f(arg)
 
   given conv02[A1, A2, R]: Conversion[(A1, A2) => R, MockedMethod[(A1, A2), R]] = f => f.tupled
 

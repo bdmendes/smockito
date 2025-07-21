@@ -4,6 +4,7 @@ import Mock.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
+import com.bdmendes.smockito.pack
 import java.lang.reflect.Method
 import org.mockito.*
 import scala.compiletime.*
@@ -54,7 +55,7 @@ private[smockito] trait MockSyntax:
       */
     inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
         method: Mock[T] ?=> MockedMethod[A1, R1]
-    )(using A1 =:= A2, R1 =:= R2)(stub: PartialFunction[A2, R2]): Mock[T] =
+    )(using A1 =:= A2, R1 =:= R2)(stub: PartialFunction[Pack[A2], R2]): Mock[T] =
       val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
       Mockito
         .when(method(using mock).tupled.apply(args))
@@ -68,7 +69,7 @@ private[smockito] trait MockSyntax:
             throw AlreadyStubbedMethod(invocation.getMethod)
 
           stub.applyOrElse(
-            Tuple.fromArray(arguments).asInstanceOf[A2],
+            pack(Tuple.fromArray(arguments).asInstanceOf[A2]),
             {
               case _ if arguments.forall(_ == null) =>
                 // We are overriding this stub; provide a sentinel value.
@@ -89,12 +90,12 @@ private[smockito] trait MockSyntax:
       * @return
       *   the received arguments.
       */
-    inline def calls[A <: Tuple: ClassTag, R](method: Mock[T] ?=> MockedMethod[A, R]): List[A] =
+    inline def calls[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): List[Pack[A]] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // We could prevent calling this method in this case,
           // but for keeping the API homogeneous, let's allow it.
-          List.fill(mock.times[A, R](method))(EmptyTuple.asInstanceOf[A])
+          List.fill(mock.times[A, R](method))(pack(EmptyTuple.asInstanceOf[A]))
 
         case _ =>
           assertStubbedBefore[A, R]()
@@ -106,8 +107,8 @@ private[smockito] trait MockSyntax:
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
-            .map(Tuple.fromArray(_).asInstanceOf[A])
             .toList
+            .map(args => pack(Tuple.fromArray(args).asInstanceOf[A]))
 
     /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
       *
@@ -161,7 +162,7 @@ private[smockito] trait MockSyntax:
         method: Mock[T] ?=> MockedMethod[A, R],
         realInstance: T
     ): Mock[T] =
-      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).tupled
+      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
 object Mock:
@@ -169,10 +170,10 @@ object Mock:
   private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()
   private[smockito] lazy val captor = [X] => () => ArgumentCaptor.captor[X]()
 
-  private[smockito] class PartialFunctionProxy[A <: Tuple, R](f: A => R)
-      extends PartialFunction[A, R]:
-    override def apply(args: A): R = f(args)
-    override def isDefinedAt(x: A): Boolean = true
+  private[smockito] class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R)
+      extends PartialFunction[Pack[A], R]:
+    override def apply(args: Pack[A]): R = f(args)
+    override def isDefinedAt(x: Pack[A]): Boolean = true
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
