@@ -115,41 +115,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWithContextual("bd")(using ""), List.empty)
     assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
 
-  test("inspect calls, on methods with 0 parameters"):
-    var sideEffectfulCounter = 0
+  test("disallow inspecting calls on methods with 0 parameters"):
+    val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
 
-    val repository =
-      mock[Repository[String]].on(() => it.get)(_ =>
-        sideEffectfulCounter += 1
-        List.empty
-      )
+    val _ = repository.times(() => it.get)
 
-    assertEquals(repository.get, List.empty)
-
-    assertEquals(repository.calls(() => it.get), List(()))
-    assertEquals(sideEffectfulCounter, 1)
-
-    assertEquals(repository.get, List.empty)
-    assertEquals(repository.get, List.empty)
-
-    assertEquals(repository.calls(() => it.get), List((), (), ()))
-    assertEquals(sideEffectfulCounter, 3)
-
-  test("inspect calls, on methods with 0 parameters, even when runtime return types collide"):
-    val repository =
-      mock[Repository[String]]
-        .on(() => it.get)(_ => List.empty)
-        .on(() => it.getNames)(_ => List.empty)
-
-    assertEquals(repository.calls(() => it.get), List.empty)
-    assertEquals(repository.calls(() => it.getNames), List.empty)
-
-    assertEquals(repository.get, List.empty)
-    assertEquals(repository.getNames, List.empty)
-    assertEquals(repository.getNames, List.empty)
-
-    assertEquals(repository.calls(() => it.get), List(()))
-    assertEquals(repository.calls(() => it.getNames), List((), ()))
+    assert(!typeChecks("repository.calls(() => it.get)"))
 
   test("inspect calls, on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
@@ -253,7 +224,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     }
 
     // Although we cannot be sure if there is a matching stub.
-    repository.calls(() => it.getNames)
+    repository.times(() => it.getNames)
 
     // Unstubbed method verification is disabled in relaxed mode.
     new Smockito(SmockitoMode.Relaxed):

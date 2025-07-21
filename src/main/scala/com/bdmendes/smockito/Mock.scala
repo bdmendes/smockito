@@ -93,9 +93,7 @@ private[smockito] trait MockSyntax:
     inline def calls[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): List[Pack[A]] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          // We could prevent calling this method in this case,
-          // but for keeping the API homogeneous, let's allow it.
-          List.fill(mock.times[A, R](method))(pack(EmptyTuple.asInstanceOf[A]))
+          error("`calls` is not available for nullary methods. Use `times` instead.")
 
         case _ =>
           assertStubbedBefore[A, R]()
