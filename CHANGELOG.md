@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.2.1 - 2025-07-31
+
+This release makes it possible to load Smockito as a Java Agent even if Mockito is not in the class path.
+
+### What's Changed
+* Piggyback to Mockito agent via reflection by @bdmendes in https://github.com/bdmendes/smockito/pull/31
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.0...v1.2.1
+
 ## 1.2.0 - 2025-07-21
 
 This release updates the API for unary methods. Instead of using `Tuple1[A]`, you should now work directly with `A`. This change improves clarity and reduces coupling with internal representations.
