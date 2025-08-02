@@ -1,6 +1,6 @@
 package com.bdmendes.smockito
 
-import Mock.*
+import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
@@ -27,7 +27,7 @@ private[smockito] trait MockSyntax:
     ): List[Method] =
       // Get all methods that may correspond to our types.
       // Due to erasure, we might get extra matches.
-      val argClasses = summonClassTags[A].map(_.runtimeClass)
+      val argClasses = mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
       val returnClass = summonInline[ClassTag[R]].runtimeClass
       invocations
         .map(_.getMethod)
@@ -38,8 +38,6 @@ private[smockito] trait MockSyntax:
 
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
       if mode == SmockitoMode.Strict then
-        // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
-        // runtime without introducing complicated state management in this trait.
         val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
         if matching[A, R](invocations).isEmpty then
           throw UnstubbedMethod
@@ -164,13 +162,14 @@ private[smockito] trait MockSyntax:
 
 object Mock:
 
-  private[smockito] lazy val anyMatcher = [X] => () => ArgumentMatchers.any[X]()
-  private[smockito] lazy val captor = [X] => () => ArgumentCaptor.captor[X]()
+  private[smockito] object mapper:
+    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]()
+    lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
+    lazy val ct = [X] => (x: ClassTag[X]) ?=> x
 
-  private[smockito] class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R)
-      extends PartialFunction[Pack[A], R]:
-    override def apply(args: Pack[A]): R = f(args)
-    override def isDefinedAt(x: Pack[A]): Boolean = true
+    class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R) extends PartialFunction[Pack[A], R]:
+      override def apply(args: Pack[A]): R = f(args)
+      override def isDefinedAt(x: Pack[A]): Boolean = true
 
   private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
