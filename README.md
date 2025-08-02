@@ -46,6 +46,7 @@ In your specification, extend `Smockito`. This will bring the `mock` method and 
 abstract class Repository[T](val name: String):
   def get: List[T]
   def exists(username: String): Boolean
+  def greet()(using T): String
   def getWith(startsWith: String, endsWith: String): List[T]
 
 case class User(username: String)
@@ -55,6 +56,7 @@ class RepositorySpecification extends Smockito:
     .on(() => it.name)(_ => "xpto")
     .on(() => it.get)(_ => List(User("johndoe")))
     .on(it.exists)(_ == "johndoe")
+    .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
     .on(it.getWith) { 
       case ("john", name) if name.nonEmpty => List(User("johndoe"))
     } // Mock[Repository[User]]
@@ -81,11 +83,7 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 ### Is this really a mocking framework?
 
-This is a facade for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
-
-### What should I mock?
-
-A matter of personal taste. Arguably, the bare minimum to increase your test surface. If possible, use simple higher-order functions and/or traits to inject behaviour. Read the [Mockito wiki guide](https://github.com/mockito/mockito/wiki/How-to-write-good-tests) for more opinions on the matter.
+This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
 
 ### Is Smockito thread-safe?
 

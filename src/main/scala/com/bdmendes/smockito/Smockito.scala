@@ -11,6 +11,7 @@ import scala.reflect.ClassTag
   *   abstract class Repository[T](val name: String):
   *     def get: List[T]
   *     def exists(username: String): Boolean
+  *     def greet()(using T): String
   *     def getWith(startsWith: String, endsWith: String): List[T]
   *
   *   case class User(username: String)
@@ -21,6 +22,7 @@ import scala.reflect.ClassTag
   *       .on(() => it.name)(_ => "xpto")
   *       .on(() => it.get)(_ => List(User("johndoe")))
   *       .on(it.exists)(_ == "johndoe")
+  *       .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
   *       .on(it.getWith) {
   *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
   *       } // Mock[Repository[User]]
@@ -40,6 +42,8 @@ import scala.reflect.ClassTag
   * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
   * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
   * method arguments, that one may destructure.
+  *
+  * For spying on a real instance, use [[forward]].
   *
   * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
   * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
