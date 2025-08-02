@@ -128,10 +128,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWithContextual(_: String)(using _: String))(_ => List.empty)
+      mock[Repository[User]].on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
 
-    assertEquals(repository.getWithContextual("bd")(using ""), List.empty)
-    assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
+    assertEquals(repository.greet()(using User("bdmendes")), "Hello, bdmendes!")
 
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
@@ -282,8 +281,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           }
         override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
           getWith(startsWith, endsWith)
-        override def getWithContextual(startsWith: String)(using endsWith: String): List[User] =
-          getWith(startsWith, endsWith)
+        override def greet()(using user: User): String = s"Hello, ${user.username}!"
 
     val mockRepository = mock[Repository[User]].forward(it.exists, repository)
 
@@ -316,7 +314,7 @@ object SmockitoSpec:
     def contains(user: User): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
-    def getWithContextual(startsWith: String)(using endsWith: String): List[T]
+    def greet()(using T): String
 
   class Service[T](repository: Repository[T]):
     def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
