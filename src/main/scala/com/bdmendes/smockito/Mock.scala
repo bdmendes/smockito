@@ -38,8 +38,6 @@ private[smockito] trait MockSyntax:
 
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
       if mode == SmockitoMode.Strict then
-        // Again, due to type erasure, this might miss a few cases, but it's the best we can do at
-        // runtime without introducing complicated state management in this trait.
         val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
         if matching[A, R](invocations).isEmpty then
           throw UnstubbedMethod
