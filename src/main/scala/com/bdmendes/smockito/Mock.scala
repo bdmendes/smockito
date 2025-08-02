@@ -51,10 +51,10 @@ private[smockito] trait MockSyntax:
       * @return
       *   the mocked type.
       */
-    inline def on[A1 <: Tuple, A2 <: Tuple, R1, R2](
-        method: Mock[T] ?=> MockedMethod[A1, R1]
-    )(using A1 =:= A2, R1 =:= R2)(stub: PartialFunction[Pack[A2], R2]): Mock[T] =
-      val args = Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
+    inline def on[A <: Tuple, R1, R2](method: Mock[T] ?=> MockedMethod[A, R1])(using
+        R1 =:= R2
+    )(stub: PartialFunction[Pack[A], R2]): Mock[T] =
+      val args = Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       Mockito
         .when(method(using mock).tupled.apply(args))
         .thenAnswer { invocation =>
@@ -67,7 +67,7 @@ private[smockito] trait MockSyntax:
             throw AlreadyStubbedMethod(invocation.getMethod)
 
           stub.applyOrElse(
-            pack(Tuple.fromArray(arguments).asInstanceOf[A2]),
+            pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             {
               case _ if arguments.forall(_ == null) =>
                 // We are overriding this stub; provide a sentinel value.
