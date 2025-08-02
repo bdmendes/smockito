@@ -7,7 +7,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.bdmendes/smockito_3)](https://central.sonatype.com/artifact/com.bdmendes/smockito_3/overview)
 [![Javadoc](https://javadoc.io/badge2/com.bdmendes/smockito_3/javadoc.svg)](https://javadoc.io/doc/com.bdmendes/smockito_3)
 
-Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://github.com/mockito/mockito). It enables setting up unique method stubs for any type in a type-safe manner, while providing an expressive interface for inspecting received arguments and call counts.
+Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://github.com/mockito/mockito). It enables setting up unique method and value stubs for any type in a type-safe manner, while providing an expressive interface for inspecting received arguments and call counts.
 
 <br clear="right">
 
@@ -52,6 +52,7 @@ case class User(username: String)
 
 class RepositorySpecification extends Smockito:
   val repository = mock[Repository[User]]
+    .on(() => it.name)(_ => "xpto")
     .on(() => it.get)(_ => List(User("johndoe")))
     .on(it.exists)(_ == "johndoe")
     .on(it.getWith) { 

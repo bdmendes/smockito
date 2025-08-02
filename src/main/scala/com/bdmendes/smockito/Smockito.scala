@@ -18,6 +18,7 @@ import scala.reflect.ClassTag
   *   class RepositorySpecification extends Smockito:
   *     // Chain stubs to set up a mock instance.
   *     val repository = mock[Repository[User]]
+  *       .on(() => it.name)(_ => "xpto")
   *       .on(() => it.get)(_ => List(User("johndoe")))
   *       .on(it.exists)(_ == "johndoe")
   *       .on(it.getWith) {
