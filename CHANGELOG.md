@@ -14,6 +14,19 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.2.2 - 2025-08-02
+
+This release includes internal optimizations and improved documentation, namely on how to stub class values and methods with contextual parameters.
+
+### What's Changed
+* Unify tuple mapper by @bdmendes in https://github.com/bdmendes/smockito/pull/35
+* Test mocking values and tuple mapper by @bdmendes in https://github.com/bdmendes/smockito/pull/37
+* Remove duplicate arg type params by @bdmendes in https://github.com/bdmendes/smockito/pull/38
+* Document value stubbing by @bdmendes in https://github.com/bdmendes/smockito/pull/39
+* Document stubbing methods with contextuals by @bdmendes in https://github.com/bdmendes/smockito/pull/40
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.1...v1.2.2
+
 ## 1.2.1 - 2025-07-31
 
 This release makes it possible to load Smockito as a Java Agent even if Mockito is not in the class path.
