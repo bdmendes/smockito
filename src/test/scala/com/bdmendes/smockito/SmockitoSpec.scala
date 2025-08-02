@@ -58,7 +58,25 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!isSubtypeOf[Mock[User], Repository[User]])
     assert(!isSubtypeOf[Mock[Repository[User]], User])
 
-  test("set up method stubs, on methods with 0 parameters"):
+  test("set up method stubs on values"):
+    var counter = 0
+    val repository =
+      mock[Repository[User]].on(() => it.longName) { _ =>
+        counter += 1
+        "database"
+      }
+
+    assert(!typeChecks("repository.on(() => it.longName)(_ => 2)"))
+    assert(!typeChecks("repository.on(it.longName)(_ => \"database\")"))
+
+    assertEquals(repository.longName, "database")
+    assertEquals(counter, 1)
+
+    // It's worth to note that even values always trigger a method stub.
+    assertEquals(repository.longName, "database")
+    assertEquals(counter, 2)
+
+  test("set up method stubs on methods with 0 parameters"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)
 
     assert(typeChecks("repository.on(() => it.get)(_ => List.empty)"))
@@ -67,7 +85,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, mockUsers)
 
-  test("set up method stubs, on methods with 1 parameter"):
+  test("set up method stubs on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists) {
         case name if name.endsWith("mendes") =>
@@ -85,7 +103,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("bdmendes"), true)
     intercept[UnexpectedArguments](repository.exists("spider"))
 
-  test("set up method stubs, on methods with 2 parameters"):
+  test("set up method stubs on methods with 2 parameters"):
     val repository =
       mock[Repository[User]].on(it.getWith) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
@@ -99,7 +117,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
-  test("set up method stubs, on curried methods"):
+  test("set up method stubs on curried methods"):
     val repository =
       mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
@@ -108,12 +126,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWithCurried("bd")(""), List(User("bdmendes")))
     assertEquals(repository.getWithCurried("")("mendes"), List(User("bdmendes"), User("apmendes")))
 
-  test("set up method stubs, on methods with contextual parameters"):
+  test("set up method stubs on methods with contextual parameters"):
     val repository =
       mock[Repository[User]].on(it.getWithContextual(_: String)(using _: String))(_ => List.empty)
 
     assertEquals(repository.getWithContextual("bd")(using ""), List.empty)
     assertEquals(repository.getWithContextual("")(using "mendes"), List.empty)
+
+  test("disallow inspecting calls on values"):
+    val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
+
+    val _ = repository.times(() => it.longName)
+
+    assert(!typeChecks("repository.calls(() => it.longName)"))
 
   test("disallow inspecting calls on methods with 0 parameters"):
     val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
@@ -122,7 +147,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(!typeChecks("repository.calls(() => it.get)"))
 
-  test("inspect calls, on methods with 1 parameter"):
+  test("inspect calls on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
 
     assertEquals(repository.calls(it.exists), List.empty)
@@ -132,7 +157,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.exists), List("bdmendes", "apmendes"))
 
-  test("inspect calls, on methods with 2 parameters"):
+  test("inspect calls on methods with 2 parameters"):
     val repository =
       mock[Repository[User]].on(it.getWith) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
@@ -143,7 +168,20 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.getWith), List(("bd", "mendes"), ("bd", "")))
 
-  test("count calls, on methods with 0 parameters"):
+  test("count calls on values"):
+    val repository: Mock[Repository[String]] =
+      mock[Repository[String]].on(() => it.longName)(_ => "database")
+
+    assertEquals(repository.longName, "database")
+
+    assertEquals(repository.times(() => it.longName), 1)
+
+    assertEquals(repository.longName, "database")
+    assertEquals(repository.longName, "database")
+
+    assertEquals(repository.times(() => it.longName), 3)
+
+  test("count calls on methods with 0 parameters"):
     val repository: Mock[Repository[String]] =
       mock[Repository[String]].on(() => it.get)(_ => List.empty)
 
@@ -156,7 +194,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(() => it.get), 3)
 
-  test("count calls, on methods with 0 parameters, even when runtime return types collide"):
+  test("count calls on methods with 0 parameters, minding erasure"):
     val repository =
       mock[Repository[String]]
         .on(() => it.get)(_ => List.empty)
@@ -172,7 +210,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.get), 1)
     assertEquals(repository.times(() => it.getNames), 2)
 
-  test("count calls, on methods with 1 parameter"):
+  test("count calls on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
 
     assertEquals(repository.calls(it.exists), List.empty)
@@ -182,7 +220,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.exists), 2)
 
-  test("count calls, on methods with 2 parameters"):
+  test("count calls on methods with 2 parameters"):
     val repository =
       mock[Repository[User]].on(it.getWith) { case (start, end) =>
         mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))

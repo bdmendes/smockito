@@ -19,7 +19,7 @@ object MockitoAgent:
   def premain(args: String, instrumentation: Instrumentation): Unit =
     method match
       case Failure(e) =>
-        println(s"Smockito could not start Mockito agent: ${e.getMessage()}")
+        println(s"Smockito could not start Mockito agent: ${e.getMessage}")
       case Success(m) =>
         // Mockito already checks for repeated calls. We can invoke this blindly.
         m.invoke(null, args, instrumentation)
