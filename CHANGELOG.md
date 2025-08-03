@@ -18,7 +18,7 @@ Description.
 
 This release makes `Mock[T]` covariant in `T`, which should enable even more use cases (e.g., abstract mock set-ups). In addition, integration with effect systems is now documented.
 
-## What's Changed
+### What's Changed
 * Make Mock covariant in T by @bdmendes in https://github.com/bdmendes/smockito/pull/43
 * Document and test effect systems integration by @bdmendes in https://github.com/bdmendes/smockito/pull/44
 
