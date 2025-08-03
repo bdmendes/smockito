@@ -14,7 +14,7 @@ import scala.util.Try
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
-opaque type Mock[T] <: T = T
+opaque type Mock[+T] <: T = T
 
 private[smockito] trait MockSyntax:
 

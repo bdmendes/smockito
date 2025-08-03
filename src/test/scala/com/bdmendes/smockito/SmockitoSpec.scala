@@ -58,6 +58,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!isSubtypeOf[Mock[User], Repository[User]])
     assert(!isSubtypeOf[Mock[Repository[User]], User])
 
+  test("be covariant in T"):
+    abstract class FancyRepository[T](name: String) extends Repository[T](name):
+      def fancyGreet()(using T): String
+
+    def setUpMock(mock: Mock[Repository[User]], answer: Boolean) = mock.on(it.exists)(_ => answer)
+
+    assert(setUpMock(mock[FancyRepository[User]], true).exists("bdmendes"))
+    assert(!setUpMock(mock[FancyRepository[User]], false).exists("bdmendes"))
+
   test("set up method stubs on values"):
     var counter = 0
     val repository =
