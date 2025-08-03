@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.2.3 - 2025-08-03
+
+This release makes `Mock[T]` covariant in `T`, which should enable even more use cases (e.g., abstract mock set-ups). In addition, integration with effect systems is now documented.
+
+## What's Changed
+* Make Mock covariant in T by @bdmendes in https://github.com/bdmendes/smockito/pull/43
+* Document and test effect systems integration by @bdmendes in https://github.com/bdmendes/smockito/pull/44
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.2...v1.2.3
+
 ## 1.2.2 - 2025-08-02
 
 This release includes internal optimizations and improved documentation, namely on how to stub class values and methods with contextual parameters.
