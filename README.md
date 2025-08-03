@@ -104,6 +104,25 @@ assert(repository.times(it.exists) == 0)
 
 That said, make sure you also test the real instance in isolation.
 
+### Is Smockito compatible with effect systems?
+
+Yes. Implement your stub as you would in application code. For example, with [cats-effect](https://github.com/typelevel/cats-effect):
+
+```scala
+abstract class EffectRepository[T]:
+  def exists(username: String): IO[Boolean]
+
+val repository =
+  mock[EffectRepository[User]].on(it.exists) {
+    case "johndoe" =>
+      IO(true)
+    case _ =>
+      IO.raiseError(new IllegalArgumentException("Unexpected user"))
+  }
+```
+
+Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.
+
 ### I need to override stubs or reason about unstubbed methods.
 
 If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:

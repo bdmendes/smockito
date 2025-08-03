@@ -7,6 +7,10 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 class SmockitoSpec extends munit.FunSuite with Smockito:
 
@@ -312,6 +316,44 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod.type] {
       mockRepository.times(it.getWith)
     }
+
+  test("integrate with an effects system"):
+    given ExecutionContext = ExecutionContext.global
+
+    // Let's simulate cats-effect `IO`.
+    class IO[+V](val execute: () => Future[V]):
+      def flatMap[T](f: V => IO[T]): IO[T] =
+        new IO(() => execute().flatMap(res => f(res).execute()))
+      def map[T](f: V => T): IO[T] = new IO(() => execute().map(f))
+      def unsafeRunSync() = Await.result(execute(), 1.second)
+
+    object IO:
+      def apply[V](v: => V) = pure(v)
+      def pure[V](v: => V) = new IO(() => Future(v))
+      def raiseError[V](e: => Throwable) = new IO[V](() => Future.failed(e))
+
+    // An "effectful" class.
+    abstract class EffectRepository[T]:
+      def exists(username: String): IO[Boolean]
+
+    val repository =
+      mock[EffectRepository[User]].on(it.exists) {
+        case "bdmendes" =>
+          IO(true)
+        case _ =>
+          IO.raiseError(new IllegalArgumentException("Unexpected user"))
+      }
+
+    intercept[IllegalArgumentException] {
+      val errored =
+        for
+          _ <- repository.exists("apmendes")
+          bd <- repository.exists("bdmendes")
+        yield bd
+      val _ = errored.unsafeRunSync()
+    }
+
+    assert(repository.exists("bdmendes").unsafeRunSync())
 
 object SmockitoSpec:
 
