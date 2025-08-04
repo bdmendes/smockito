@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+This release refines the `on` method signature. There are no changes in usage, but the updated definition should provide better compatibility with language servers and IDEs, particularly IntelliJ.
+
+## 1.2.4 - 2025-08-05
+
+### What's Changed
+* Simplify stub return witness by @bdmendes in https://github.com/bdmendes/smockito/pull/48
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.3...v1.2.4
+
 ## 1.2.3 - 2025-08-03
 
 This release makes `Mock[T]` covariant in `T`, which should enable even more use cases (e.g., abstract mock set-ups). In addition, integration with effect systems is now documented.
