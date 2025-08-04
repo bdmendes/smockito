@@ -51,9 +51,9 @@ private[smockito] trait MockSyntax:
       * @return
       *   the mocked type.
       */
-    inline def on[A <: Tuple, R1, R2](method: Mock[T] ?=> MockedMethod[A, R1])(using
-        R1 =:= R2
-    )(stub: PartialFunction[Pack[A], R2]): Mock[T] =
+    inline def on[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
+        stub: PartialFunction[Pack[A], R2]
+    ): Mock[T] =
       val args = Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       Mockito
         .when(method(using mock).tupled.apply(args))
