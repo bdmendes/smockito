@@ -62,7 +62,7 @@ class RepositorySpecification extends Smockito:
     } // Mock[Repository[User]]
 ```
 
-A `Mock[T]` is a `T` both at compile and runtime.
+A `Mock[T]` is a `T` both at compile time and runtime.
 
 ```scala
   assert(repository.getWith("john", "doe") == List(User("johndoe")))
