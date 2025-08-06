@@ -355,6 +355,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(repository.exists("bdmendes").unsafeRunSync())
 
+  test("support defining stubs outside of declaring scope"):
+    trait MockData:
+      lazy val repo = mock[Repository[User]]
+
+    new MockData:
+      repo.on(it.getWith)(_ => List.empty)
+      assertEquals(repo.getWith("bd", "mendes"), List.empty)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
