@@ -14,9 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
-This release refines the `on` method signature. There are no changes in usage, but the updated definition should provide better compatibility with language servers and IDEs, particularly IntelliJ.
+## 1.2.5 - 2025-08-06
+
+Because the JVM is full of surprises, this release fixes an edge case where the lazy evaluation of a mock would raise an internal Mockito exception.
+
+### What's Changed
+* Fix Matcher initialization before mock by @bdmendes in https://github.com/bdmendes/smockito/pull/51
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.4...v1.2.5
 
 ## 1.2.4 - 2025-08-05
+
+This release refines the `on` method signature. There are no changes in usage, but the updated definition should provide better compatibility with language servers and IDEs, particularly IntelliJ.
 
 ### What's Changed
 * Simplify stub return witness by @bdmendes in https://github.com/bdmendes/smockito/pull/48
