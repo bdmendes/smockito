@@ -147,6 +147,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
+  test("set up method stubs on overloaded methods"):
+    val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
+
+    assert(repository.contains("bdmendes"))
+
+    // The default Mockito response for unstubbed methods returning Boolean.
+    assert(!repository.contains(mockUsers.head))
+
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
 
@@ -194,6 +202,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.calls(it.greet(_: Boolean)(using _: User)),
       List(false -> User("bdmendes"))
     )
+
+  test("inspect calls on overloaded methods"):
+    val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
+
+    val _ = repository.contains("bdmendes")
+    val _ = repository.contains(mockUsers.head)
+
+    assertEquals(repository.calls(it.contains(_: String)), List("bdmendes"))
 
   test("count calls on values"):
     val repository: Mock[Repository[String]] =
@@ -268,6 +284,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
 
+  test("count calls on overloaded methods"):
+    val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
+
+    val _ = repository.contains("bdmendes")
+    val _ = repository.contains(mockUsers.head)
+
+    assertEquals(repository.times(it.contains(_: String)), 1)
+
   test("throw on unknown received method"):
     def merge(x: User, y: User) = User(x.username + y.username)
 
@@ -288,15 +312,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Start by setting up stubs in relaxed mode. Next stubs won't throw.
     new Smockito(SmockitoMode.Relaxed):
-      repository.on(it.contains)(_ => true)
+      repository.on(it.exists)(_ => true)
       repository.on(it.getWith)(_ => List.empty)
 
-    repository.on(it.contains)(_ => true)
+    repository.on(it.exists)(_ => true)
     repository.on(it.getWith)(_ => List.empty)
 
     // Previous stubs were set up in strict mode, so expect failures.
     intercept[AlreadyStubbedMethod] {
-      repository.on(it.contains)(_ => false)
+      repository.on(it.exists)(_ => false)
     }
     intercept[AlreadyStubbedMethod] {
       repository.on(it.getWith)(_ => List.empty)
@@ -328,13 +352,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         override def getNames: List[String] = mockUsers.map(_.username)
         override def exists(username: String): Boolean = getNames.contains(username)
         override def contains(user: User): Boolean = mockUsers.contains(user)
+        override def contains(username: String): Boolean = exists(username)
         override def getWith(startsWith: String, endsWith: String): List[User] =
           mockUsers.filter { user =>
             user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
           }
         override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
           getWith(startsWith, endsWith)
-        override def greet(upper: Boolean)(using user: User): String = s"Hello, ${user.username}!"
+        override def greet(upper: Boolean)(using user: User): String =
+          val s = s"Hello, ${user.username}!"
+          if upper then
+            s.toUpperCase
+          else
+            s
 
     val mockRepository = mock[Repository[User]].forward(it.exists, repository)
 
@@ -411,6 +441,7 @@ object SmockitoSpec:
     def getNames: List[String]
     def exists(username: String): Boolean
     def contains(user: User): Boolean
+    def contains(username: String): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
