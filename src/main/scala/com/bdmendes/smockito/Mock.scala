@@ -35,6 +35,16 @@ private[smockito] trait MockSyntax:
         }
         .toList
 
+    private inline def assertMethodExists[A <: Tuple, R](): Unit =
+      if mode == SmockitoMode.Strict then
+        inline erasedValue[A] match
+          case EmptyTuple =>
+            ()
+          case _ =>
+            val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
+            if matching[A, R](methods).isEmpty then
+              throw UnknownMethod
+
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
       if mode == SmockitoMode.Strict then
         val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
@@ -53,6 +63,7 @@ private[smockito] trait MockSyntax:
     inline def on[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: PartialFunction[Pack[A], R2]
     ): Mock[T] =
+      assertMethodExists[A, R1]()
       Mockito
         .when(
           method(using mock).tupled(Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
