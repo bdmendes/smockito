@@ -147,6 +147,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
+  test("set up method stubs on methods with variable arguments"):
+    val repository =
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+        names.contains("bdmendes")
+      }
+
+    assert(repository.containsOneOf("bdmendes", "apmendes"))
+    assert(!repository.containsOneOf("fernandorego", "apmendes"))
+
   test("set up method stubs on overloaded methods"):
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
@@ -201,6 +210,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(
       repository.calls(it.greet(_: Boolean)(using _: User)),
       List(false -> User("bdmendes"))
+    )
+
+  test("inspect calls on methods with variable arguments"):
+    val repository =
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+        names.contains("bdmendes")
+      }
+
+    val _ = repository.containsOneOf("bdmendes", "apmendes")
+
+    assertEquals(
+      repository.calls((names: Seq[String]) => it.containsOneOf(names*)),
+      List(Seq("bdmendes", "apmendes"))
     )
 
   test("inspect calls on overloaded methods"):
@@ -284,6 +306,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
 
+  test("count calls on methods with variable arguments"):
+    val repository =
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+        names.contains("bdmendes")
+      }
+
+    val _ = repository.containsOneOf("bdmendes", "apmendes")
+
+    assertEquals(repository.times((names: Seq[String]) => it.containsOneOf(names*)), 1)
+
   test("count calls on overloaded methods"):
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
@@ -353,6 +385,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         override def exists(username: String): Boolean = getNames.contains(username)
         override def contains(user: User): Boolean = mockUsers.contains(user)
         override def contains(username: String): Boolean = exists(username)
+        override def containsOneOf(username: String*): Boolean = username.exists(contains)
         override def getWith(startsWith: String, endsWith: String): List[User] =
           mockUsers.filter { user =>
             user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
@@ -442,6 +475,7 @@ object SmockitoSpec:
     def exists(username: String): Boolean
     def contains(user: User): Boolean
     def contains(username: String): Boolean
+    def containsOneOf(username: String*): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
