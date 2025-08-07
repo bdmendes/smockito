@@ -182,7 +182,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.getWith), List(("bd", "mendes"), ("bd", "")))
 
-  test("count calls on methods with contextual parameters"):
+  test("inspect calls on methods with contextual parameters"):
     val repository =
       mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)) { case (_, user) =>
         s"Hello, ${user.username}!"
