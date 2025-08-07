@@ -180,6 +180,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.getWith), List(("bd", "mendes"), ("bd", "")))
 
+  test("count calls on methods with contextual parameters"):
+    val repository =
+      mock[Repository[User]].on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
+
+    assertEquals(repository.greet()(using User("bdmendes")), "Hello, bdmendes!")
+
+    assertEquals(repository.calls(it.greet()(using _: User)), List(User("bdmendes")))
+
   test("count calls on values"):
     val repository: Mock[Repository[String]] =
       mock[Repository[String]].on(() => it.longName)(_ => "database")
@@ -242,6 +250,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
 
     assertEquals(repository.times(it.getWith), 2)
+
+  test("count calls on methods with contextual parameters"):
+    val repository =
+      mock[Repository[User]].on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
+
+    assertEquals(repository.greet()(using User("bdmendes")), "Hello, bdmendes!")
+
+    assertEquals(repository.times(it.greet()(using _: User)), 1)
 
   test("throw on repeated stub set up"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
