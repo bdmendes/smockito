@@ -32,7 +32,9 @@ private[smockito] trait MockSyntax:
       invocations
         .map(_.getMethod)
         .filter { method =>
-          returnClass == method.getReturnType && argClasses.sameElements(method.getParameterTypes)
+          method.getReturnType.isAssignableFrom(returnClass) &&
+          argClasses.length == method.getParameterTypes.length &&
+          argClasses.zip(method.getParameterTypes).forall((a, b) => b.isAssignableFrom(a))
         }
         .toList
 
