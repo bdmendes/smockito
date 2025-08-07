@@ -14,6 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.3.0 - 2025-08-07
+
+Starting from this release, Smockito will prevent circumventing the API by making sure the received method exists on the mock class type. This is especially relevant since eta-expansion on methods with contextual parameters may capture givens in scope, which is rarely what the user wants and would raise an internal Mockito exception due to shape differences.
+
+Besides this, an issue related to erasure of contextual parameter types was fixed.
+
+### What's Changed
+* Fix reason about contextual params by @bdmendes in https://github.com/bdmendes/smockito/pull/53
+* Verify unknown method by @bdmendes in https://github.com/bdmendes/smockito/pull/54
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.2.5...v1.3.0
+
 ## 1.2.5 - 2025-08-06
 
 Because the JVM is full of surprises, this release fixes an edge case where the lazy evaluation of a mock would raise an internal Mockito exception.
