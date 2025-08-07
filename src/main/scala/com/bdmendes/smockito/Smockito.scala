@@ -109,6 +109,14 @@ object Smockito:
 
   object SmockitoException:
 
+    case object UnknownMethod
+        extends SmockitoException(
+          s"The received method does not match any of the mock object's methods. " +
+            "Are you performing eta-expansion correctly? " +
+            "Double-check whether this method has contextual parameters and " +
+            "they are inadvertently being captured in the spec scope."
+        )
+
     case object UnstubbedMethod
         extends SmockitoException(
           s"The received method was not stubbed, so you cannot reason about it. " +

@@ -22,15 +22,12 @@ private[smockito] trait MockSyntax:
 
   extension [T](mock: Mock[T])
 
-    private inline def matching[A <: Tuple, R](
-        invocations: Iterable[invocation.Invocation]
-    ): List[Method] =
+    private inline def matching[A <: Tuple, R](methods: Iterable[Method]): List[Method] =
       // Get all methods that may correspond to our types.
       // Due to erasure, we might get extra matches.
       val argClasses = mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
       val returnClass = summonInline[ClassTag[R]].runtimeClass
-      invocations
-        .map(_.getMethod)
+      methods
         .filter { method =>
           method.getReturnType.isAssignableFrom(returnClass) &&
           argClasses.length == method.getParameterTypes.length &&
@@ -38,10 +35,20 @@ private[smockito] trait MockSyntax:
         }
         .toList
 
+    private inline def assertMethodExists[A <: Tuple, R](): Unit =
+      if mode == SmockitoMode.Strict then
+        inline erasedValue[A] match
+          case EmptyTuple =>
+            ()
+          case _ =>
+            val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
+            if matching[A, R](methods).isEmpty then
+              throw UnknownMethod
+
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
       if mode == SmockitoMode.Strict then
         val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
-        if matching[A, R](invocations).isEmpty then
+        if matching[A, R](invocations.map(_.getMethod)).isEmpty then
           throw UnstubbedMethod
 
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
@@ -56,6 +63,7 @@ private[smockito] trait MockSyntax:
     inline def on[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: PartialFunction[Pack[A], R2]
     ): Mock[T] =
+      assertMethodExists[A, R1]()
       Mockito
         .when(
           method(using mock).tupled(Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
@@ -123,7 +131,9 @@ private[smockito] trait MockSyntax:
           // We have to check all matching invocations, minding type erasure, and manually
           // validate the result.
           val invocations =
-            matching[EmptyTuple, R](Mockito.mockingDetails(mock).getInvocations.asScala).size
+            matching[EmptyTuple, R](
+              Mockito.mockingDetails(mock).getInvocations.asScala.map(_.getMethod)
+            ).size
           val validInvocations = (invocations to 1 by -1).find { count =>
             Try(
               method(using Mockito.verify(mock, Mockito.times(count)))
