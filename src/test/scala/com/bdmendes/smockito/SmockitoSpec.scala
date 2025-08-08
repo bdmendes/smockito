@@ -344,7 +344,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Start by setting up stubs in relaxed mode. Next stubs won't throw.
     new Smockito(SmockitoMode.Relaxed):
-      repository.on(it.exists)(_ => true)
+      repository.on(it.exists)(_.startsWith("bd"))
       repository.on(it.getWith)(_ => List.empty)
 
     repository.on(it.exists)(_ => true)
