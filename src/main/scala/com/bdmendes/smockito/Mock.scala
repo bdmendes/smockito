@@ -18,7 +18,7 @@ opaque type Mock[+T] <: T = T
 
 private[smockito] trait MockSyntax:
 
-  val mode: SmockitoMode
+  val smockitoMode: SmockitoMode
 
   extension [T](mock: Mock[T])
 
@@ -36,7 +36,7 @@ private[smockito] trait MockSyntax:
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
-      if mode == SmockitoMode.Strict then
+      if smockitoMode == SmockitoMode.Strict then
         inline erasedValue[A] match
           case EmptyTuple =>
             ()
@@ -46,7 +46,7 @@ private[smockito] trait MockSyntax:
               throw UnknownMethod
 
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
-      if mode == SmockitoMode.Strict then
+      if smockitoMode == SmockitoMode.Strict then
         val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
         if matching[A, R](invocations.map(_.getMethod)).isEmpty then
           throw UnstubbedMethod
@@ -75,7 +75,7 @@ private[smockito] trait MockSyntax:
           // a stub override (i.e. using ArgumentMatchers.any ~ null).
           // Assuming a method won't receive null should not be a problem in the Scala world.
           if arguments.nonEmpty && arguments.forall(_ == null) then
-            if mode == SmockitoMode.Strict then
+            if smockitoMode == SmockitoMode.Strict then
               throw AlreadyStubbedMethod(invocation.getMethod)
             else
               null
