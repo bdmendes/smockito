@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.3.2 - 2025-08-08
+
+Even though the `mode` value has to be public due to Scala rules, this patch makes naming clashes less likely by renaming it to `smockitoMode`.
+
+### What's Changed
+* Rename mode value to avoid clashes by @bdmendes in https://github.com/bdmendes/smockito/pull/60
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.3.1...v1.3.2
+
 ## 1.3.1 - 2025-08-07
 
 This release fixes an issue related to stub overrides in relaxed mode.
