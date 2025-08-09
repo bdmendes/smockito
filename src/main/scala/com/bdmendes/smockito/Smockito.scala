@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
   *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
   *       } // Mock[Repository[User]]
   *
-  *     // A `Mock[T]` is effectively a `T`, both at compile and runtime.
+  *     // A `Mock[T]` is effectively a `T`, both at compile time and runtime.
   *     assert(repository.getWith("john", "doe") == List(User("johndoe")))
   *
   *     // Observe the past method interactions.
