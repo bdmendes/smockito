@@ -4,7 +4,6 @@ import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
-import com.bdmendes.smockito.pack
 import java.lang.reflect.Method
 import org.mockito.*
 import scala.compiletime.*
