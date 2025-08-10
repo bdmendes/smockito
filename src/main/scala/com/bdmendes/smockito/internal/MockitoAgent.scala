@@ -11,10 +11,9 @@ object MockitoAgent:
     // Unfortunately, we cannot be sure that Mockito exists in the class path in
     // some complicated build configurations. It's best not to load this agent
     // in that case, but nevertheless we want to be flexible.
-    Try {
+    Try:
       val mockito = Class.forName("org.mockito.internal.PremainAttach")
       mockito.getMethod("premain", classOf[String], classOf[Instrumentation])
-    }
 
   def premain(args: String, instrumentation: Instrumentation): Unit =
     method match

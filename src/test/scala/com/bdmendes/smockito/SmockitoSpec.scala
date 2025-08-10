@@ -34,9 +34,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // But, of course, the raw Mockito API is not very type safe, so use with caution.
     Mockito.when(repository.getWith("bd", "mendes")).thenReturn(List(1, 2))
     val users = repository.getWith("bd", "mendes")
-    intercept[ClassCastException] {
+    intercept[ClassCastException]:
       val _: User = users.head
-    }
 
   test("interoperate with raw Mockito verifications"):
     val repository = mock[Repository[User]].on(it.exists)(_ => true)
@@ -49,12 +48,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("be a subtype of T"):
     inline def isSubtypeOf[A, B] =
-      summonFrom {
+      summonFrom:
         case _: (A <:< B) =>
           true
         case _ =>
           false
-      }
 
     assert(isSubtypeOf[Mock[User], User])
     assert(isSubtypeOf[Mock[Repository[User]], Repository[User]])
@@ -74,10 +72,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("set up method stubs on values"):
     var counter = 0
     val repository =
-      mock[Repository[User]].on(() => it.longName) { _ =>
+      mock[Repository[User]].on(() => it.longName): _ =>
         counter += 1
         "database"
-      }
 
     assert(!typeChecks("repository.on(() => it.longName)(_ => 2)"))
     assert(!typeChecks("repository.on(it.longName)(_ => \"database\")"))
@@ -100,10 +97,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on methods with 1 parameter"):
     val repository =
-      mock[Repository[User]].on(it.exists) {
+      mock[Repository[User]].on(it.exists):
         case name if name.endsWith("mendes") =>
           true
-      }
 
     assert(typeChecks("repository.on(it.exists)(_.startsWith(\"bdmendes\"))"))
     assert(typeChecks("repository.on(it.exists) { case \"bdmendes\" => true }"))
@@ -118,9 +114,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith) { case (start, end) =>
-        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-      }
+      mock[Repository[User]].on(it.getWith):
+        case (start, end) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assert(typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => List.empty }"))
     assert(!typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => true }"))
@@ -132,26 +128,25 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on curried methods"):
     val repository =
-      mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)) { case (start, end) =>
-        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-      }
+      mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)):
+        case (start, end) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWithCurried("bd")(""), List(User("bdmendes")))
     assertEquals(repository.getWithCurried("")("mendes"), List(User("bdmendes"), User("apmendes")))
 
   test("set up method stubs on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)) { case (_, user) =>
-        s"Hello, ${user.username}!"
-      }
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
+        case (_, user) =>
+          s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
   test("set up method stubs on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
         names.contains("bdmendes")
-      }
 
     assert(repository.containsOneOf("bdmendes", "apmendes"))
     assert(!repository.containsOneOf("fernandorego", "apmendes"))
@@ -190,9 +185,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith) { case (start, end) =>
-        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-      }
+      mock[Repository[User]].on(it.getWith):
+        case (start, end) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
@@ -201,9 +196,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)) { case (_, user) =>
-        s"Hello, ${user.username}!"
-      }
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
+        case (_, user) =>
+          s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
@@ -214,9 +209,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
         names.contains("bdmendes")
-      }
 
     val _ = repository.containsOneOf("bdmendes", "apmendes")
 
@@ -287,9 +281,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith) { case (start, end) =>
-        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
-      }
+      mock[Repository[User]].on(it.getWith):
+        case (start, end) =>
+          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
@@ -298,9 +292,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)) { case (_, user) =>
-        s"Hello, ${user.username}!"
-      }
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
+        case (_, user) =>
+          s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
@@ -308,9 +302,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)) { names =>
+      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
         names.contains("bdmendes")
-      }
 
     val _ = repository.containsOneOf("bdmendes", "apmendes")
 
@@ -327,17 +320,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("throw on unknown received method"):
     def merge(x: User, y: User) = User(x.username + y.username)
 
-    intercept[UnknownMethod.type] {
+    intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(merge)(_ => mockUsers.head)
-    }
 
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
 
-    intercept[UnknownMethod.type] {
+    intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
-    }
 
   test("throw on repeated stub set up"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
@@ -351,23 +342,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     repository.on(it.getWith)(_ => List.empty)
 
     // Previous stubs were set up in strict mode, so expect failures.
-    intercept[AlreadyStubbedMethod] {
+    intercept[AlreadyStubbedMethod]:
       repository.on(it.exists)(_ => false)
-    }
-    intercept[AlreadyStubbedMethod] {
+
+    intercept[AlreadyStubbedMethod]:
       repository.on(it.getWith)(_ => List.empty)
-    }
 
   test("throw on reasoning on unstubbed methods"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
     // We should not be able to reason about unstubbed methods.
-    intercept[UnstubbedMethod.type] {
+    intercept[UnstubbedMethod.type]:
       repository.times(it.getWith)
-    }
-    intercept[UnstubbedMethod.type] {
+
+    intercept[UnstubbedMethod.type]:
       repository.calls(it.getWith)
-    }
 
     // Although we cannot be sure if there is a matching stub.
     repository.times(() => it.getNames)
@@ -387,9 +376,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         override def contains(username: String): Boolean = exists(username)
         override def containsOneOf(username: String*): Boolean = username.exists(contains)
         override def getWith(startsWith: String, endsWith: String): List[User] =
-          mockUsers.filter { user =>
+          mockUsers.filter: user =>
             user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
-          }
         override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
           getWith(startsWith, endsWith)
         override def greet(upper: Boolean)(using user: User): String =
@@ -416,9 +404,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(mockRepository.get, null)
 
     // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
-    intercept[UnstubbedMethod.type] {
+    intercept[UnstubbedMethod.type]:
       mockRepository.times(it.getWith)
-    }
 
   test("integrate with an effects system"):
     given ExecutionContext = ExecutionContext.global
@@ -440,21 +427,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       def exists(username: String): IO[Boolean]
 
     val repository =
-      mock[EffectRepository[User]].on(it.exists) {
+      mock[EffectRepository[User]].on(it.exists):
         case "bdmendes" =>
           IO(true)
         case _ =>
           IO.raiseError(new IllegalArgumentException("Unexpected user"))
-      }
 
-    intercept[IllegalArgumentException] {
+    intercept[IllegalArgumentException]:
       val errored =
         for
           _ <- repository.exists("apmendes")
           bd <- repository.exists("bdmendes")
         yield bd
       val _ = errored.unsafeRunSync()
-    }
 
     assert(repository.exists("bdmendes").unsafeRunSync())
 
