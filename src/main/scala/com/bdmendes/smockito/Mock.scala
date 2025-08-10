@@ -15,7 +15,7 @@ import scala.util.Try
   */
 opaque type Mock[+T] <: T = T
 
-private[smockito] trait MockSyntax:
+private trait MockSyntax:
 
   val smockitoMode: SmockitoMode
 
@@ -128,13 +128,12 @@ private[smockito] trait MockSyntax:
             matching[EmptyTuple, R](
               Mockito.mockingDetails(mock).getInvocations.asScala.map(_.getMethod)
             ).size
-          val validInvocations = (invocations to 1 by -1).find { count =>
-            Try(
+          val validInvocations = (invocations to 1 by -1).find: count =>
+            Try:
               method(using Mockito.verify(mock, Mockito.times(count)))
                 .tupled
                 .apply(EmptyTuple.asInstanceOf[A])
-            ).isSuccess
-          }
+            .isSuccess
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // We do a little trick here: capturing the first argument is enough for counting the
@@ -167,10 +166,10 @@ private[smockito] trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-object Mock:
+private object Mock:
 
-  private[smockito] object mapper:
-    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]()
+  object mapper:
+    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
     lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
     lazy val ct = [X] => (x: ClassTag[X]) ?=> x
 
@@ -178,5 +177,5 @@ object Mock:
       override def apply(args: Pack[A]): R = f(args)
       override def isDefinedAt(x: Pack[A]): Boolean = true
 
-  private[smockito] def apply[T](using ct: ClassTag[T]): Mock[T] =
+  def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
