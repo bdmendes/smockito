@@ -57,9 +57,8 @@ class RepositorySpecification extends Smockito:
     .on(() => it.get)(_ => List(User("johndoe")))
     .on(it.exists)(_ == "johndoe")
     .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
-    .on(it.getWith) { 
+    .on(it.getWith):
       case ("john", name) if name.nonEmpty => List(User("johndoe"))
-    } // Mock[Repository[User]]
 ```
 
 A `Mock[T]` is a `T` both at compile time and runtime.
@@ -94,10 +93,9 @@ This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, 
 Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
 
 ```scala
-val repository = {
+val repository =
   val realInstance = Repository.fromDatabase[User]
   mock[Repository[User]].forward(it.exists, realInstance)
-}
 
 assert(repository.times(it.exists) == 0)
 ```
@@ -113,12 +111,11 @@ abstract class EffectRepository[T]:
   def exists(username: String): IO[Boolean]
 
 val repository =
-  mock[EffectRepository[User]].on(it.exists) {
+  mock[EffectRepository[User]].on(it.exists):
     case "johndoe" =>
       IO(true)
     case _ =>
       IO.raiseError(new IllegalArgumentException("Unexpected user"))
-  }
 ```
 
 Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.

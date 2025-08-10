@@ -27,11 +27,10 @@ private[smockito] trait MockSyntax:
       val argClasses = mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
       val returnClass = summonInline[ClassTag[R]].runtimeClass
       methods
-        .filter { method =>
+        .filter: method =>
           method.getReturnType.isAssignableFrom(returnClass) &&
-          argClasses.length == method.getParameterTypes.length &&
-          argClasses.zip(method.getParameterTypes).forall((a, b) => b.isAssignableFrom(a))
-        }
+            argClasses.length == method.getParameterTypes.length &&
+            argClasses.zip(method.getParameterTypes).forall((a, b) => b.isAssignableFrom(a))
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
@@ -67,7 +66,7 @@ private[smockito] trait MockSyntax:
         .when(
           method(using mock).tupled(Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
         )
-        .thenAnswer { invocation =>
+        .thenAnswer: invocation =>
           val arguments = invocation.getArguments
 
           // If this stub is invoked with nulls, assume we are in the process of setting up
@@ -83,7 +82,6 @@ private[smockito] trait MockSyntax:
               pack(Tuple.fromArray(arguments).asInstanceOf[A]),
               _ => throw UnexpectedArguments(invocation.getMethod, arguments)
             )
-        }
       mock
 
     /** Yields the captured arguments received by a stubbed method, in chronological order. Refer to

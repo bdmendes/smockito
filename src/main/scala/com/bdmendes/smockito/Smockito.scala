@@ -23,9 +23,8 @@ import scala.reflect.ClassTag
   *       .on(() => it.get)(_ => List(User("johndoe")))
   *       .on(it.exists)(_ == "johndoe")
   *       .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
-  *       .on(it.getWith) {
+  *       .on(it.getWith):
   *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
-  *       } // Mock[Repository[User]]
   *
   *     // A `Mock[T]` is effectively a `T`, both at compile time and runtime.
   *     assert(repository.getWith("john", "doe") == List(User("johndoe")))
