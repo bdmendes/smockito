@@ -90,12 +90,12 @@ object Smockito:
     /** In strict mode, Smockito performs soundness verifications of one's testing flow, namely
       * overriding a method stub and reasoning about unstubbed methods.
       */
-    case Strict extends SmockitoMode
+    case Strict
 
     /** In relaxed mode, Smockito does not perform soundness verifications. This may be useful
       * during migrations from other mocking frameworks.
       */
-    case Relaxed extends SmockitoMode
+    case Relaxed
 
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
