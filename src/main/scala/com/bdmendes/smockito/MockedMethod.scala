@@ -16,7 +16,7 @@ object MockedMethod:
 
   given conv00[R]: Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (_: Unit) => f()
 
-  given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => (arg: A) => f(arg)
+  given conv01[A, R]: Conversion[A => R, MockedMethod[Tuple1[A], R]] = identity
 
   given conv02[A1, A2, R]: Conversion[(A1, A2) => R, MockedMethod[(A1, A2), R]] = f => f.tupled
 
