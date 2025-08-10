@@ -114,9 +114,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith):
-        case (start, end) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      mock[Repository[User]].on(it.getWith): (start, end) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assert(typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => List.empty }"))
     assert(!typeChecks("repository.on(it.getWith){ case (\"bd\", \"mendes\") => true }"))
@@ -128,18 +127,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on curried methods"):
     val repository =
-      mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)):
-        case (start, end) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)): (start, end) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWithCurried("bd")(""), List(User("bdmendes")))
     assertEquals(repository.getWithCurried("")("mendes"), List(User("bdmendes"), User("apmendes")))
 
   test("set up method stubs on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
-        case (_, user) =>
-          s"Hello, ${user.username}!"
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)): (_, user) =>
+        s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
@@ -185,9 +182,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith):
-        case (start, end) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      mock[Repository[User]].on(it.getWith): (start, end) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
@@ -196,9 +192,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
-        case (_, user) =>
-          s"Hello, ${user.username}!"
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)): (_, user) =>
+        s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
@@ -281,9 +276,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith):
-        case (start, end) =>
-          mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      mock[Repository[User]].on(it.getWith): (start, end) =>
+        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
@@ -292,9 +286,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with contextual parameters"):
     val repository =
-      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)):
-        case (_, user) =>
-          s"Hello, ${user.username}!"
+      mock[Repository[User]].on(it.greet(_: Boolean)(using _: User)): (_, user) =>
+        s"Hello, ${user.username}!"
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
