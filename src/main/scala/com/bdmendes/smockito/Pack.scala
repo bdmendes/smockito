@@ -11,7 +11,7 @@ type Pack[A <: Tuple] =
     case Tuple =>
       A
 
-private[smockito] def pack[A <: Tuple](x: A): Pack[A] =
+private def pack[A <: Tuple](x: A): Pack[A] =
   x match
     case x: EmptyTuple =>
       ()

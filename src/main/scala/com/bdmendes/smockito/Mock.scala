@@ -15,7 +15,7 @@ import scala.util.Try
   */
 opaque type Mock[+T] <: T = T
 
-private[smockito] trait MockSyntax:
+private trait MockSyntax:
 
   val smockitoMode: SmockitoMode
 
@@ -166,7 +166,7 @@ private[smockito] trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-private[smockito] object Mock:
+private object Mock:
 
   object mapper:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
