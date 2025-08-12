@@ -18,7 +18,7 @@ Even when software components make use of proper dependency injection, a mocking
 Smockito leverages a subset of Mockito’s features and offers a minimal, opinionated interface, guided by a few core principles:
 
 - A method should be stubbed only once, and use the same implementation for the lifetime of the mock.
-- A method stub should handle only the inputs it expects; errors should be handled by the framework.
+- A method stub should handle only the inputs it expects.
 - A method stub should always be executed, as the real method would.
 - One may reason directly about the received arguments and number of calls of a stub.
 - One should not reason about the history of a method that was not stubbed.
@@ -78,15 +78,11 @@ You may reason about method interactions with `calls` and `times`. If arguments 
 
 ### Does Smockito support Scala 2?
 
-No. Smockito leverages a handful of powerful Scala 3 features, such as inlining, opaque types and contextual functions. If you are on the process of migrating a Scala 2 codebase, it might be a good opportunity to replace the likes of [specs2-mock](https://mvnrepository.com/artifact/org.specs2/specs2-mock) or [mockito-scala](https://github.com/mockito/mockito-scala) as you migrate your modules.
+No. Smockito leverages a handful of powerful Scala 3 features, such as inlining, opaque types, contextual functions and match types. If you are on the process of migrating a Scala 2 codebase, it might be a good opportunity to replace the likes of [specs2-mock](https://mvnrepository.com/artifact/org.specs2/specs2-mock) or [mockito-scala](https://github.com/mockito/mockito-scala) as you migrate your modules.
 
 ### Is this really a mocking framework?
 
 This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
-
-### Is Smockito thread-safe?
-
-[As thread-safe as Mockito](https://github.com/mockito/mockito/wiki/FAQ#is-mockito-thread-safe).
 
 ### How do I spy on a real instance?
 
@@ -120,12 +116,36 @@ val repository =
 
 Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.
 
+### How do I reset a mock?
+
+Don't. Instead of clearing history on a global mock, create a fresh mock for each test case. This approach avoids race conditions entirely, with a negligible performance cost.
+
 ### I need to override stubs or reason about unstubbed methods.
 
 If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
 
 ```scala
 trait MySpec extends Smockito(SmockitoMode.Relaxed)
+```
+
+In the end, however, it's always best to define a unique stub and be explicit about behavior change. If you want to mock system state, keep things simple:
+
+```scala
+val repository = 
+  var callCount = 0
+  mock[Repository[User]].on(() => it.get): _ =>
+    callCount += 1
+    if (callCount == 1) then List(User("john")) else List.empty
+```
+
+If you have a mock whose setup is only slightly changed between test cases, instead of overriding a stub defined in some base trait, create a factory method:
+
+```scala
+def mockRepository(username: String): Mock[Repository[User]] =
+  mock[Repository[User]]
+    .on(() => it.get)(_ => List(User("johndoe")))
+    .on(it.exists)(_ == "johndoe")
+    .on(it.greet()(using _: User))(_ => s"Hello, $username!")
 ```
 
 ### I need to assert invocation orders/X/Y/Z.
