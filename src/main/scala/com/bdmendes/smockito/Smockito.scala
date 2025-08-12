@@ -112,8 +112,9 @@ object Smockito:
         extends SmockitoException(
           s"The received method does not match any of the mock object's methods. " +
             "Are you performing eta-expansion correctly? " +
-            "Double-check whether this method has contextual parameters and " +
-            "they are inadvertently being captured in the spec scope."
+            "Double-check if this method has contextual parameters and " +
+            "they are inadvertently being captured in the spec scope, " +
+            "or if one or more default parameters are being discarded."
         )
 
     case object UnstubbedMethod
