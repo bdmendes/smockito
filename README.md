@@ -125,7 +125,7 @@ Don't. Instead of clearing history on a global mock, create a fresh mock for eac
 If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
 
 ```scala
-trait MySpec extends Smockito(SmockitoMode.Relaxed)
+trait MySpecification extends Smockito(SmockitoMode.Relaxed)
 ```
 
 In the end, however, it's always best to define a unique stub and be explicit about behavior change. If you want to mock system state, keep things simple:
