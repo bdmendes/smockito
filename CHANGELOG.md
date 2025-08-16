@@ -14,6 +14,19 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 1.3.3 - 2025-08-16
+
+This is a maintenance release that mostly just aligns Smockito with `mockito-core` 5.19.0. In the meantime, some messages and documentation got improved.
+
+### What's Changed
+* Remove unused variables and imports by @bdmendes in https://github.com/bdmendes/smockito/pull/63
+* Use optional braces around parameters syntax by @bdmendes in https://github.com/bdmendes/smockito/pull/65
+* Improve unknown method error message by @bdmendes in https://github.com/bdmendes/smockito/pull/68
+* Add more use cases and opinions to the README by @bdmendes in https://github.com/bdmendes/smockito/pull/69
+* Update mockito-core to 5.19.0 by @scala-steward in https://github.com/bdmendes/smockito/pull/71
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.3.2...v1.3.3
+
 ## 1.3.2 - 2025-08-08
 
 Even though the `mode` value has to be public due to Scala rules, this patch makes naming clashes less likely by renaming it to `smockitoMode`.
