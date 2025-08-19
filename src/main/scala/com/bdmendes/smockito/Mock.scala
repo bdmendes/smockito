@@ -174,14 +174,15 @@ private object Mock:
       ct.runtimeClass.asInstanceOf[Class[T]],
       Mockito
         .withSettings()
-        .defaultAnswer(invocation =>
+        .defaultAnswer: invocation =>
           try
             invocation.callRealMethod()
           catch
             case _: MockitoException =>
-              // Abstract methods cannot be called.
-              null
+              throw RealMethodFailure(
+                invocation.getMethod,
+                IllegalStateException("Abstract method call")
+              )
             case e =>
-              throw new RealMethodFailed(invocation.getMethod, e)
-        )
+              throw RealMethodFailure(invocation.getMethod, e)
     )

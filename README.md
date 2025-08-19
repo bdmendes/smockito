@@ -111,7 +111,7 @@ val repository =
     case "johndoe" =>
       IO(true)
     case _ =>
-      IO.raiseError(new IllegalArgumentException("Unexpected user"))
+      IO.raiseError(IllegalArgumentException("Unexpected user"))
 ```
 
 Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.

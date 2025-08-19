@@ -132,9 +132,9 @@ object Smockito:
             "If you really want to override the stub, disable strict mode."
         )
 
-    case class RealMethodFailed(method: Method, throwable: Throwable)
+    case class RealMethodFailure(method: Method, throwable: Throwable)
         extends SmockitoException(
-          s"${describeMethod(method)} was not stubbed and failed with:\n$throwable.\n" +
+          s"${describeMethod(method)} was not stubbed and failed with:\n$throwable\n" +
             "Did you forget to set up a stub for it? Was it called unexpectedly?"
         )
 

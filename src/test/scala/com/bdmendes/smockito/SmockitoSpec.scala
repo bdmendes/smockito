@@ -18,8 +18,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
-    Mockito.when(repository.get).thenReturn(mockUsers)
-    Mockito.when(repository.exists("bdmendes")).thenReturn(true)
+    Mockito.doReturn(mockUsers).when(repository).get
+    Mockito.doReturn(true).when(repository).exists("bdmendes")
 
     val service = Service(repository)
 
@@ -30,12 +30,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(service.exists("bdmendes"))
 
     Mockito.verify(repository).exists("bdmendes")
-
-    // But, of course, the raw Mockito API is not very type safe, so use with caution.
-    Mockito.when(repository.getWith("bd", "mendes")).thenReturn(List(1, 2))
-    val users = repository.getWith("bd", "mendes")
-    intercept[ClassCastException]:
-      val _: User = users.head
 
   test("interoperate with raw Mockito verifications"):
     val repository = mock[Repository[User]].on(it.exists)(_ => true)
@@ -160,8 +154,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(repository.contains("bdmendes"))
 
-    // The default Mockito response for unstubbed methods returning Boolean.
-    assert(!repository.contains(mockUsers.head))
+    intercept[RealMethodFailure]:
+      assert(!repository.contains(mockUsers.head))
 
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
@@ -225,7 +219,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
     val _ = repository.contains("bdmendes")
-    val _ = repository.contains(mockUsers.head)
+
+    intercept[RealMethodFailure]:
+      val _ = repository.contains(mockUsers.head)
 
     assertEquals(repository.calls(it.contains(_: String)), List("bdmendes"))
 
@@ -320,7 +316,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
     val _ = repository.contains("bdmendes")
-    val _ = repository.contains(mockUsers.head)
+
+    intercept[RealMethodFailure]:
+      val _ = repository.contains(mockUsers.head)
 
     assertEquals(repository.times(it.contains(_: String)), 1)
 
@@ -394,8 +392,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // Invocations of the real instance are not intercepted.
     assertEquals(mockRepository.times(it.exists), 2)
 
-    // This method was not forwarded, so expect the sentinel Mockito response.
-    assertEquals(mockRepository.get, null)
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[RealMethodFailure]:
+      assertEquals(mockRepository.get, null)
 
     // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
     intercept[UnstubbedMethod.type]:
@@ -425,7 +424,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         case "bdmendes" =>
           IO(true)
         case _ =>
-          IO.raiseError(new IllegalArgumentException("Unexpected user"))
+          IO.raiseError(IllegalArgumentException("Unexpected user"))
 
     intercept[IllegalArgumentException]:
       val errored =
@@ -484,7 +483,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val getter = mock[Getter]
 
-    intercept[RealMethodFailed]:
+    intercept[RealMethodFailure]:
       val _ = getter.length
 
 object SmockitoSpec:
