@@ -1,7 +1,6 @@
 package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Smockito.SmockitoException.*
-import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -335,24 +334,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("throw on reasoning on unstubbed methods"):
-    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
-
-    // We should not be able to reason about unstubbed methods.
-    intercept[UnstubbedMethod.type]:
-      repository.times(it.getWith)
-
-    intercept[UnstubbedMethod.type]:
-      repository.calls(it.getWith)
-
-    // Although we cannot be sure if there is a matching stub.
-    repository.times(() => it.getNames)
-
-    // Unstubbed method verification is disabled in relaxed mode.
-    new Smockito(SmockitoMode.Relaxed):
-      repository.times(it.getWith)
-      repository.calls(it.getWith)
-
   test("provide a forward sugar for spying on a real instance"):
     val repository =
       new Repository[User]("dummy"):
@@ -395,6 +376,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // This method was not forwarded, so expect a real method call failure.
     intercept[RealMethodFailure]:
       val _ = mockRepository.get
+
     // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
     intercept[UnstubbedMethod.type]:
       mockRepository.times(it.getWith)
