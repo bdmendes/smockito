@@ -6,6 +6,7 @@ import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
+import org.mockito.exceptions.base.MockitoException
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -174,7 +175,13 @@ private object Mock:
       Mockito
         .withSettings()
         .defaultAnswer(invocation =>
-          try invocation.callRealMethod()
-          catch e => throw new RealMethodFailed(invocation.getMethod, e)
+          try
+            invocation.callRealMethod()
+          catch
+            case _: MockitoException =>
+              // Abstract methods cannot be called.
+              null
+            case e =>
+              throw new RealMethodFailed(invocation.getMethod, e)
         )
     )
