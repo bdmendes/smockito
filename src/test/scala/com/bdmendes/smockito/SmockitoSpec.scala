@@ -470,6 +470,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val getter = mock[Getter]
 
     assertEquals(getter.getNames, mockUsers.map(_.username))
+
   test("support calling a real method that dispatches to a stub"):
     abstract class Getter:
       def getNames: List[String]
