@@ -6,6 +6,8 @@ import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
+import org.mockito.exceptions.base.MockitoException
+import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
@@ -62,26 +64,16 @@ private trait MockSyntax:
         stub: PartialFunction[Pack[A], R2]
     ): Mock[T] =
       assertMethodExists[A, R1]()
-      Mockito
-        .when(
-          method(using mock).tupled(Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
-        )
-        .thenAnswer: invocation =>
+      val answer: Answer[R2] =
+        invocation =>
           val arguments = invocation.getRawArguments
-
-          // If this stub is invoked with nulls, assume we are in the process of setting up
-          // a stub override (i.e. using ArgumentMatchers.any ~ null).
-          // Assuming a method won't receive null should not be a problem in the Scala world.
-          if arguments.nonEmpty && arguments.forall(_ == null) then
-            if smockitoMode == SmockitoMode.Strict then
-              throw AlreadyStubbedMethod(invocation.getMethod)
-            else
-              null
-          else
-            stub.applyOrElse(
-              pack(Tuple.fromArray(arguments).asInstanceOf[A]),
-              _ => throw UnexpectedArguments(invocation.getMethod, arguments)
-            )
+          stub.applyOrElse(
+            pack(Tuple.fromArray(arguments).asInstanceOf[A]),
+            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+          )
+      method(using Mockito.doAnswer(answer).when(mock)).tupled(
+        Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+      )
       mock
 
     /** Yields the captured arguments received by a stubbed method, in chronological order. Refer to
@@ -180,5 +172,17 @@ private object Mock:
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
-      Mockito.withSettings().defaultAnswer(DefaultAnswer())
+      Mockito
+        .withSettings()
+        .defaultAnswer: invocation =>
+          try
+            invocation.callRealMethod()
+          catch
+            case _: MockitoException =>
+              throw RealMethodFailure(
+                invocation.getMethod,
+                IllegalStateException("Abstract method call")
+              )
+            case e =>
+              throw RealMethodFailure(invocation.getMethod, e)
     )

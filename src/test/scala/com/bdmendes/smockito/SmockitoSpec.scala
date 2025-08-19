@@ -18,8 +18,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
-    Mockito.when(repository.get).thenReturn(mockUsers)
-    Mockito.when(repository.exists("bdmendes")).thenReturn(true)
+    Mockito.doReturn(mockUsers).when(repository).get
+    Mockito.doReturn(true).when(repository).exists("bdmendes")
 
     val service = Service(repository)
 
@@ -30,12 +30,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(service.exists("bdmendes"))
 
     Mockito.verify(repository).exists("bdmendes")
-
-    // But, of course, the raw Mockito API is not very type safe, so use with caution.
-    Mockito.when(repository.getWith("bd", "mendes")).thenReturn(List(1, 2))
-    val users = repository.getWith("bd", "mendes")
-    intercept[ClassCastException]:
-      val _: User = users.head
 
   test("interoperate with raw Mockito verifications"):
     val repository = mock[Repository[User]].on(it.exists)(_ => true)
@@ -95,6 +89,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, mockUsers)
 
+  test("set up method stubs on methods returning Unit"):
+    var tracker = 0
+    val repository = mock[Repository[User]].on(() => it.track())(_ => tracker += 1)
+
+    val _ = repository.track()
+    assertEquals(tracker, 1)
+
   test("set up method stubs on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists):
@@ -153,8 +154,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(repository.contains("bdmendes"))
 
-    // The default Mockito response for unstubbed methods returning Boolean.
-    assert(!repository.contains(mockUsers.head))
+    intercept[RealMethodFailure]:
+      val _ = repository.contains(mockUsers.head)
 
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
@@ -218,7 +219,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
     val _ = repository.contains("bdmendes")
-    val _ = repository.contains(mockUsers.head)
+
+    intercept[RealMethodFailure]:
+      val _ = repository.contains(mockUsers.head)
 
     assertEquals(repository.calls(it.contains(_: String)), List("bdmendes"))
 
@@ -313,7 +316,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
     val _ = repository.contains("bdmendes")
-    val _ = repository.contains(mockUsers.head)
+
+    intercept[RealMethodFailure]:
+      val _ = repository.contains(mockUsers.head)
 
     assertEquals(repository.times(it.contains(_: String)), 1)
 
@@ -329,24 +334,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
-
-  test("throw on repeated stub set up"):
-    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
-
-    // Start by setting up stubs in relaxed mode. Next stubs won't throw.
-    new Smockito(SmockitoMode.Relaxed):
-      repository.on(it.exists)(_.startsWith("bd"))
-      repository.on(it.getWith)(_ => List.empty)
-
-    repository.on(it.exists)(_ => true)
-    repository.on(it.getWith)(_ => List.empty)
-
-    // Previous stubs were set up in strict mode, so expect failures.
-    intercept[AlreadyStubbedMethod]:
-      repository.on(it.exists)(_ => false)
-
-    intercept[AlreadyStubbedMethod]:
-      repository.on(it.getWith)(_ => List.empty)
 
   test("throw on reasoning on unstubbed methods"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
@@ -369,6 +356,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("provide a forward sugar for spying on a real instance"):
     val repository =
       new Repository[User]("dummy"):
+        override def track(): Unit = ()
         override def get: List[User] = mockUsers
         override def getNames: List[String] = mockUsers.map(_.username)
         override def exists(username: String): Boolean = getNames.contains(username)
@@ -404,9 +392,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // Invocations of the real instance are not intercepted.
     assertEquals(mockRepository.times(it.exists), 2)
 
-    // This method was not forwarded, so expect the sentinel Mockito response.
-    assertEquals(mockRepository.get, null)
-
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[RealMethodFailure]:
+      val _ = mockRepository.get
     // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
     intercept[UnstubbedMethod.type]:
       mockRepository.times(it.getWith)
@@ -435,7 +423,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         case "bdmendes" =>
           IO(true)
         case _ =>
-          IO.raiseError(new IllegalArgumentException("Unexpected user"))
+          IO.raiseError(IllegalArgumentException("Unexpected user"))
 
     intercept[IllegalArgumentException]:
       val errored =
@@ -455,10 +443,53 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
 
+  test("support calling a real method that dispatches to a stub"):
+    abstract class Getter:
+      def getNames: List[String]
+      def getNamesAdapter = getNames
+      def getNamesAdapterWithParam(dummy: String) = getNames
+
+    val names = mockUsers.map(_.username)
+    val getter = mock[Getter].on(() => it.getNames)(_ => names)
+
+    assertEquals(getter.getNamesAdapter, names)
+    assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
+
+    assertEquals(getter.times(() => it.getNames), 2)
+
+  test("not call the real method as a side effect of stubbing"):
+    var tracker = 0
+
+    class Getter:
+      def find(name: String): Boolean =
+        tracker += 1
+        true
+      def get: List[String] =
+        tracker += 1
+        List.empty
+
+    val getter = mock[Getter]
+
+    val _ = getter.on(it.find)(_ => false)
+    assertEquals(tracker, 0)
+
+    val _ = getter.on(() => it.get)(_ => List.empty)
+    assertEquals(tracker, 0)
+
+  test("fail when the real method touches a class variable"):
+    class Getter(name: String):
+      def length = name.length
+
+    val getter = mock[Getter]
+
+    intercept[RealMethodFailure]:
+      val _ = getter.length
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
     val longName = s"${name}Repository"
+    def track(): Unit
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
