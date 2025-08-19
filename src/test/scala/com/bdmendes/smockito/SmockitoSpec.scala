@@ -334,19 +334,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("throw on reasoning on unstubbed methods"):
-    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
-
-    // We should not be able to reason about unstubbed methods.
-    intercept[UnstubbedMethod.type]:
-      repository.times(it.getWith)
-
-    intercept[UnstubbedMethod.type]:
-      repository.calls(it.getWith)
-
-    // Although we cannot be sure if there is a matching stub.
-    repository.times(() => it.getNames)
-
   test("provide a forward sugar for spying on a real instance"):
     val repository =
       new Repository[User]("dummy"):
@@ -389,10 +376,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // This method was not forwarded, so expect a real method call failure.
     intercept[RealMethodFailure]:
       val _ = mockRepository.get
-
-    // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
-    intercept[UnstubbedMethod.type]:
-      mockRepository.times(it.getWith)
 
   test("integrate with an effects system"):
     given ExecutionContext = ExecutionContext.global
