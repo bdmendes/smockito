@@ -484,7 +484,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val getter = mock[Getter]
 
-    intercept[NullPointerException]:
+    intercept[RealMethodFailed]:
       val _ = getter.length
 
 object SmockitoSpec:

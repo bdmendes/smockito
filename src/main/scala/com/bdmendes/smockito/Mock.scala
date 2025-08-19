@@ -171,5 +171,10 @@ private object Mock:
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
-      Mockito.withSettings().defaultAnswer(Mockito.CALLS_REAL_METHODS)
+      Mockito
+        .withSettings()
+        .defaultAnswer(invocation =>
+          try invocation.callRealMethod()
+          catch e => throw new RealMethodFailed(invocation.getMethod, e)
+        )
     )
