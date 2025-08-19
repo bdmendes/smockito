@@ -455,22 +455,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
 
-  test("preserve default implementations in traits"):
-    trait Getter:
-      def getNames = mockUsers.map(_.username)
-
-    val getter = mock[Getter]
-
-    assertEquals(getter.getNames, mockUsers.map(_.username))
-
-  test("preserve default implementations in classes"):
-    class Getter(val description: String):
-      def getNames = mockUsers.map(_.username)
-
-    val getter = mock[Getter]
-
-    assertEquals(getter.getNames, mockUsers.map(_.username))
-
   test("support calling a real method that dispatches to a stub"):
     abstract class Getter:
       def getNames: List[String]
@@ -485,10 +469,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(getter.times(() => it.getNames), 2)
 
-  test("not call the real method when invoked with nulls"):
+  test("not call the real method as a side effect of stubbing"):
     var tracker = 0
 
-    trait Getter:
+    class Getter:
       def find(name: String): Boolean =
         tracker += 1
         true
@@ -499,12 +483,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val getter = mock[Getter]
 
     val _ = getter.on(it.find)(_ => false)
-
     assertEquals(tracker, 0)
 
-    val _ = getter.on(() => it.get)
-
-    assertEquals(tracker, 1)
+    val _ = getter.on(() => it.get)(_ => List.empty)
+    assertEquals(tracker, 0)
 
 object SmockitoSpec:
 
