@@ -455,6 +455,36 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
 
+  test("preserve default implementations in classes"):
+    trait Getter:
+      def getNames = mockUsers.map(_.username)
+
+    val getter = mock[Getter]
+
+    assertEquals(getter.getNames, mockUsers.map(_.username))
+
+  test("preserve default implementations in traits"):
+    class Getter(val description: String):
+      def getNames = mockUsers.map(_.username)
+
+    val getter = mock[Getter]
+
+    assertEquals(getter.getNames, mockUsers.map(_.username))
+
+  test("support calling a real method that dispatches to a stub"):
+    abstract class Getter:
+      def getNames: List[String]
+      def getNamesAdapter = getNames
+      def getNamesAdapterWithParam(dummy: String) = getNames
+
+    val names = mockUsers.map(_.username)
+    val getter = mock[Getter].on(() => it.getNames)(_ => names)
+
+    assertEquals(getter.getNamesAdapter, names)
+    assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
+
+    assertEquals(getter.times(() => it.getNames), 2)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
