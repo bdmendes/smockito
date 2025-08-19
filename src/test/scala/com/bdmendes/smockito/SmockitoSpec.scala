@@ -393,8 +393,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // This method was not forwarded, so expect a real method call failure.
     intercept[RealMethodFailure]:
-      assertEquals(mockRepository.get, null)
-
+      val _ = mockRepository.get
     // One should not be able to reason about unstubbed methods, even in this forwarding scenario.
     intercept[UnstubbedMethod.type]:
       mockRepository.times(it.getWith)
