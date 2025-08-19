@@ -99,13 +99,6 @@ object Smockito:
             "or if one or more default parameters are being discarded."
         )
 
-    case object UnstubbedMethod
-        extends SmockitoException(
-          s"The received method was not stubbed, so you cannot reason about it. " +
-            "Are you performing eta-expansion correctly? " +
-            "Did you forget to set up the stub first?"
-        )
-
     case class RealMethodFailure(method: Method, throwable: Throwable)
         extends SmockitoException(
           s"${describeMethod(method)} was not stubbed and failed with:\n$throwable\n" +
