@@ -1,6 +1,5 @@
 package com.bdmendes.smockito
 
-import org.mockito.exceptions.base.MockitoException
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 
@@ -15,11 +14,7 @@ private class DefaultAnswer extends Answer[Any]:
     else if invocation.getRawArguments.forall(_ != null) then
       // The user might be relying on a real implementation, e.g. an adapter that dispatches to a
       // method that is stubbed.
-      try
-        invocation.callRealMethod()
-      catch
-        case _: MockitoException =>
-          // The method is abstract.
-          null
+      try invocation.callRealMethod()
+      catch _ => null
     else
       null
