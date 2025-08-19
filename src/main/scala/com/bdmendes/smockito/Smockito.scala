@@ -1,6 +1,5 @@
 package com.bdmendes.smockito
 
-import com.bdmendes.smockito.Smockito.SmockitoMode
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
@@ -49,11 +48,8 @@ import scala.reflect.ClassTag
   * one only cares about the number of times a stub was called, [[times]] is more efficient.
   *
   * [[Mock]] is interoperable with all [[org.mockito.Mockito]] APIs.
-  *
-  * @param smockitoMode
-  *   The [[Smockito.SmockitoMode]] used.
   */
-trait Smockito(val smockitoMode: SmockitoMode = SmockitoMode.Strict) extends MockSyntax:
+trait Smockito extends MockSyntax:
 
   /** Creates a [[Mock]] instance of `T`.
     *
@@ -82,20 +78,6 @@ trait Smockito(val smockitoMode: SmockitoMode = SmockitoMode.Strict) extends Moc
 
 object Smockito:
 
-  /** Specifies whether to perform opinionated soundness verifications.
-    */
-  enum SmockitoMode:
-
-    /** In strict mode, Smockito performs soundness verifications of one's testing flow, namely
-      * overriding a method stub and reasoning about unstubbed methods.
-      */
-    case Strict
-
-    /** In relaxed mode, Smockito does not perform soundness verifications. This may be useful
-      * during migrations from other mocking frameworks.
-      */
-    case Relaxed
-
   private lazy val exceptionTrailer =
     s"Please review the documentation at https://github.com/bdmendes/smockito. " +
       "If you think this is a bug, please open an issue with a minimal reproducible example."
@@ -122,14 +104,6 @@ object Smockito:
           s"The received method was not stubbed, so you cannot reason about it. " +
             "Are you performing eta-expansion correctly? " +
             "Did you forget to set up the stub first?"
-        )
-
-    case class AlreadyStubbedMethod(method: Method)
-        extends SmockitoException(
-          s"${describeMethod(method)} is already stubbed. " +
-            "If you need to perform a different action on a subsequent invocation, " +
-            "replace the mock or reflect that intent through a state lookup in the stub. " +
-            "If you really want to override the stub, disable strict mode."
         )
 
     case class RealMethodFailure(method: Method, throwable: Throwable)

@@ -2,7 +2,6 @@ package com.bdmendes.smockito
 
 import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
-import com.bdmendes.smockito.Smockito.SmockitoMode
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
@@ -19,8 +18,6 @@ opaque type Mock[+T] <: T = T
 
 private trait MockSyntax:
 
-  val smockitoMode: SmockitoMode
-
   extension [T](mock: Mock[T])
 
     private inline def matching[A <: Tuple, R](methods: Iterable[Method]): List[Method] =
@@ -36,20 +33,18 @@ private trait MockSyntax:
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
-      if smockitoMode == SmockitoMode.Strict then
-        inline erasedValue[A] match
-          case EmptyTuple =>
-            ()
-          case _ =>
-            val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
-            if matching[A, R](methods).isEmpty then
-              throw UnknownMethod
+      inline erasedValue[A] match
+        case EmptyTuple =>
+          ()
+        case _ =>
+          val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
+          if matching[A, R](methods).isEmpty then
+            throw UnknownMethod
 
     private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
-      if smockitoMode == SmockitoMode.Strict then
-        val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
-        if matching[A, R](invocations.map(_.getMethod)).isEmpty then
-          throw UnstubbedMethod
+      val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
+      if matching[A, R](invocations.map(_.getMethod)).isEmpty then
+        throw UnstubbedMethod
 
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
       *
