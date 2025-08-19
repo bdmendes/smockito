@@ -11,5 +11,10 @@ private class DefaultAnswer extends Answer[Any]:
       // Java does not have default arguments. In bytecode, scalac injects a synthetized
       // `<method-name>$default$<param-pos>` method.
       invocation.callRealMethod()
+    else if invocation.getRawArguments.forall(_ != null) then
+      // The user might be relying on a real implementation, e.g. an adapter that dispatches to a
+      // method that is stubbed.
+      try invocation.callRealMethod()
+      catch _ => null
     else
       null
