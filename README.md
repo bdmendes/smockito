@@ -143,7 +143,7 @@ def mockRepository(username: String): Mock[Repository[User]] =
 
 ### What happens if I call an unstubbed method?
 
-An unstubbed method call will delegate to the real method implementation, instead of returning the default, lenient sentinel values of Mockito. This allows one to stub a method at the bottom the hierarchy, and interact with its adapters for free:
+An unstubbed method call will delegate to the real method implementation, instead of returning a lenient sentinel value. This allows one to stub a method at the bottom the hierarchy, and interact with its adapters for free:
 
 ```scala
 trait Getter:
@@ -152,8 +152,8 @@ trait Getter:
 
 val getter = mock[Getter].on(() => it.getNames)(_ => List("john"))
 
-assertEquals(getter.getNamesAdapter("dummy"), List("john"))
-assertEquals(getter.times(() => it.getNames), 1)
+assert(getter.getNamesAdapter("dummy") == List("john"))
+assert(getter.times(() => it.getNames) == 1)
 ```
 
 That said, if the real method requires some class context, it will throw. Stub all methods that are not simple adapters.
