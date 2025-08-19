@@ -8,7 +8,7 @@ private class DefaultAnswer extends Answer[Any]:
   override def answer(invocation: InvocationOnMock): Any =
     val method = invocation.getMethod
     if method.getName.contains("$default$") then
-      // Java does not have default arguments. In bytecode, scalac injects a synthetized
+      // Java does not have default arguments. In bytecode, scalac injects a synthesized
       // `<method-name>$default$<param-pos>` method.
       invocation.callRealMethod()
     else if invocation.getRawArguments.forall(_ != null) then
