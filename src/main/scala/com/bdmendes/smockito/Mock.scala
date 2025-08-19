@@ -164,6 +164,8 @@ private object Mock:
           try
             invocation.callRealMethod()
           catch
+            case _ if invocation.getMethod.getName.contains("$default$") =>
+              Mockito.RETURNS_DEFAULTS.answer(invocation)
             case _: MockitoException =>
               throw RealMethodFailure(
                 invocation.getMethod,

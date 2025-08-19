@@ -225,11 +225,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.contains(_: String)), List("bdmendes"))
 
   test("inspect calls on methods with default arguments"):
-    val repository = mock[Repository[User]].on(it.getWithDefaults)(_ => List.empty)
+    val repository =
+      mock[Repository[User]]
+        .on(it.getWithDefaults)(_ => List.empty)
+        .on(it.getWithDefaultsFree)(_ => List.empty)
 
     val _ = repository.getWithDefaults("bdmendes")
+    val _ = repository.getWithDefaultsFree("bdmendes")
 
-    assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", None)))
+    // This default parameter relates to a class value, so we should yield null.
+    assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", null)))
+
+    // This default parameter does not throw, so we yield the real value.
+    assertEquals(repository.calls(it.getWithDefaultsFree), List(("bdmendes", None)))
 
   test("count calls on values"):
     val repository: Mock[Repository[String]] =
@@ -348,6 +356,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           mockUsers.filter: user =>
             user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
         override def getWithDefaults(
+            startsWith: String,
+            endsWith: Option[String] = None
+        ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
+        override def getWithDefaultsFree(
             startsWith: String,
             endsWith: Option[String] = None
         ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
@@ -475,7 +487,8 @@ object SmockitoSpec:
     def contains(username: String): Boolean
     def containsOneOf(username: String*): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
-    def getWithDefaults(startsWith: String, endsWith: Option[String] = None): List[T]
+    def getWithDefaults(startsWith: String, endsWith: Option[String] = Some(name.toString)): List[T]
+    def getWithDefaultsFree(startsWith: String, endsWith: Option[String] = None): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
 
