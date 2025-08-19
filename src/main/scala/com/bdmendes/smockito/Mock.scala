@@ -5,7 +5,6 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
-import org.mockito.exceptions.base.MockitoException
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -161,14 +160,10 @@ private object Mock:
       Mockito
         .withSettings()
         .defaultAnswer: invocation =>
-          try
-            invocation.callRealMethod()
-          catch
-            case _: MockitoException =>
-              throw RealMethodFailure(
-                invocation.getMethod,
-                IllegalStateException("Abstract method call")
-              )
-            case e =>
-              throw RealMethodFailure(invocation.getMethod, e)
+          // Calling the real method by default allows for more use cases, such as stubbing a method
+          // at the bottom of the hierarchy and preserving its adapters. It's also essential to
+          // handle Scala default parameters, which are synthesized as a method. Here we swallow the
+          // exception to be less annoying, and return null to signal failed computation.
+          try invocation.callRealMethod()
+          catch _ => null
     )
