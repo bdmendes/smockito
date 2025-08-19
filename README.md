@@ -21,6 +21,7 @@ Smockito leverages a subset of Mockito’s features and offers a minimal, opinio
 - A method stub should handle only the inputs it expects.
 - A method stub should always be executed, as the real method would.
 - An unstubbed method will delegate to the real method.
+- One should not reason about the history of a method that was not stubbed.
 
 ## Quick Start
 
