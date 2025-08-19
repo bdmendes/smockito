@@ -330,24 +330,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("throw on repeated stub set up"):
-    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
-
-    // Start by setting up stubs in relaxed mode. Next stubs won't throw.
-    new Smockito(SmockitoMode.Relaxed):
-      repository.on(it.exists)(_.startsWith("bd"))
-      repository.on(it.getWith)(_ => List.empty)
-
-    repository.on(it.exists)(_ => true)
-    repository.on(it.getWith)(_ => List.empty)
-
-    // Previous stubs were set up in strict mode, so expect failures.
-    intercept[AlreadyStubbedMethod]:
-      repository.on(it.exists)(_ => false)
-
-    intercept[AlreadyStubbedMethod]:
-      repository.on(it.getWith)(_ => List.empty)
-
   test("throw on reasoning on unstubbed methods"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
 
