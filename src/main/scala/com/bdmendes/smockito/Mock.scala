@@ -63,7 +63,7 @@ private trait MockSyntax:
         stub: PartialFunction[Pack[A], R2]
     ): Mock[T] =
       assertMethodExists[A, R1]()
-      val answer: Answer[Any] =
+      val answer: Answer[R2] =
         invocation =>
           val arguments = invocation.getRawArguments
           stub.applyOrElse(
