@@ -484,6 +484,27 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(getter.times(() => it.getNames), 2)
 
+  test("not call the real method when invoked with nulls"):
+    var tracker = 0
+
+    trait Getter:
+      def find(name: String): Boolean =
+        tracker += 1
+        true
+      def get: List[String] =
+        tracker += 1
+        List.empty
+
+    val getter = mock[Getter]
+
+    val _ = getter.on(it.find)(_ => false)
+
+    assertEquals(tracker, 0)
+
+    val _ = getter.on(() => it.get)
+
+    assertEquals(tracker, 1)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
