@@ -334,6 +334,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
+  test("throw on reasoning on unstubbed methods"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
+
+    // We should not be able to reason about unstubbed methods.
+    intercept[UnstubbedMethod.type]:
+      repository.times(it.getWith)
+
+    intercept[UnstubbedMethod.type]:
+      repository.calls(it.getWith)
+
+    // Although we cannot be sure if there is a matching stub.
+    repository.times(() => it.getNames)
+
   test("provide a forward sugar for spying on a real instance"):
     val repository =
       new Repository[User]("dummy"):
@@ -429,13 +442,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     abstract class Getter:
       def getNames: List[String]
       def getNamesAdapter = getNames
-      def getNamesAdapterWithParam(dummy: Int, a: Int) = getNames
+      def getNamesAdapterWithParam(dummy: String) = getNames
 
     val names = mockUsers.map(_.username)
     val getter = mock[Getter].on(() => it.getNames)(_ => names)
 
     assertEquals(getter.getNamesAdapter, names)
-    assertEquals(getter.getNamesAdapterWithParam(1, 2), names)
+    assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
 
     assertEquals(getter.times(() => it.getNames), 2)
 
