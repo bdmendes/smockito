@@ -178,4 +178,7 @@ private object Mock:
       override def isDefinedAt(x: Pack[A]): Boolean = true
 
   def apply[T](using ct: ClassTag[T]): Mock[T] =
-    Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
+    Mockito.mock(
+      ct.runtimeClass.asInstanceOf[Class[T]],
+      Mockito.withSettings().defaultAnswer(DefaultAnswer())
+    )
