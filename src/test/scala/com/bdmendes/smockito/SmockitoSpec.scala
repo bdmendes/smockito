@@ -156,6 +156,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     intercept[RealMethodFailure]:
       val _ = repository.contains(mockUsers.head)
+
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
 
