@@ -478,6 +478,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = getter.on(() => it.get)(_ => List.empty)
     assertEquals(tracker, 0)
 
+  test("fail when the real method touches a class variable"):
+    class Getter(name: String):
+      def length = name.length
+
+    val getter = mock[Getter]
+
+    intercept[NullPointerException]:
+      val _ = getter.length
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
