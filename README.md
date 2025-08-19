@@ -20,7 +20,7 @@ Smockito leverages a subset of Mockito’s features and offers a minimal, opinio
 - A method should be stubbed only once, and use the same implementation for the lifetime of the mock.
 - A method stub should handle only the inputs it expects.
 - A method stub should always be executed, as the real method would.
-- One may reason directly about the received arguments and number of calls of a stub.
+- An unstubbed method will delegate to the real method.
 - One should not reason about the history of a method that was not stubbed.
 
 ## Quick Start
@@ -120,15 +120,9 @@ Notice we are handling partiality explicitly. This is useful if you don't want S
 
 Don't. Instead of clearing history on a global mock, create a fresh mock for each test case. This approach avoids race conditions entirely, with a negligible performance cost.
 
-### I need to override stubs or reason about unstubbed methods.
+### Should I override stubs to change behavior?
 
-If you are in the process of migrating from another mocking framework and stumble across Smockito's opinionated soundness verifications, you might be interested in disabling them via the trait constructor:
-
-```scala
-trait MySpecification extends Smockito(SmockitoMode.Relaxed)
-```
-
-In the end, however, it's always best to define a unique stub and be explicit about behavior change. If you want to mock system state, keep things simple:
+No. It's always best to define a unique stub and be explicit about behavior change. If you want to mock system state, keep things simple:
 
 ```scala
 val repository = 
