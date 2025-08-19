@@ -67,7 +67,7 @@ private trait MockSyntax:
           method(using mock).tupled(Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
         )
         .thenAnswer: invocation =>
-          val arguments = invocation.getArguments
+          val arguments = invocation.getRawArguments
 
           // If this stub is invoked with nulls, assume we are in the process of setting up
           // a stub override (i.e. using ArgumentMatchers.any ~ null).
@@ -178,4 +178,7 @@ private object Mock:
       override def isDefinedAt(x: Pack[A]): Boolean = true
 
   def apply[T](using ct: ClassTag[T]): Mock[T] =
-    Mockito.mock(ct.runtimeClass.asInstanceOf[Class[T]])
+    Mockito.mock(
+      ct.runtimeClass.asInstanceOf[Class[T]],
+      Mockito.withSettings().defaultAnswer(DefaultAnswer())
+    )
