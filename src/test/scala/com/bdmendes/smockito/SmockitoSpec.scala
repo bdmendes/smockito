@@ -429,13 +429,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     abstract class Getter:
       def getNames: List[String]
       def getNamesAdapter = getNames
-      def getNamesAdapterWithParam(dummy: String) = getNames
+      def getNamesAdapterWithParam(dummy: Int, a: Int) = getNames
 
     val names = mockUsers.map(_.username)
     val getter = mock[Getter].on(() => it.getNames)(_ => names)
 
     assertEquals(getter.getNamesAdapter, names)
-    assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
+    assertEquals(getter.getNamesAdapterWithParam(1, 2), names)
 
     assertEquals(getter.times(() => it.getNames), 2)
 

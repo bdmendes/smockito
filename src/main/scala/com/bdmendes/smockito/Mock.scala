@@ -41,6 +41,11 @@ private trait MockSyntax:
           if matching[A, R](methods).isEmpty then
             throw UnknownMethod
 
+    private inline def assertStubbedBefore[A <: Tuple, R](): Unit =
+      val invocations = Mockito.mockingDetails(mock).getStubbings.asScala.map(_.getInvocation)
+      if matching[A, R](invocations.map(_.getMethod)).isEmpty then
+        throw UnstubbedMethod
+
     /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
       *
       * @param method
@@ -80,7 +85,7 @@ private trait MockSyntax:
           error("`calls` is not available for nullary methods. Use `times` instead.")
 
         case _ =>
-          assertMethodExists[A, R]()
+          assertStubbedBefore[A, R]()
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
           val _ =
             method(using Mockito.verify(mock, Mockito.atLeast(0)))
@@ -100,7 +105,7 @@ private trait MockSyntax:
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      assertMethodExists[A, R]()
+      assertStubbedBefore[A, R]()
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Unfortunately, Mockito does not expose a reliable API for this use case.
