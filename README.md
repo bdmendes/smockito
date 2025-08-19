@@ -21,7 +21,6 @@ Smockito leverages a subset of Mockito’s features and offers a minimal, opinio
 - A method stub should handle only the inputs it expects.
 - A method stub should always be executed, as the real method would.
 - An unstubbed method will delegate to the real method.
-- One should not reason about the history of a method that was not stubbed.
 
 ## Quick Start
 
@@ -141,6 +140,23 @@ def mockRepository(username: String): Mock[Repository[User]] =
     .on(it.exists)(_ == "johndoe")
     .on(it.greet()(using _: User))(_ => s"Hello, $username!")
 ```
+
+### What happens if I call an unstubbed method?
+
+An unstubbed method call will delegate to the real method implementation, instead of returning the default, lenient sentinel values of Mockito. This allows one to stub a method at the bottom the hierarchy, and interact with its adapters for free:
+
+```scala
+trait Getter:
+  def getNames: List[String]
+  def getNamesAdapter(setting: String) = getNames
+
+val getter = mock[Getter].on(() => it.getNames)(_ => List("john"))
+
+assertEquals(getter.getNamesAdapter("dummy"), List("john"))
+assertEquals(getter.times(() => it.getNames), 1)
+```
+
+That said, if the real method requires some class context, it will throw. Stub all methods that are not simple adapters.
 
 ### I need to assert invocation orders/X/Y/Z.
 
