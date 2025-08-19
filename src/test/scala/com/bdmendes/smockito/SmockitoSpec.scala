@@ -95,6 +95,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.get, mockUsers)
 
+  test("set up method stubs on methods returning Unit"):
+    var tracker = 0
+    val repository = mock[Repository[User]].on(() => it.track())(_ => tracker += 1)
+
+    val _ = repository.track()
+    assertEquals(tracker, 1)
+
   test("set up method stubs on methods with 1 parameter"):
     val repository =
       mock[Repository[User]].on(it.exists):
@@ -351,6 +358,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("provide a forward sugar for spying on a real instance"):
     val repository =
       new Repository[User]("dummy"):
+        override def track(): Unit = ()
         override def get: List[User] = mockUsers
         override def getNames: List[String] = mockUsers.map(_.username)
         override def exists(username: String): Boolean = getNames.contains(username)
@@ -474,6 +482,7 @@ object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
     val longName = s"${name}Repository"
+    def track(): Unit
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
