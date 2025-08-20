@@ -36,7 +36,7 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod
 
-    /** Sets up a stub for a method. Refer to [[Smockito]] for a usage example.
+    /** Sets up a stub for a method, based on the received tupled arguments.
       *
       * @param method
       *   the method to mock.
@@ -61,8 +61,28 @@ private trait MockSyntax:
       )
       mock
 
-    /** Yields the captured arguments received by a stubbed method, in chronological order. Refer to
-      * [[Smockito]] for a usage example.
+    /** Sets up a stub that delegates to the real implementation of this method. Useful when you
+      * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
+      * later with [[on]]. Otherwise, use with care.
+      *
+      * Notice that, if the real implementation interacts with a class value that is not available
+      * in the mocking context, the stub will throw with a [[java.lang.NullPointerException]].
+      * Similarly, if this method is abstract on the mocked type, this will throw at set up time.
+      *
+      * @param method
+      *   the method whose real implementation shall be called.
+      * @return
+      *   the mocked type.
+      */
+    inline def real[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
+      assertMethodExists[A, R]()
+      method(using Mockito.doCallRealMethod().when(mock)).tupled(
+        Tuple.fromArray(mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+      )
+      mock
+
+    /** Yields the captured arguments received by a stubbed method, in chronological order. If you
+      * only need to reason about the number of interactions, [[times]] is more efficient.
       *
       * @param method
       *   the mocked method.
@@ -87,7 +107,8 @@ private trait MockSyntax:
             .toList
             .map(args => pack(Tuple.fromArray(args).asInstanceOf[A]))
 
-    /** Yields the number of times a stub was called. Refer to [[Smockito]] for a usage example.
+    /** Yields the number of times a stub was called. If you need the exact arguments, see
+      * [[calls]].
       *
       * @param method
       *   the mocked method.

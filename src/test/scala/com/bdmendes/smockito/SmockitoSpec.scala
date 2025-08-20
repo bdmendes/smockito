@@ -433,19 +433,23 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
 
-  // test("support calling a real method that dispatches to a stub"):
-  //   abstract class Getter:
-  //     def getNames: List[String]
-  //     def getNamesAdapter = getNames
-  //     def getNamesAdapterWithParam(dummy: String) = getNames
+  test("support calling a real method that dispatches to a stub"):
+    abstract class Getter:
+      def getNames: List[String]
+      def getNamesAdapter = getNames
+      def getNamesAdapterWithParam(dummy: String) = getNames
 
-  //   val names = mockUsers.map(_.username)
-  //   val getter = mock[Getter].on(() => it.getNames)(_ => names)
+    val names = mockUsers.map(_.username)
+    val getter =
+      mock[Getter]
+        .on(() => it.getNames)(_ => names)
+        .real(() => it.getNamesAdapter)
+        .real(it.getNamesAdapterWithParam)
 
-  //   assertEquals(getter.getNamesAdapter, names)
-  //   assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
+    assertEquals(getter.getNamesAdapter, names)
+    assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
 
-  //   assertEquals(getter.times(() => it.getNames), 2)
+    assertEquals(getter.times(() => it.getNames), 2)
 
   test("not call the real method as a side effect of stubbing"):
     var tracker = 0
