@@ -17,6 +17,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
+    // Note that we use the `doReturn.when` style instead of the `when.thenReturn`
+    // since the latter would call the method and trigger our default exception.
     Mockito.doReturn(mockUsers).when(repository).get
     Mockito.doReturn(true).when(repository).exists("bdmendes")
 
@@ -61,6 +63,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(setUpMock(mock[FancyRepository[User]], true).exists("bdmendes"))
     assert(!setUpMock(mock[FancyRepository[User]], false).exists("bdmendes"))
+
+  test("throw by default on unstubbed methods"):
+    val repository = mock[Repository[User]]
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.name
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.get
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.getWith("dummy1", "dummy2")
 
   test("set up method stubs on values"):
     var counter = 0
@@ -469,6 +483,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val _ = getter.on(() => it.get)(_ => List.empty)
     assertEquals(tracker, 0)
+
+  test("always use the last set up stub"):
+    var tracker = 0
+    val repository =
+      mock[Repository[User]]
+        .on(() => it.get): _ =>
+          tracker += 1
+          mockUsers
+        .on(() => it.get): _ =>
+          tracker += 1
+          List.empty
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(tracker, 1)
+    assertEquals(repository.times(() => it.get), 1)
 
 object SmockitoSpec:
 
