@@ -5,12 +5,12 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
+import org.mockito.exceptions.base.MockitoException
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
@@ -167,7 +167,7 @@ private object Mock:
           try
             invocation.callRealMethod()
           catch
-            case NonFatal(_) =>
+            case _: NullPointerException | _: MockitoException =>
               // The method touched a class value or is abstract. We swallow the exception to be
               // less annoying, and return `null` to signal a failed computation.
               null
