@@ -20,7 +20,7 @@ Smockito leverages a subset of Mockito’s features and offers a minimal, opinio
 - A method should be stubbed only once, and use the same implementation for the lifetime of the mock.
 - A method stub should handle only the inputs it expects.
 - A method stub should always be executed, as the real method would.
-- An unstubbed method will delegate to the real method.
+- An unstubbed method must throw and not return a lenient sentinel value.
 
 ## Quick Start
 
@@ -143,20 +143,22 @@ def mockRepository(username: String): Mock[Repository[User]] =
 
 ### What happens if I call an unstubbed method?
 
-An unstubbed method call will delegate to the real method implementation, instead of returning a lenient sentinel value. This allows one to stub a method at the bottom of the hierarchy, and interact with its adapters for free:
+An unstubbed method call will throw an `UnstubbedMethod` exception. This decision is based on the belief that returning a lenient value would reduce test readability and increase the likelihood of bugs.
+
+Even so, you may want to dispatch an adapter method to its actual implementation in order to stub a method at the bottom of the hierarchy. This can be achieved using `real`:
 
 ```scala
 trait Getter:
   def getNames: List[String]
   def getNamesAdapter(setting: String) = getNames
 
-val getter = mock[Getter].on(() => it.getNames)(_ => List("john"))
+val getter = mock[Getter]
+  .on(() => it.getNames)(_ => List("john"))
+  .real(it.getNamesAdapter)
 
 assert(getter.getNamesAdapter("dummy") == List("john"))
 assert(getter.times(() => it.getNames) == 1)
 ```
-
-That said, if the real method requires some class context, it will fail, and Smockito will answer with `null`. Stub all methods expected to be called that are not simple adapters.
 
 ### I need to assert invocation orders/X/Y/Z.
 
