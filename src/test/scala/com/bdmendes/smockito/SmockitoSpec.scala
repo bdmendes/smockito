@@ -224,8 +224,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.getWithDefaults)(_ => List.empty)
 
     val _ = repository.getWithDefaults("bdmendes")
+    val _ = repository.getWithDefaultsFree("bdmendes")
 
-    assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", None)))
+    // This default touched a class value, so we swallow the NPE.
+    assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", null)))
+
+    // This default is okay.
+    assertEquals(repository.calls(it.getWithDefaultsFree), List(("bdmendes", None)))
 
   test("count calls on values"):
     val repository: Mock[Repository[String]] =
@@ -343,6 +348,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
             user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
         override def getWithDefaults(
             startsWith: String,
+            endsWith: Option[String] = Some("dummy")
+        ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
+        override def getWithDefaultsFree(
+            startsWith: String,
             endsWith: Option[String] = None
         ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
         override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
@@ -459,7 +468,8 @@ object SmockitoSpec:
     def contains(username: String): Boolean
     def containsOneOf(username: String*): Boolean
     def getWith(startsWith: String, endsWith: String): List[T]
-    def getWithDefaults(startsWith: String, endsWith: Option[String] = None): List[T]
+    def getWithDefaults(startsWith: String, endsWith: Option[String] = Some(name.toString)): List[T]
+    def getWithDefaultsFree(startsWith: String, endsWith: Option[String] = None): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
 
