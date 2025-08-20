@@ -10,6 +10,7 @@ import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
@@ -164,6 +165,9 @@ private object Mock:
           // at the bottom of the hierarchy and preserving its adapters. It's also essential to
           // handle Scala default parameters, which are synthesized as a method. Here we swallow the
           // exception to be less annoying, and return null to signal failed computation.
-          try invocation.callRealMethod()
-          catch _ => null
+          try
+            invocation.callRealMethod()
+          catch
+            case NonFatal(_) =>
+              null
     )
