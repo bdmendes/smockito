@@ -5,7 +5,6 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
-import org.mockito.exceptions.base.MockitoException
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -158,17 +157,5 @@ private object Mock:
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
-      Mockito
-        .withSettings()
-        .defaultAnswer: invocation =>
-          // Calling the real method by default allows for more use cases, such as stubbing a method
-          // at the bottom of the hierarchy and preserving its adapters. It's also essential to
-          // handle Scala default parameters, which are synthesized as a method.
-          try
-            invocation.callRealMethod()
-          catch
-            case _: NullPointerException | _: MockitoException =>
-              // The method touched a class value or is abstract. We swallow the exception to be
-              // less annoying, and return `null` to signal a failed computation.
-              null
+      Mockito.withSettings().defaultAnswer(DefaultAnswer())
     )

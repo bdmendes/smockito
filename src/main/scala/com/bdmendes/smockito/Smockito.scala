@@ -104,3 +104,10 @@ object Smockito:
           s"${describeMethod(method)} received unexpected arguments: " +
             s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
         )
+
+    case class UnstubbedMethod(method: Method, arguments: Array[Object])
+        extends SmockitoException(
+          s"${describeMethod(method)} is not stubbed " +
+            s"and was called with arguments: (${arguments.mkString(", ")}). " +
+            "Did you forget to stub the method, or was it called unexpectedly?"
+        )
