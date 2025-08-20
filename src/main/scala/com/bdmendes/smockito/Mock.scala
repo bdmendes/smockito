@@ -163,11 +163,12 @@ private object Mock:
         .defaultAnswer: invocation =>
           // Calling the real method by default allows for more use cases, such as stubbing a method
           // at the bottom of the hierarchy and preserving its adapters. It's also essential to
-          // handle Scala default parameters, which are synthesized as a method. Here we swallow the
-          // exception to be less annoying, and return null to signal failed computation.
+          // handle Scala default parameters, which are synthesized as a method.
           try
             invocation.callRealMethod()
           catch
             case NonFatal(_) =>
+              // The method touched a class value or is abstract. We swallow the exception to be
+              // less annoying, and return `null` to signal a failed computation.
               null
     )
