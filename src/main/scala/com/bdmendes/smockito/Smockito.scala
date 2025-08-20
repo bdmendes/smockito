@@ -99,12 +99,6 @@ object Smockito:
             "or if one or more default parameters are being discarded."
         )
 
-    case class RealMethodFailure(method: Method, throwable: Throwable)
-        extends SmockitoException(
-          s"${describeMethod(method)} was not stubbed and failed with:\n$throwable\n" +
-            "Did you forget to set up a stub for it? Was it called unexpectedly?"
-        )
-
     case class UnexpectedArguments(method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} received unexpected arguments: " +

@@ -152,9 +152,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
 
     assert(repository.contains("bdmendes"))
-
-    intercept[RealMethodFailure]:
-      val _ = repository.contains(mockUsers.head)
+    assert(!repository.contains(mockUsers.head))
 
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
@@ -219,9 +217,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val _ = repository.contains("bdmendes")
 
-    intercept[RealMethodFailure]:
-      val _ = repository.contains(mockUsers.head)
-
+    assert(!repository.contains(mockUsers.head))
     assertEquals(repository.calls(it.contains(_: String)), List("bdmendes"))
 
   test("inspect calls on methods with default arguments"):
@@ -316,9 +312,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val _ = repository.contains("bdmendes")
 
-    intercept[RealMethodFailure]:
-      val _ = repository.contains(mockUsers.head)
-
+    assert(!repository.contains(mockUsers.head))
     assertEquals(repository.times(it.contains(_: String)), 1)
 
   test("throw on unknown received method"):
@@ -374,8 +368,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(mockRepository.times(it.exists), 2)
 
     // This method was not forwarded, so expect a real method call failure.
-    intercept[RealMethodFailure]:
-      val _ = mockRepository.get
+    assertEquals(mockRepository.get, null)
 
   test("integrate with an effects system"):
     given ExecutionContext = ExecutionContext.global
@@ -453,15 +446,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val _ = getter.on(() => it.get)(_ => List.empty)
     assertEquals(tracker, 0)
-
-  test("fail when the real method touches a class variable"):
-    class Getter(name: String):
-      def length = name.length
-
-    val getter = mock[Getter]
-
-    intercept[RealMethodFailure]:
-      val _ = getter.length
 
 object SmockitoSpec:
 
