@@ -349,6 +349,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(merge)(_ => mockUsers.head)
 
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].times(merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calls(merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].forward(merge, null)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].real(merge)
+
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
