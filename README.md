@@ -160,6 +160,10 @@ assert(getter.getNamesAdapter("dummy") == List("john"))
 assert(getter.times(() => it.getNames) == 1)
 ```
 
+### What happens if I stub a method more than once?
+
+The last stub takes precedence. If possible, follow the unique stub principle.
+
 ### I need to assert invocation orders/X/Y/Z.
 
 You may fall back to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
