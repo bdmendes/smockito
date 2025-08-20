@@ -41,7 +41,8 @@ import scala.reflect.ClassTag
   * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
   * method arguments, that one may destructure.
   *
-  * For spying on a real instance, use [[forward]].
+  * For spying on a real instance, use [[forward]]. For dispatching to a real implementation, use
+  * [[real]].
   *
   * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
   * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
