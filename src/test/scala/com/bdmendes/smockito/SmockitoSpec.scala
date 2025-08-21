@@ -4,6 +4,7 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.exceptions.base.MockitoException
 import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
 import scala.concurrent.Await
@@ -463,6 +464,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("support calling a real method that dispatches to a stub"):
     abstract class Getter:
+      def blank: Boolean
       def getNames: List[String]
       def getNamesAdapter = getNames
       def getNamesAdapterWithParam(dummy: String) = getNames
@@ -478,6 +480,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(getter.getNamesAdapterWithParam("dummy"), names)
 
     assertEquals(getter.times(() => it.getNames), 2)
+
+    intercept[MockitoException]:
+      val _ = getter.real(() => it.blank)
 
   test("not call the real method as a side effect of stubbing"):
     var tracker = 0
