@@ -83,20 +83,6 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
 
-### How do I spy on a real instance?
-
-Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
-
-```scala
-val repository =
-  val realInstance = Repository.fromDatabase[User]
-  mock[Repository[User]].forward(it.exists, realInstance)
-
-assert(repository.times(it.exists) == 0)
-```
-
-That said, make sure you also test the real instance in isolation.
-
 ### Is Smockito compatible with effect systems?
 
 Yes. Implement your stub as you would in application code. For example, with [cats-effect](https://github.com/typelevel/cats-effect):
@@ -114,6 +100,20 @@ val repository =
 ```
 
 Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.
+
+### How do I spy on a real instance?
+
+Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
+
+```scala
+val repository =
+  val realInstance = Repository.fromDatabase[User]
+  mock[Repository[User]].forward(it.exists, realInstance)
+
+assert(repository.times(it.exists) == 0)
+```
+
+That said, make sure you also test the real instance in isolation.
 
 ### How do I reset a mock?
 
