@@ -171,13 +171,13 @@ You may fall back to the Mockito API anytime you see fit. Smockito wants to be a
 Note that since a Smockito `Mock` throws by default, a typical Mockito stub setup will not work:
 
 ```scala
-Mockito.when(smockitoMock.someMethod(any())).thenReturn(someValue)
+Mockito.when(smockitoMock.someMethod("arg")).thenReturn(someValue)
 ```
 
 Instead, you should do:
 
 ```scala
-Mockito.doReturn(someValue).when(smockitoMock).someMethod(any())
+Mockito.doReturn(someValue).when(smockitoMock).someMethod("arg")
 ```
 
 ### I can't seem to stub a method/I found a bug.
