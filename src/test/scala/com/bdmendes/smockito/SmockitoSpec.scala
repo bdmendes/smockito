@@ -415,7 +415,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = mockRepository.get
 
-  test("integrate with an effects system"):
+  test("integrate with an effect system"):
     given ExecutionContext = ExecutionContext.global
 
     // Let's simulate cats-effect `IO`.
@@ -458,6 +458,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     new MockData:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
+      assertEquals(repository.times(it.getWith), 1)
+      assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
 
   test("support calling a real method that dispatches to a stub"):
     abstract class Getter:
@@ -487,6 +489,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       def get: List[String] =
         tracker += 1
         List.empty
+      def unstubbed(dummy: String): Integer =
+        tracker += 1
+        0
 
     val getter = mock[Getter]
 
@@ -494,6 +499,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(tracker, 0)
 
     val _ = getter.on(() => it.get)(_ => List.empty)
+    assertEquals(tracker, 0)
+
+    assertEquals(getter.times(it.unstubbed), 0)
+    assertEquals(getter.calls(it.unstubbed), List.empty)
+    assertEquals(tracker, 0)
+
+    val _ = getter.real(it.unstubbed)
+    assertEquals(tracker, 0)
+
+    val _ = getter.forward(it.unstubbed, null)
     assertEquals(tracker, 0)
 
   test("always use the last set up stub"):
