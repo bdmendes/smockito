@@ -166,7 +166,19 @@ The last stub takes precedence. If possible, follow the unique stub principle.
 
 ### I need to assert invocation orders/X/Y/Z.
 
-You may fall back to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
+You may fall back to the Mockito API anytime you see fit. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
+
+Note that since a Smockito `Mock` throws by default, a typical Mockito stub setup will not work:
+
+```scala
+Mockito.when(smockitoMock.someMethod(any())).thenReturn(someValue)
+```
+
+Instead, you should do:
+
+```scala
+Mockito.doReturn(someValue).when(smockitoMock).someMethod(any())
+```
 
 ### I can't seem to stub a method/I found a bug.
 
