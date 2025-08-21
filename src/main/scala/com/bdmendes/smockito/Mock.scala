@@ -93,7 +93,6 @@ private trait MockSyntax:
       inline erasedValue[A] match
         case _: EmptyTuple =>
           error("`calls` is not available for nullary methods. Use `times` instead.")
-
         case _ =>
           assertMethodExists[A, R]()
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
