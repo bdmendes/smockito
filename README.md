@@ -182,7 +182,7 @@ Mockito.doReturn(someValue).when(smockitoMock).someMethod("arg")
 
 ### I can't seem to stub a method/I found a bug.
 
-Are you performing eta-expansion correctly? If everything looks fine on your side, please file an issue with a minimal reproducible example.
+Are you performing eta-expansion correctly? Check out the main [SmockitoSpec](https://github.com/bdmendes/smockito/blob/master/src/test/scala/com/bdmendes/smockito/SmockitoSpec.scala) for more examples covering a variety of situations. If everything looks fine on your side, please file an issue with a minimal reproducible example.
 
 ### What can I do with the source code?
 
