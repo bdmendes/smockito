@@ -97,9 +97,9 @@ private trait MockSyntax:
           assertMethodExists[A, R]()
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
           val _ =
-            method(using Mockito.verify(mock, Mockito.atLeast(0)))
-              .tupled
-              .apply(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
+            method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
+              Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
+            )
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
@@ -127,9 +127,9 @@ private trait MockSyntax:
             ).size
           val validInvocations = (invocations to 1 by -1).find: count =>
             Try:
-              method(using Mockito.verify(mock, Mockito.times(count)))
-                .tupled
-                .apply(EmptyTuple.asInstanceOf[A])
+              method(using Mockito.verify(mock, Mockito.times(count))).tupled(
+                EmptyTuple.asInstanceOf[A]
+              )
             .isSuccess
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
@@ -137,9 +137,9 @@ private trait MockSyntax:
           // number of calls.
           val cap = mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
           val _ =
-            method(using Mockito.verify(mock, Mockito.atLeast(0)))
-              .tupled
-              .apply(Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A])
+            method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
+              Tuple.fromArray(cap.capture() +: mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
+            )
           cap.getAllValues.size
 
     /** Sets up a stub for a method that calls the respective method of a real instance. At a high
