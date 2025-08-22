@@ -4,6 +4,7 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.exceptions.base.MockitoException
 import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
 import scala.concurrent.Await
@@ -17,6 +18,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
+    // Note that we use the `doReturn.when` style instead of the `when.thenReturn`
+    // since the latter would call the method and trigger our default exception.
     Mockito.doReturn(mockUsers).when(repository).get
     Mockito.doReturn(true).when(repository).exists("bdmendes")
 
@@ -61,6 +64,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(setUpMock(mock[FancyRepository[User]], true).exists("bdmendes"))
     assert(!setUpMock(mock[FancyRepository[User]], false).exists("bdmendes"))
+
+  test("throw by default on unstubbed methods"):
+    val repository = mock[Repository[User]]
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.name
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.get
+
+    intercept[UnstubbedMethod]:
+      val _ = repository.getWith("dummy1", "dummy2")
 
   test("set up method stubs on values"):
     var counter = 0
@@ -335,6 +350,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(merge)(_ => mockUsers.head)
 
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].times(merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calls(merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].forward(merge, null)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].real(merge)
+
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
@@ -389,7 +416,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = mockRepository.get
 
-  test("integrate with an effects system"):
+  test("integrate with an effect system"):
     given ExecutionContext = ExecutionContext.global
 
     // Let's simulate cats-effect `IO`.
@@ -432,9 +459,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     new MockData:
       repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
+      assertEquals(repository.times(it.getWith), 1)
+      assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
 
   test("support calling a real method that dispatches to a stub"):
     abstract class Getter:
+      def blank: Boolean
       def getNames: List[String]
       def getNamesAdapter = getNames
       def getNamesAdapterWithParam(dummy: String) = getNames
@@ -451,6 +481,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(getter.times(() => it.getNames), 2)
 
+    intercept[MockitoException]:
+      val _ = getter.real(() => it.blank)
+
   test("not call the real method as a side effect of stubbing"):
     var tracker = 0
 
@@ -461,6 +494,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       def get: List[String] =
         tracker += 1
         List.empty
+      def unstubbed(dummy: String): Integer =
+        tracker += 1
+        0
 
     val getter = mock[Getter]
 
@@ -469,6 +505,31 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val _ = getter.on(() => it.get)(_ => List.empty)
     assertEquals(tracker, 0)
+
+    assertEquals(getter.times(it.unstubbed), 0)
+    assertEquals(getter.calls(it.unstubbed), List.empty)
+    assertEquals(tracker, 0)
+
+    val _ = getter.real(it.unstubbed)
+    assertEquals(tracker, 0)
+
+    val _ = getter.forward(it.unstubbed, null)
+    assertEquals(tracker, 0)
+
+  test("always use the last set up stub"):
+    var tracker = 0
+    val repository =
+      mock[Repository[User]]
+        .on(() => it.get): _ =>
+          tracker += 1
+          mockUsers
+        .on(() => it.get): _ =>
+          tracker += 1
+          List.empty
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(tracker, 1)
+    assertEquals(repository.times(() => it.get), 1)
 
 object SmockitoSpec:
 

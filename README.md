@@ -83,20 +83,6 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, which in itself is technically a [test spy framework](https://github.com/mockito/mockito/wiki/FAQ#is-it-really-a-mocking-framework). There is a great debate regarding the definitions of mocks, stubs, spies, test duplicates... Here, we assume a mock to be a "faked" object, and a stub a provided implementation for a subset of the input space.
 
-### How do I spy on a real instance?
-
-Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
-
-```scala
-val repository =
-  val realInstance = Repository.fromDatabase[User]
-  mock[Repository[User]].forward(it.exists, realInstance)
-
-assert(repository.times(it.exists) == 0)
-```
-
-That said, make sure you also test the real instance in isolation.
-
 ### Is Smockito compatible with effect systems?
 
 Yes. Implement your stub as you would in application code. For example, with [cats-effect](https://github.com/typelevel/cats-effect):
@@ -114,6 +100,20 @@ val repository =
 ```
 
 Notice we are handling partiality explicitly. This is useful if you don't want Smockito to throw `UnexpectedArguments` behind the scenes.
+
+### How do I spy on a real instance?
+
+Though not the main Smockito use case, you may achieve so by setting up a stub on a mock that *forwards* to a real instance:
+
+```scala
+val repository =
+  val realInstance = Repository.fromDatabase[User]
+  mock[Repository[User]].forward(it.exists, realInstance)
+
+assert(repository.times(it.exists) == 0)
+```
+
+That said, make sure you also test the real instance in isolation.
 
 ### How do I reset a mock?
 
@@ -160,13 +160,29 @@ assert(getter.getNamesAdapter("dummy") == List("john"))
 assert(getter.times(() => it.getNames) == 1)
 ```
 
+### What happens if I stub a method more than once?
+
+The last stub takes precedence. If possible, follow the unique stub principle.
+
 ### I need to assert invocation orders/X/Y/Z.
 
-You may fall back to the Mockito API anytime you see fit; a `Mock[T]` may be passed safely. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
+You may fall back to the Mockito API anytime you see fit. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
+
+Note that since a Smockito `Mock` throws by default, a typical Mockito stub setup will not work:
+
+```scala
+Mockito.when(smockitoMock.someMethod("arg")).thenReturn(someValue)
+```
+
+Instead, you should do:
+
+```scala
+Mockito.doReturn(someValue).when(smockitoMock).someMethod("arg")
+```
 
 ### I can't seem to stub a method/I found a bug.
 
-Are you performing eta-expansion correctly? If everything looks fine on your side, please file an issue with a minimal reproducible example.
+Are you performing eta-expansion correctly? Check out the main [SmockitoSpec](https://github.com/bdmendes/smockito/blob/master/src/test/scala/com/bdmendes/smockito/SmockitoSpec.scala) for more examples covering a variety of situations. If everything looks fine on your side, please file an issue with a minimal reproducible example.
 
 ### What can I do with the source code?
 

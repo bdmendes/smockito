@@ -14,6 +14,29 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.0.0 - 2025-08-22
+
+Smockito has been stable for a couple of weeks, benefiting from real-world usage and several bug fixes since 1.0. Now, it’s ready for an API update, a change significant enough to justify a major version bump.
+
+The first breaking change is related to the behavior of unstubbed methods. Previously, we relied on the default sentinel Mockito answers (e.g., `false` for methods returning `Boolean` or generically `null`). While this led to terse mocking, especially for side-effectful methods, it was also confusing and could hide implementation issues if unexpected. Starting from this release, we'll throw with an `UnstubbedMethod` exception, pointing to the method name and received arguments to aid the migration and guide the user towards explicitly setting up a stub for all methods expected to be called.
+
+Secondly, Smockito will no longer check for repeated stubbing. While useful, this was not always possible and forced the introduction of a mode parameter, which complicated test model hierarchies. As such, the `SmockitoMode` concept is now retired and `Smockito` is again a simple trait with no parameters.
+
+At last - a new feature! `real` allows dispatching to the real implementation, which in Scala is very useful to preserve the implementation of adapter methods in traits. Refer to the README for a more detailed explanation.
+
+An issue related to capturing default arguments was also fixed.
+
+Happy mocking!
+
+### What's Changed
+* Fix default args by @bdmendes in https://github.com/bdmendes/smockito/pull/80
+* Remove relaxed mode by @bdmendes in https://github.com/bdmendes/smockito/pull/83
+* Remove unstubbed verification by @bdmendes in https://github.com/bdmendes/smockito/pull/84
+* Default to throwing on unstubbed methods by @bdmendes in https://github.com/bdmendes/smockito/pull/88
+* Add real implementation and document more by @bdmendes in https://github.com/bdmendes/smockito/pull/89
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v1.3.3...v2.0.0
+
 ## 1.3.3 - 2025-08-16
 
 This is a maintenance release that mostly just aligns Smockito with `mockito-core` 5.19.0. In the meantime, some messages and documentation got improved.
