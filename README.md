@@ -142,7 +142,7 @@ def mockRepository(username: String): Mock[Repository[User]] =
 
 ### Can I reason about invocation orders?
 
-Yes. Use `isBefore` to verify that two stubbed methods have each been called at least once, and one has been called before the other:
+Yes. Use `calledBefore` to verify that two stubbed methods have each been called at least once, and one has been called before the other:
 
 ```scala
 val repository =
@@ -150,10 +150,10 @@ val repository =
     .on(it.exists)(_ => true)
     .on(() => it.get)(_ => List.empty)
 
-val _ = repository.exists("bdmendes")
+val _ = repository.exists("johndoe")
 val _ = repository.get
 
-assert(repository.isBefore(it.exists, () => it.get))
+assert(repository.calledBefore(it.exists, () => it.get))
 ```
 
 When doing so, consider whether this behavior is a hard requirement of your system or merely an implementation detail. If it is the latter, the assertion might be an overspecification.

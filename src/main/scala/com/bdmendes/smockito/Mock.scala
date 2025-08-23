@@ -36,7 +36,8 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod
 
-    /** Sets up a stub for a method, based on the received tupled arguments.
+    /** Sets up a stub for a method, based on the received tupled arguments. For the version based
+      * on the call number, see [[onCall]].
       *
       * @param method
       *   the method to mock.
@@ -163,7 +164,8 @@ private trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-    /** Sets up a stub for a method, based on the call number.
+    /** Sets up a stub for a method, based on the call number. For the version based on received
+      * arguments, see [[on]].
       *
       * @param method
       *   the method to mock.
@@ -191,7 +193,7 @@ private trait MockSyntax:
       * @return
       *   Whether `a` was called before `b`.
       */
-    inline def isBefore[A1 <: Tuple, R1, A2 <: Tuple, R2](
+    inline def calledBefore[A1 <: Tuple, R1, A2 <: Tuple, R2](
         a: Mock[T] ?=> MockedMethod[A1, R1],
         b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
