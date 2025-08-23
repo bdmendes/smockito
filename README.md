@@ -142,7 +142,7 @@ def mockRepository(username: String): Mock[Repository[User]] =
 
 ### Can I reason about invocation orders?
 
-Yes. Use `calledBefore` or `calledAfter` to verify that two stubbed methods have each been called at least once, and one has been called before the other:
+Yes. Use `calledBefore` or `calledAfter`:
 
 ```scala
 val repository =
