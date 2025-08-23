@@ -140,6 +140,24 @@ def mockRepository(username: String): Mock[Repository[User]] =
     .on(it.greet()(using _: User))(_ => s"Hello, $username!")
 ```
 
+### Can I reason about invocation orders?
+
+Yes. Use `calledBefore` or `calledAfter`:
+
+```scala
+val repository =
+  mock[Repository[User]]
+    .on(it.exists)(_ => true)
+    .on(() => it.get)(_ => List.empty)
+
+val _ = repository.exists("johndoe")
+val _ = repository.get
+
+assert(repository.calledBefore(it.exists, () => it.get))
+```
+
+When doing so, consider whether this behavior is a hard requirement of your system or merely an implementation detail. If it is the latter, the assertion might be an overspecification.
+
 ### What happens if I call an unstubbed method?
 
 An unstubbed method call will throw an `UnstubbedMethod` exception. This decision is based on the belief that returning a lenient value would reduce test readability and increase the likelihood of bugs.
@@ -162,22 +180,6 @@ assert(getter.times(() => it.getNames) == 1)
 ### What happens if I stub a method more than once?
 
 The last stub takes precedence. If possible, follow the unique stub principle.
-
-### I need to assert invocation orders/X/Y/Z.
-
-You may fall back to the Mockito API anytime you see fit. Smockito wants to be as small as possible, but if there is an interesting new use case you'd want to see handled here, please open an issue.
-
-Note that since a Smockito `Mock` throws by default, a typical Mockito stub setup will not work:
-
-```scala
-Mockito.when(smockitoMock.someMethod("arg")).thenReturn(someValue)
-```
-
-Instead, you should do:
-
-```scala
-Mockito.doReturn(someValue).when(smockitoMock).someMethod("arg")
-```
 
 ### I can't seem to stub a method/I found a bug.
 

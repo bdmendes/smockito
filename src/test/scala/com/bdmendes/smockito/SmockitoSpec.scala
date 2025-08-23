@@ -365,6 +365,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].real(merge)
 
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledBefore(it.exists, merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledBefore(merge, it.exists)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledBefore(merge, merge)
+
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
@@ -539,11 +548,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("provide an onCall sugar that tracks invocation counts"):
     val repository =
-      mock[Repository[User]].onCall(() => it.get):
-        case 1 =>
-          List(mockUsers.head)
-        case _ =>
-          List.empty
+      mock[Repository[User]]
+        .onCall(() => it.get):
+          case 1 =>
+            List(mockUsers.head)
+          case _ =>
+            List.empty
+        .onCall(it.exists):
+          case 1 =>
+            true
+          case _ =>
+            false
 
     assert(typeChecks("repository.onCall(() => it.get)(_ => List.empty)"))
     assert(!typeChecks("repository.onCall(() => it.get)(_ => 1)"))
@@ -551,8 +566,56 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List(mockUsers.head))
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
-
     assertEquals(repository.times(() => it.get), 3)
+
+    assertEquals(repository.exists("bdmendes"), true)
+    assertEquals(repository.exists("bdmendes"), false)
+    assertEquals(repository.times(it.exists), 2)
+
+  test("provide a calledBefore method for reasoning about invocation order"):
+    val repository =
+      mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
+
+    // No methods called yet.
+    assert(!repository.calledBefore(it.exists, () => it.getNames))
+    assert(!repository.calledBefore(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+
+    // Only the first method was called.
+    assert(!repository.calledBefore(it.exists, () => it.getNames))
+    assert(!repository.calledBefore(() => it.getNames, it.exists))
+
+    val _ = repository.getNames
+
+    // Both methods were called; `exists` was called before `getNames`.
+    assert(repository.calledBefore(it.exists, () => it.getNames))
+    assert(!repository.calledBefore(() => it.getNames, it.exists))
+
+    val _ = repository.getNames
+
+    // `getNames` being called again does not change the query result.
+    assert(repository.calledBefore(it.exists, () => it.getNames))
+    assert(!repository.calledBefore(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+
+    // Now, `exists` does appear after a `getNames`.
+    assert(!repository.calledBefore(it.exists, () => it.getNames))
+    assert(repository.calledBefore(() => it.getNames, it.exists))
+
+  test("provide a calledAfter method for reasoning about invocation order"):
+    val repository =
+      mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
+
+    assert(!repository.calledAfter(it.exists, () => it.getNames))
+    assert(!repository.calledAfter(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+    val _ = repository.getNames
+
+    assert(!repository.calledAfter(it.exists, () => it.getNames))
+    assert(repository.calledAfter(() => it.getNames, it.exists))
 
 object SmockitoSpec:
 

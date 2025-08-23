@@ -36,7 +36,8 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod
 
-    /** Sets up a stub for a method, based on the received tupled arguments.
+    /** Sets up a stub for a method, based on the received tupled arguments. For the version based
+      * on the call number, see [[onCall]].
       *
       * @param method
       *   the method to mock.
@@ -163,7 +164,8 @@ private trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-    /** Sets up a stub for a method, based on the call number.
+    /** Sets up a stub for a method, based on the call number. For the version based on received
+      * arguments, see [[on]].
       *
       * @param method
       *   the method to mock.
@@ -181,6 +183,47 @@ private trait MockSyntax:
           callCount += 1
           stub(callCount)
       mock.on(method)(PartialFunctionProxy(f))
+
+    /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
+      * provided both methods were called at least once. Same as `calledAfter(b, a)`.
+      *
+      * @param a
+      *   the method that is expected to be called first.
+      * @param b
+      *   the method that is expected to be called after `a`.
+      * @return
+      *   Whether `a` was called before `b`.
+      */
+    inline def calledBefore[A1 <: Tuple, R1, A2 <: Tuple, R2](
+        a: Mock[T] ?=> MockedMethod[A1, R1],
+        b: Mock[T] ?=> MockedMethod[A2, R2]
+    ): Boolean =
+      assertMethodExists[A1, R1]()
+      assertMethodExists[A2, R2]()
+      val ordered = Mockito.inOrder(mock)
+      Try:
+        a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
+          Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
+        )
+        b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
+          Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
+        )
+      .isSuccess
+
+    /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
+      * provided both methods were called at least once. Same as `calledBefore(b, a)`.
+      *
+      * @param a
+      *   the method that is expected to be called after `b`.
+      * @param b
+      *   the method that is expected to be called first.
+      * @return
+      *   Whether `b` was called after `a`.
+      */
+    inline def calledAfter[A1 <: Tuple, R1, A2 <: Tuple, R2](
+        a: Mock[T] ?=> MockedMethod[A1, R1],
+        b: Mock[T] ?=> MockedMethod[A2, R2]
+    ): Boolean = calledBefore(b, a)
 
 private object Mock:
 
