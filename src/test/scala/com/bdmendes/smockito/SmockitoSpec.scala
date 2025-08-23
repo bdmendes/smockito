@@ -374,6 +374,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].calledBefore(merge, merge)
 
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledAfter(it.exists, merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledAfter(merge, it.exists)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].calledAfter(merge, merge)
+
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
@@ -572,7 +581,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("bdmendes"), false)
     assertEquals(repository.times(it.exists), 2)
 
-  test("provide a calledBefore method for reasoning about invocation order"):
+  test("reason about invocation orders"):
     val repository =
       mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
 
@@ -604,7 +613,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!repository.calledBefore(it.exists, () => it.getNames))
     assert(repository.calledBefore(() => it.getNames, it.exists))
 
-  test("provide a calledAfter method for reasoning about invocation order"):
+  test("reason about invocation orders reversed"):
     val repository =
       mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
 
