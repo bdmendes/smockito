@@ -125,7 +125,7 @@ No. It's always best to define a unique stub and be explicit about behavior chan
 
 ```scala
 val repository = 
-  mock[Repository[User]].onCall(() => it.get): _ =>
+  mock[Repository[User]].onCall(() => it.get):
     case 1 => List(User("john"))
     case _ => List.empty
 ```

@@ -537,13 +537,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(tracker, 1)
     assertEquals(repository.times(() => it.get), 1)
 
-  test("provide a onCall sugar that tracks invocation counts"):
+  test("provide an onCall sugar that tracks invocation counts"):
     val repository =
       mock[Repository[User]].onCall(() => it.get):
         case 1 =>
           List(mockUsers.head)
         case _ =>
           List.empty
+
+    assert(typeChecks("repository.onCall(() => it.get)(_ => List.empty)"))
+    assert(!typeChecks("repository.onCall(() => it.get)(_ => 1)"))
 
     assertEquals(repository.get, List(mockUsers.head))
     assertEquals(repository.get, List.empty)
