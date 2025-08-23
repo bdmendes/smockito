@@ -121,14 +121,13 @@ Don't. Instead of clearing history on a global mock, create a fresh mock for eac
 
 ### Should I override stubs to change behavior?
 
-No. It's always best to define a unique stub and be explicit about behavior change. If you want to mock system state, keep things simple:
+No. It's always best to define a unique stub and be explicit about behavior change. If you want to perform a different action on a subsequent invocation, consider using `onCall`:
 
 ```scala
 val repository = 
-  var callCount = 0
-  mock[Repository[User]].on(() => it.get): _ =>
-    callCount += 1
-    if (callCount == 1) then List(User("john")) else List.empty
+  mock[Repository[User]].onCall(() => it.get): _ =>
+    case 1 => List(User("john"))
+    case _ => List.empty
 ```
 
 If you have a mock whose setup is only slightly changed between test cases, instead of overriding a stub defined in some base trait, create a factory method:
