@@ -365,6 +365,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].real(merge)
 
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].isBefore(it.exists, merge)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].isBefore(merge, it.exists)
+
+    intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].isBefore(merge, merge)
+
     // It also happens frequently that a method with contextuals gets eta-expanded
     // in a way that's not intended due to an implicit capture.
     given User = mockUsers.head
@@ -550,6 +559,38 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List.empty)
 
     assertEquals(repository.times(() => it.get), 3)
+
+  test("provide a isBefore method for reasoning about invocation order"):
+    val repository =
+      mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
+
+    // No methods called yet.
+    assert(!repository.isBefore(it.exists, () => it.getNames))
+    assert(!repository.isBefore(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+
+    // Only the first method was called.
+    assert(!repository.isBefore(it.exists, () => it.getNames))
+    assert(!repository.isBefore(() => it.getNames, it.exists))
+
+    val _ = repository.getNames
+
+    // Both methods were called; `exists` was called before `getNames`.
+    assert(repository.isBefore(it.exists, () => it.getNames))
+    assert(!repository.isBefore(() => it.getNames, it.exists))
+
+    val _ = repository.getNames
+
+    // `getNames` being called again does not change the query result.
+    assert(repository.isBefore(it.exists, () => it.getNames))
+    assert(!repository.isBefore(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+
+    // Now, `exists` does appear after a `getNames`.
+    assert(!repository.isBefore(it.exists, () => it.getNames))
+    assert(repository.isBefore(() => it.getNames, it.exists))
 
 object SmockitoSpec:
 

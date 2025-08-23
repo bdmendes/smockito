@@ -182,6 +182,31 @@ private trait MockSyntax:
           stub(callCount)
       mock.on(method)(PartialFunctionProxy(f))
 
+    /** Whether method `a` was called before method `b`, and both methods were called at least once.
+      *
+      * @param a
+      *   the method that is expected to be called first.
+      * @param b
+      *   the method that is expected to be called after `a`.
+      * @return
+      *   Whether `a` was called before `b`.
+      */
+    inline def isBefore[A1 <: Tuple, R1, A2 <: Tuple, R2](
+        a: Mock[T] ?=> MockedMethod[A1, R1],
+        b: Mock[T] ?=> MockedMethod[A2, R2]
+    ): Boolean =
+      assertMethodExists[A1, R1]()
+      assertMethodExists[A2, R2]()
+      val ordered = Mockito.inOrder(mock)
+      Try:
+        a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
+          Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
+        )
+        b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
+          Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
+        )
+      .isSuccess
+
 private object Mock:
 
   object mapper:
