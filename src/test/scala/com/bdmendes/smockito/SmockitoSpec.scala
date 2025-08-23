@@ -360,6 +360,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       val _ = mock[Repository[User]].forward(merge, null)
 
     intercept[UnknownMethod.type]:
+      val _ = mock[Repository[User]].onCall(merge)(_ => mockUsers.head)
+
+    intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].real(merge)
 
     // It also happens frequently that a method with contextuals gets eta-expanded
@@ -516,6 +519,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = getter.forward(it.unstubbed, null)
     assertEquals(tracker, 0)
 
+    val _ = getter.onCall(it.unstubbed)
+    assertEquals(tracker, 0)
+
   test("always use the last set up stub"):
     var tracker = 0
     val repository =
@@ -530,6 +536,20 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List.empty)
     assertEquals(tracker, 1)
     assertEquals(repository.times(() => it.get), 1)
+
+  test("provide a onCall sugar that tracks invocation counts"):
+    val repository =
+      mock[Repository[User]].onCall(() => it.get):
+        case 1 =>
+          List(mockUsers.head)
+        case _ =>
+          List.empty
+
+    assertEquals(repository.get, List(mockUsers.head))
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository.get, List.empty)
+
+    assertEquals(repository.times(() => it.get), 3)
 
 object SmockitoSpec:
 

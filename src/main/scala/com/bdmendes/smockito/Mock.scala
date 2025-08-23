@@ -41,7 +41,7 @@ private trait MockSyntax:
       * @param method
       *   the method to mock.
       * @param stub
-      *   the stub implementation.
+      *   the stub implementation, based on the received arguments.
       * @return
       *   the mocked type.
       */
@@ -162,6 +162,25 @@ private trait MockSyntax:
     ): Mock[T] =
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
+
+    /** Sets up a stub for a method, based on the call number.
+      *
+      * @param method
+      *   the method to mock.
+      * @param stub
+      *   the stub implementation, based on the call number, starting at 1.
+      * @return
+      *   the mocked type.
+      */
+    inline def onCall[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R])(
+        stub: Int => R
+    ): Mock[T] =
+      var callCount = 0
+      val f: Pack[A] => R =
+        _ =>
+          callCount += 1
+          stub(callCount)
+      mock.on(method)(PartialFunctionProxy(f))
 
 private object Mock:
 
