@@ -48,7 +48,7 @@ import scala.reflect.ClassTag
   * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
   * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
   * one only cares about the number of times a stub was called, [[times]] is more efficient. At
-  * last, [[calledBefore]] allows reasoning about interaction orders.
+  * last, [[calledBefore]] and [[calledAfter]] allows reasoning about interaction orders.
   */
 trait Smockito extends MockSyntax:
 

@@ -184,7 +184,8 @@ private trait MockSyntax:
           stub(callCount)
       mock.on(method)(PartialFunctionProxy(f))
 
-    /** Whether method `a` was called before method `b`, and both methods were called at least once.
+    /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
+      * provided both methods were called at least once. Same as `calledAfter(b, a)`.
       *
       * @param a
       *   the method that is expected to be called first.
@@ -208,6 +209,21 @@ private trait MockSyntax:
           Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
         )
       .isSuccess
+
+    /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
+      * provided both methods were called at least once. Same as `calledBefore(b, a)`.
+      *
+      * @param a
+      *   the method that is expected to be called after `b`.
+      * @param b
+      *   the method that is expected to be called first.
+      * @return
+      *   Whether `b` was called after `a`.
+      */
+    inline def calledAfter[A1 <: Tuple, R1, A2 <: Tuple, R2](
+        a: Mock[T] ?=> MockedMethod[A1, R1],
+        b: Mock[T] ?=> MockedMethod[A2, R2]
+    ): Boolean = calledBefore(b, a)
 
 private object Mock:
 

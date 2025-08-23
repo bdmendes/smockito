@@ -595,6 +595,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!repository.calledBefore(it.exists, () => it.getNames))
     assert(repository.calledBefore(() => it.getNames, it.exists))
 
+  test("provide a calledAfter method for reasoning about invocation order"):
+    val repository =
+      mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
+
+    assert(!repository.calledAfter(it.exists, () => it.getNames))
+    assert(!repository.calledAfter(() => it.getNames, it.exists))
+
+    val _ = repository.exists("bdmendes")
+    val _ = repository.getNames
+
+    assert(!repository.calledAfter(it.exists, () => it.getNames))
+    assert(repository.calledAfter(() => it.getNames, it.exists))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
