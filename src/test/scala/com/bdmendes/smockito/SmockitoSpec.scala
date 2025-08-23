@@ -548,11 +548,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("provide an onCall sugar that tracks invocation counts"):
     val repository =
-      mock[Repository[User]].onCall(() => it.get):
-        case 1 =>
-          List(mockUsers.head)
-        case _ =>
-          List.empty
+      mock[Repository[User]]
+        .onCall(() => it.get):
+          case 1 =>
+            List(mockUsers.head)
+          case _ =>
+            List.empty
+        .onCall(it.exists):
+          case 1 =>
+            true
+          case _ =>
+            false
 
     assert(typeChecks("repository.onCall(() => it.get)(_ => List.empty)"))
     assert(!typeChecks("repository.onCall(() => it.get)(_ => 1)"))
@@ -560,8 +566,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.get, List(mockUsers.head))
     assertEquals(repository.get, List.empty)
     assertEquals(repository.get, List.empty)
-
     assertEquals(repository.times(() => it.get), 3)
+
+    assertEquals(repository.exists("bdmendes"), true)
+    assertEquals(repository.exists("bdmendes"), false)
+    assertEquals(repository.times(it.exists), 2)
 
   test("provide a calledBefore method for reasoning about invocation order"):
     val repository =
