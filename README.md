@@ -140,6 +140,24 @@ def mockRepository(username: String): Mock[Repository[User]] =
     .on(it.greet()(using _: User))(_ => s"Hello, $username!")
 ```
 
+### Can I reason about invocation orders?
+
+Yes. Use `isBefore` to verify that two stubbed methods have each been called at least once, and one has been called before the other:
+
+```scala
+val repository =
+  mock[Repository[User]]
+    .on(it.exists)(_ => true)
+    .on(() => it.get)(_ => List.empty)
+
+val _ = repository.exists("bdmendes")
+val _ = repository.get
+
+assert(repository.isBefore(it.exists, () => it.get))
+```
+
+When doing so, consider whether this behavior is a hard requirement of your system or merely an implementation detail. If it is the latter, the assertion might be an overspecification.
+
 ### What happens if I call an unstubbed method?
 
 An unstubbed method call will throw an `UnstubbedMethod` exception. This decision is based on the belief that returning a lenient value would reduce test readability and increase the likelihood of bugs.
