@@ -1,15 +1,16 @@
 package com.bdmendes.smockito
 
 import Mock.mapper.*
+import Mock.succeeds
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import org.mockito.*
+import org.mockito.exceptions.base.MockitoException
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
-import scala.util.Try
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
@@ -127,11 +128,10 @@ private trait MockSyntax:
               Mockito.mockingDetails(mock).getInvocations.asScala.map(_.getMethod)
             ).size
           val validInvocations = (invocations to 1 by -1).find: count =>
-            Try:
+            succeeds:
               method(using Mockito.verify(mock, Mockito.times(count))).tupled(
                 EmptyTuple.asInstanceOf[A]
               )
-            .isSuccess
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // We do a little trick here: capturing the first argument is enough for counting the
@@ -201,14 +201,13 @@ private trait MockSyntax:
       assertMethodExists[A1, R1]()
       assertMethodExists[A2, R2]()
       val ordered = Mockito.inOrder(mock)
-      Try:
+      succeeds:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
         )
         b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
         )
-      .isSuccess
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
@@ -235,6 +234,16 @@ private object Mock:
     class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R) extends PartialFunction[Pack[A], R]:
       override def apply(args: Pack[A]): R = f(args)
       override def isDefinedAt(x: Pack[A]): Boolean = true
+
+  def succeeds(f: => Unit): Boolean =
+    try
+      val _ = f
+      true
+    catch
+      case e: (MockitoException | NullPointerException) =>
+        throw e
+      case e =>
+        false
 
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
