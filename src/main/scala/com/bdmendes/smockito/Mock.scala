@@ -174,11 +174,11 @@ private trait MockSyntax:
       * @return
       *   the mocked type.
       */
-    inline def onCall[A <: Tuple, R](method: Mock[T] ?=> MockedMethod[A, R])(
-        stub: Int => R
+    inline def onCall[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
+        stub: Int => R2
     ): Mock[T] =
       var callCount = 0
-      val f: Pack[A] => R =
+      val f: Pack[A] => R2 =
         _ =>
           callCount += 1
           stub(callCount)
