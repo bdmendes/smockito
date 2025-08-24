@@ -121,7 +121,7 @@ Don't. Instead of clearing history on a global mock, create a fresh mock for eac
 
 ### Should I override stubs to change behavior?
 
-No. It's always best to define a unique stub and be explicit about behavior change. If you want to perform a different action on a subsequent invocation, consider using `onCall`:
+No. It's always best to define a unique stub and be explicit about behavior change. If you want to perform a different action on a subsequent invocation, for instance to simulate transient failures, consider using `onCall`:
 
 ```scala
 val repository = 
