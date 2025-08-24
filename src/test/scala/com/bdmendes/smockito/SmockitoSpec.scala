@@ -578,7 +578,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.get), 3)
 
     assertEquals(repository.exists("bdmendes"), true)
-    assertEquals(repository.exists("johdone"), false)
+    assertEquals(repository.exists("johndoe"), false)
     assertEquals(repository.exists("bdmendes"), false)
     assertEquals(repository.times(it.exists), 3)
 
