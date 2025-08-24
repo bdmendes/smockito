@@ -39,8 +39,8 @@ import scala.reflect.ClassTag
   *
   * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
   * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
-  * method arguments, that one may destructure. If you want to operate on the call number instead of
-  * the received arguments, use [[onCall]].
+  * method arguments, that one may destructure. If one needs to operate on the call number instead
+  * of the received arguments, [[onCall]] is an alternative.
   *
   * For spying on a real instance, use [[forward]]. For dispatching to a real implementation, use
   * [[real]].
@@ -48,7 +48,7 @@ import scala.reflect.ClassTag
   * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
   * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
   * one only cares about the number of times a stub was called, [[times]] is more efficient. At
-  * last, [[calledBefore]] and [[calledAfter]] allows reasoning about interaction orders.
+  * last, [[calledBefore]] and [[calledAfter]] allow reasoning about interaction orders.
   */
 trait Smockito extends MockSyntax:
 
