@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.1.0 - 2025-08-24
+
+This feature release adds a `onCall` convenience method to set up a stub that receives the call number instead of the method arguments, which might be useful when simulating transient failures. Besides this, there are new methods for reasoning about invocation orders on a mock - `calledBefore` and `calledAfter`.
+
+### What's Changed
+* Add `onCall` method by @bdmendes in https://github.com/bdmendes/smockito/pull/92
+* Add `calledBefore` method by @bdmendes in https://github.com/bdmendes/smockito/pull/93
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.0.0...v2.1.0
+
 ## 2.0.0 - 2025-08-22
 
 Smockito has been stable for a couple of weeks, benefiting from real-world usage and several bug fixes since 1.0. Now, it’s ready for an API update, a change significant enough to justify a major version bump.
