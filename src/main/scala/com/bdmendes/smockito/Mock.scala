@@ -4,6 +4,7 @@ import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
+import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
@@ -177,11 +178,8 @@ private trait MockSyntax:
     inline def onCall[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Int => R2
     ): Mock[T] =
-      var callCount = 0
-      val f: Pack[A] => R2 =
-        _ =>
-          callCount += 1
-          stub(callCount)
+      val callCount = AtomicInteger(0)
+      val f = (_: Pack[A]) => stub(callCount.incrementAndGet())
       mock.on(method)(PartialFunctionProxy(f))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
