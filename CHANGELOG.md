@@ -16,7 +16,7 @@ Description.
 
 ## 2.1.0 - 2025-08-24
 
-This feature release adds a `onCall` convenience method to set up a stub that receives the call number instead of the method arguments, which might be useful when simulating transient failures. Besides this, there are new methods for reasoning about invocation orders on a mock - `calledBefore` and `calledAfter`.
+This feature release adds an `onCall` convenience method to set up a stub that receives the call number instead of the method arguments, which might be useful when simulating transient failures. Besides this, there are new methods for reasoning about invocation orders on a mock — `calledBefore` and `calledAfter`.
 
 ### What's Changed
 * Add `onCall` method by @bdmendes in https://github.com/bdmendes/smockito/pull/92
