@@ -125,9 +125,9 @@ No. It's always best to define a unique stub and be explicit about behavior chan
 
 ```scala
 val repository = 
-  mock[Repository[User]].onCall(() => it.get):
-    case 1 => List(User("john"))
-    case _ => List.empty
+  mock[Repository[User]].onCall(it.exists):
+    case 1 | 2 => _ == "johndoe"
+    case _ => _ => false
 ```
 
 If you have a mock whose setup is only slightly changed between test cases, instead of overriding a stub defined in some base trait, create a factory method:
