@@ -218,7 +218,7 @@ private trait MockSyntax:
       * @param b
       *   the method that is expected to be called first.
       * @return
-      *   Whether `b` was called after `a`.
+      *   Whether `a` was called after `b`.
       */
     inline def calledAfter[A1 <: Tuple, R1, A2 <: Tuple, R2](
         a: Mock[T] ?=> MockedMethod[A1, R1],
