@@ -39,8 +39,8 @@ import scala.reflect.ClassTag
   *
   * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
   * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
-  * method arguments, that one may destructure. If one needs to operate on the call number instead
-  * of the received arguments, [[onCall]] is an alternative.
+  * method arguments, that one may destructure. If one needs to provide a different implementation
+  * based on the call number, [[onCall]] is an alternative.
   *
   * For spying on a real instance, use [[forward]]. For dispatching to a real implementation, use
   * [[real]].
