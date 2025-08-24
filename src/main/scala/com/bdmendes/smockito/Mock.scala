@@ -37,8 +37,7 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod
 
-    /** Sets up a stub for a method, based on the received tupled arguments. For the version based
-      * on the call number, see [[onCall]].
+    /** Sets up a stub for a method, based on the received tupled arguments.
       *
       * @param method
       *   the method to mock.
@@ -165,8 +164,8 @@ private trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-    /** Sets up a stub for a method, based on the call number. For the version based on received
-      * arguments, see [[on]].
+    /** Sets up a stub for a method that behaves differently based on the call number. For the
+      * version operating only on the expected set of inputs, see [[on]].
       *
       * @param method
       *   the method to mock.
@@ -176,10 +175,10 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def onCall[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: Int => R2
+        stub: Int => Pack[A] => R2
     ): Mock[T] =
       val callCount = AtomicInteger(0)
-      val f = (_: Pack[A]) => stub(callCount.incrementAndGet())
+      val f = (args: Pack[A]) => stub(callCount.incrementAndGet())(args)
       mock.on(method)(PartialFunctionProxy(f))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,

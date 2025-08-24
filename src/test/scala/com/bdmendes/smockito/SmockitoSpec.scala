@@ -360,7 +360,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       val _ = mock[Repository[User]].forward(merge, null)
 
     intercept[UnknownMethod.type]:
-      val _ = mock[Repository[User]].onCall(merge)(_ => mockUsers.head)
+      val _ = mock[Repository[User]].onCall(merge)(_ => _ => mockUsers.head)
 
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].real(merge)
@@ -555,22 +555,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(tracker, 1)
     assertEquals(repository.times(() => it.get), 1)
 
-  test("provide an onCall sugar that tracks invocation counts"):
+  test("provide an onCall sugar to change behavior based on call number"):
     val repository =
       mock[Repository[User]]
         .onCall(() => it.get):
           case 1 =>
-            List(mockUsers.head)
+            _ => List(mockUsers.head)
           case _ =>
-            List.empty
+            _ => List.empty
         .onCall(it.exists):
-          case 1 =>
-            true
+          case 1 | 2 =>
+            _ == "bdmendes"
           case _ =>
-            false
+            _ => false
 
-    assert(typeChecks("repository.onCall(() => it.get)(_ => List.empty)"))
-    assert(!typeChecks("repository.onCall(() => it.get)(_ => 1)"))
+    assert(typeChecks("repository.onCall(() => it.get)(_ => _ => List.empty)"))
+    assert(!typeChecks("repository.onCall(() => it.get)(_ => _ => 1)"))
 
     assertEquals(repository.get, List(mockUsers.head))
     assertEquals(repository.get, List.empty)
@@ -578,8 +578,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.get), 3)
 
     assertEquals(repository.exists("bdmendes"), true)
+    assertEquals(repository.exists("johndoe"), false)
     assertEquals(repository.exists("bdmendes"), false)
-    assertEquals(repository.times(it.exists), 2)
+    assertEquals(repository.times(it.exists), 3)
 
   test("reason about invocation orders"):
     val repository =
