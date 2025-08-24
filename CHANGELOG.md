@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.2.0 - 2025-08-24
+
+This release changes the `onCall` signature to require a `Int => Pack[A] => R` instead of a `Int => R`. This should enable more use cases and discourage the liberal usage of it instead of `on`.
+
+### What's Changed
+* Use AtomicInteger on onCall by @bdmendes in https://github.com/bdmendes/smockito/pull/97
+* Require function in `onCall` by @bdmendes in https://github.com/bdmendes/smockito/pull/98
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.1.0...v2.2.0
+
 ## 2.1.0 - 2025-08-24
 
 This feature release adds an `onCall` convenience method to set up a stub that receives the call number instead of the method arguments, which might be useful when simulating transient failures. Besides this, there are new methods for reasoning about invocation orders on a mock — `calledBefore` and `calledAfter`.
