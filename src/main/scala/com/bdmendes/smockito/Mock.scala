@@ -170,7 +170,7 @@ private trait MockSyntax:
       * @param method
       *   the method to mock.
       * @param stub
-      *   the stub implementation, based on the call number, starting at 1.
+      *   the stub implementation, based on the call number of the respective method, starting at 1.
       * @return
       *   the mocked type.
       */
