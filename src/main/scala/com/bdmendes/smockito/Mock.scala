@@ -6,6 +6,7 @@ import com.bdmendes.smockito.internal.meta.*
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
+import org.mockito.exceptions.base.MockitoAssertionError
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -198,14 +199,17 @@ private trait MockSyntax:
       assertMethodExists[A1, R1]()
       assertMethodExists[A2, R2]()
       val ordered = Mockito.inOrder(mock)
-      Try:
+      try
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
         )
         b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
         )
-      .isSuccess
+        true
+      catch
+        case _: MockitoAssertionError =>
+          false
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
