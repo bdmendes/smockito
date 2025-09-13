@@ -11,7 +11,6 @@ import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
-import scala.util.Try
 
 /** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
   */
@@ -37,6 +36,16 @@ private trait MockSyntax:
       val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod
+
+    private inline def verifies(f: => Any): Boolean =
+      // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
+      // In those cases, we must be careful not to swallow all exceptions.
+      try
+        f
+        true
+      catch
+        case _: MockitoAssertionError =>
+          false
 
     /** Sets up a stub for a method, based on the received tupled arguments.
       *
@@ -128,11 +137,10 @@ private trait MockSyntax:
               Mockito.mockingDetails(mock).getInvocations.asScala.map(_.getMethod)
             ).size
           val validInvocations = (invocations to 1 by -1).find: count =>
-            Try:
+            verifies:
               method(using Mockito.verify(mock, Mockito.times(count))).tupled(
                 EmptyTuple.asInstanceOf[A]
               )
-            .isSuccess
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // We do a little trick here: capturing the first argument is enough for counting the
@@ -199,17 +207,13 @@ private trait MockSyntax:
       assertMethodExists[A1, R1]()
       assertMethodExists[A2, R2]()
       val ordered = Mockito.inOrder(mock)
-      try
+      verifies:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
         )
         b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
           Tuple.fromArray(mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
         )
-        true
-      catch
-        case _: MockitoAssertionError =>
-          false
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
