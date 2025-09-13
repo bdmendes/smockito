@@ -11,5 +11,5 @@ object Dependencies {
   }
 
   lazy val mockito = "org.mockito" % "mockito-core" % Versions.mockito
-  lazy val munit = "org.scalameta" %% "munit" % "1.1.1"
+  lazy val munit = "org.scalameta" %% "munit" % "1.1.2"
 }
