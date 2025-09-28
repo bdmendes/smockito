@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.2.1 - 2025-09-28
+
+This release updates the underlying Mockito version and fixes an edge case related with implicit capturing in eta-expanded methods.
+
+### What's Changed
+* Catch specific exception on call orders by @bdmendes in https://github.com/bdmendes/smockito/pull/102
+* Extract verifies utility by @bdmendes in https://github.com/bdmendes/smockito/pull/103
+* Update mockito-core to 5.20.0 by @scala-steward in https://github.com/bdmendes/smockito/pull/107
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.2.0...v2.2.1
+
 ## 2.2.0 - 2025-08-24
 
 This release changes the `onCall` signature to require a `Int => Pack[A] => R` instead of a `Int => R`. This should enable more use cases and discourage the liberal usage of it instead of `on`.
