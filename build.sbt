@@ -36,7 +36,9 @@ lazy val root =
           "-Wunused:all",
           "-feature",
           "-release",
-          Dependencies.Versions.java
+          Dependencies.Versions.java,
+          // Workaround for https://github.com/scala/scala3/issues/23967.
+          "-Wconf:origin=scala.compiletime.testing.*:s"
         ),
       libraryDependencies ++= Seq(mockito, munit % Test),
       Compile / packageBin / packageOptions +=

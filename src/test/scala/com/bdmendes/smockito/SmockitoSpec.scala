@@ -5,6 +5,7 @@ import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
+import scala.annotation.unused
 import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
 import scala.concurrent.Await
@@ -488,7 +489,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       def blank: Boolean
       def getNames: List[String]
       def getNamesAdapter = getNames
-      def getNamesAdapterWithParam(dummy: String) = getNames
+      def getNamesAdapterWithParam(
+          @unused
+          dummy: String
+      ) = getNames
 
     val names = mockUsers.map(_.username)
     val getter =
@@ -515,7 +519,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       def get: List[String] =
         tracker += 1
         List.empty
-      def unstubbed(dummy: String): Integer =
+      def unstubbed(
+          @unused
+          dummy: String
+      ): Integer =
         tracker += 1
         0
 
