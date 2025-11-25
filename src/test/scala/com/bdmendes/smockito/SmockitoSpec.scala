@@ -256,8 +256,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.getWithDefaultsFree), List(("bdmendes", None)))
 
   test("count calls on values"):
-    val repository: Mock[Repository[String]] =
-      mock[Repository[String]].on(() => it.longName)(_ => "database")
+    val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
 
     assertEquals(repository.longName, "database")
 
@@ -269,8 +268,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.longName), 3)
 
   test("count calls on methods with 0 parameters"):
-    val repository: Mock[Repository[String]] =
-      mock[Repository[String]].on(() => it.get)(_ => List.empty)
+    val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
 
     assertEquals(repository.get, List.empty)
 
