@@ -113,6 +113,13 @@ val repository =
 assert(repository.times(it.exists) == 0)
 ```
 
+Alternatively, create a `spy` instead:
+
+```scala
+val repository = spy(Repository.fromDatabase[User])
+assert(repository.times(it.exists) == 0)
+```
+
 That said, make sure you also test the real instance in isolation.
 
 ### How do I reset a mock?

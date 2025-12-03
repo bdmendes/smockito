@@ -2,7 +2,6 @@ package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
 import scala.annotation.unused
@@ -15,7 +14,14 @@ import scala.concurrent.duration.DurationInt
 
 class SmockitoSpec extends munit.FunSuite with Smockito:
 
-  test("wrap a raw Mockito instance"):
+  inline def isSubtypeOf[A, B] =
+    summonFrom:
+      case _: (A <:< B) =>
+        true
+      case _ =>
+        false
+
+  test("wrap a raw Mockito mock"):
     val repository = mock[Repository[User]]
 
     // A Mock[T] is implicitly a `T`, so one can use Mockito methods on it.
@@ -34,37 +40,31 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     Mockito.verify(repository).exists("bdmendes")
 
-  test("interoperate with raw Mockito verifications"):
-    val repository = mock[Repository[User]].on(it.exists)(_ => true)
-
-    assert(repository.exists("pedronuno"))
-
-    Mockito.verify(repository).exists(ArgumentMatchers.any)
-
-    assertEquals(repository.calls(it.exists), List("pedronuno"))
-
-  test("be a subtype of T"):
-    inline def isSubtypeOf[A, B] =
-      summonFrom:
-        case _: (A <:< B) =>
-          true
-        case _ =>
-          false
-
+    // Subtyping is essential to make mocks work as the real type.
     assert(isSubtypeOf[Mock[User], User])
     assert(isSubtypeOf[Mock[Repository[User]], Repository[User]])
     assert(!isSubtypeOf[Mock[User], String])
     assert(!isSubtypeOf[Mock[User], Repository[User]])
     assert(!isSubtypeOf[Mock[Repository[User]], User])
 
-  test("be covariant in T"):
-    abstract class FancyRepository[T](name: String) extends Repository[T](name):
-      def fancyGreet()(using T): String
+    // Covariance is important for the same reason.
+    val _: Mock[Repository[User]] = mock[FancyRepository[User]]
 
-    def setUpMock(mock: Mock[Repository[User]], answer: Boolean) = mock.on(it.exists)(_ => answer)
+  test("wrap a raw Mockito spy"):
+    val repository = spy(realRepository)
 
-    assert(setUpMock(mock[FancyRepository[User]], true).exists("bdmendes"))
-    assert(!setUpMock(mock[FancyRepository[User]], false).exists("bdmendes"))
+    assert(repository.exists("bdmendes"))
+
+    Mockito.verify(repository).exists("bdmendes")
+
+    // A Spy[T] is also a Mock[T], so subtyping works as expected.
+    assert(isSubtypeOf[Spy[User], User])
+    assert(isSubtypeOf[Spy[User], Mock[User]])
+    assert(isSubtypeOf[Spy[Repository[User]], Repository[User]])
+    assert(isSubtypeOf[Spy[Repository[User]], Mock[Repository[User]]])
+
+    // Covariance is important for the same reason as in Mock.
+    val _: Spy[Repository[User]] = spy(realRepository)
 
   test("throw by default on unstubbed methods"):
     val repository = mock[Repository[User]]
@@ -389,45 +389,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("provide a forward sugar for spying on a real instance"):
-    val repository =
-      new Repository[User]("dummy"):
-        override def track(): Unit = ()
-        override def get: List[User] = mockUsers
-        override def getNames: List[String] = mockUsers.map(_.username)
-        override def exists(username: String): Boolean = getNames.contains(username)
-        override def contains(user: User): Boolean = mockUsers.contains(user)
-        override def contains(username: String): Boolean = exists(username)
-        override def containsOneOf(username: String*): Boolean = username.exists(contains)
-        override def getWith(startsWith: String, endsWith: String): List[User] =
-          mockUsers.filter: user =>
-            user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
-        override def getWithDefaults(
-            startsWith: String,
-            endsWith: Option[String] = Some("dummy")
-        ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
-        override def getWithDefaultsFree(
-            startsWith: String,
-            endsWith: Option[String] = None
-        ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
-        override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
-          getWith(startsWith, endsWith)
-        override def greet(upper: Boolean)(using user: User): String =
-          val s = s"Hello, ${user.username}!"
-          if upper then
-            s.toUpperCase
-          else
-            s
-
-    val mockRepository = mock[Repository[User]].forward(it.exists, repository)
+  test("provide a forward sugar for lifting partial functions to method calls of a real instance"):
+    val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
     assert(mockRepository.exists("bdmendes"))
     assert(!mockRepository.exists("luismontenegro"))
 
     assertEquals(mockRepository.calls(it.exists), List("bdmendes", "luismontenegro"))
 
-    assert(repository.exists("bdmendes"))
-    assert(!repository.exists("luismontenegro"))
+    assert(realRepository.exists("bdmendes"))
+    assert(!realRepository.exists("luismontenegro"))
 
     // Invocations of the real instance are not intercepted.
     assertEquals(mockRepository.times(it.exists), 2)
@@ -649,6 +620,8 @@ object SmockitoSpec:
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
 
+  abstract class FancyRepository[T] extends Repository[T]("fancy")
+
   class Service[T](repository: Repository[T]):
     def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
     def exists(username: String): Boolean = repository.exists(username)
@@ -657,3 +630,32 @@ object SmockitoSpec:
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))
+
+  private val realRepository: FancyRepository[User] =
+    new FancyRepository[User]:
+      override def track(): Unit = ()
+      override def get: List[User] = mockUsers
+      override def getNames: List[String] = mockUsers.map(_.username)
+      override def exists(username: String): Boolean = getNames.contains(username)
+      override def contains(user: User): Boolean = mockUsers.contains(user)
+      override def contains(username: String): Boolean = exists(username)
+      override def containsOneOf(username: String*): Boolean = username.exists(contains)
+      override def getWith(startsWith: String, endsWith: String): List[User] =
+        mockUsers.filter: user =>
+          user.username.startsWith(startsWith) && user.username.endsWith(endsWith)
+      override def getWithDefaults(
+          startsWith: String,
+          endsWith: Option[String] = Some("dummy")
+      ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
+      override def getWithDefaultsFree(
+          startsWith: String,
+          endsWith: Option[String] = None
+      ): List[User] = getWith(startsWith, endsWith.getOrElse(""))
+      override def getWithCurried(startsWith: String)(endsWith: String): List[User] =
+        getWith(startsWith, endsWith)
+      override def greet(upper: Boolean)(using user: User): String =
+        val s = s"Hello, ${user.username}!"
+        if upper then
+          s.toUpperCase
+        else
+          s
