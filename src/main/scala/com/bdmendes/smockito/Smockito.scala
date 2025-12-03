@@ -77,9 +77,9 @@ trait Smockito extends MockSyntax:
     * method on a [[Mock]] instead for clarity and performance.
     *
     * @tparam T
-    *   the type to mock.
+    *   the type to spy.
     * @return
-    *   the mock instance.
+    *   the spy instance.
     */
   def spy[T](realInstance: T): Spy[T] = Spy.apply(realInstance)
 
