@@ -159,6 +159,8 @@ private trait MockSyntax:
       *   mock.on(it.someMethod)(realInstance.someMethod)
       * }}}
       *
+      * If you need to forward multiple methods, consider using a [[Spy]] instead.
+      *
       * @param method
       *   the mocked method.
       * @param realInstance
