@@ -14,6 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.3.0 - 2025-12-03
+
+This release introduces the `spy` convenience method that delegates to a Mockito spy, returning a `Spy[T]`. In the Smockito land, a `Spy[T]` is also a `Mock[T]`, which means that you can use the same `on`, `calls` and `times` methods to set up stubs and reason about interactions, while retaining a real instance behavior. Bear in mind that setting up stubs on spied instances is effectively partial mocking which is generally discouraged, and that a spy is not the same as forwarding all methods to a real instance – it is a deep copy of the real instance.
+
+In addition, this release updates the Scala version to 3.3.7.
+
+### What's Changed
+* Bump Scala to 3.3.7 by @bdmendes in https://github.com/bdmendes/smockito/pull/114
+* Introduce Spy by @bdmendes in https://github.com/bdmendes/smockito/pull/123
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.2.1...v2.3.0
+
 ## 2.2.1 - 2025-09-28
 
 This release updates the underlying Mockito version and fixes an edge case related with implicit capturing in eta-expanded methods.
