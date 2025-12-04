@@ -120,6 +120,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(typeChecks("repository.on(it.exists)(_.startsWith(\"bdmendes\"))"))
     assert(typeChecks("repository.on(it.exists) { case \"bdmendes\" => true }"))
     assert(typeChecks("repository.on(it.exists) { _ => true }"))
+    assert(!typeChecks("repository.on(it.exists) { case _: Int => true }"))
     assert(!typeChecks("repository.on(it.exists)(println)"))
     assert(!typeChecks("repository.on(it.exists) { case \"bdmendes\" => 1 }"))
     assert(!typeChecks("repository.on(it.exists) { case 1 => \"bdmendes\" }"))
