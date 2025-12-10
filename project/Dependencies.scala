@@ -7,7 +7,7 @@ object Dependencies {
     lazy val scala = "3.3.7"
     // We want to be conservative with the Java version, but not too much.
     lazy val java = "17"
-    lazy val mockito = "5.20.0"
+    lazy val mockito = "5.21.0"
     lazy val munit = "1.2.1"
   }
 
