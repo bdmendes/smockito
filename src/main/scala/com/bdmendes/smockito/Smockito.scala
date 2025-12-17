@@ -3,52 +3,14 @@ package com.bdmendes.smockito
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
-/** [[https://github.com/bdmendes/smockito Smockito]] is a tiny framework-agnostic facade for
-  * `Mockito`.
+/** The trait to mix in for using Smockito facilities in a specification. It includes the [[mock]]
+  * and [[spy]] methods for creating mocks, and the various syntax extensions on them, such as
+  * [[on]], [[calls]] and [[times]]. Those extensions expect method references via
+  * [[https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html context functions]]
+  * with a [[Mock]] context parameter, retrievable via the [[it]] method.
   *
-  * {{{
-  *   abstract class Repository[T](val name: String):
-  *     def get: List[T]
-  *     def exists(username: String): Boolean
-  *     def greet()(using T): String
-  *     def getWith(startsWith: String, endsWith: String): List[T]
-  *
-  *   case class User(username: String)
-  *
-  *   class RepositorySpecification extends Smockito:
-  *     // Chain stubs to set up a mock instance.
-  *     val repository = mock[Repository[User]]
-  *       .on(() => it.name)(_ => "xpto")
-  *       .on(() => it.get)(_ => List(User("johndoe")))
-  *       .on(it.exists)(_ == "johndoe")
-  *       .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
-  *       .on(it.getWith):
-  *         case ("john", name) if name.nonEmpty => List(User("johndoe"))
-  *
-  *     // A `Mock[T]` is effectively a `T`, both at compile time and runtime.
-  *     assert(repository.getWith("john", "doe") == List(User("johndoe")))
-  *
-  *     // Observe the past method interactions.
-  *     assert(repository.calls(it.getWith) == List(("john", "doe")))
-  *     assert(repository.times(it.getWith) == 1)
-  * }}}
-  *
-  * All methods on [[Mock]] require an
-  * [[https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html eta-expanded method]] as the
-  * first argument. The [[it]] shorthand is a terse way of capturing the mocked type in context.
-  *
-  * Method stubs are set up with [[on]]. Besides the method to mock, it requires a
-  * [[PartialFunction]] to handle the expected inputs, well-typed with the same shape as the mocked
-  * method arguments, that one may destructure. If one needs to provide a different implementation
-  * based on the call number, [[onCall]] is an alternative.
-  *
-  * For spying on a real instance, use [[forward]] on a mock, or create a [[spy]] instead. For
-  * dispatching to a real implementation, use [[real]].
-  *
-  * [[calls]] provides the captured arguments of all the past invocations of a stubbed method, in
-  * chronological order, packed with the same shape as the method arguments, à la `scalamock`. If
-  * one only cares about the number of times a stub was called, [[times]] is more efficient. At
-  * last, [[calledBefore]] and [[calledAfter]] allow reasoning about interaction orders.
+  * Checkout [[https://github.com/bdmendes/smockito the documentation]] for more information and
+  * usage patterns.
   */
 trait Smockito extends MockSyntax:
 
