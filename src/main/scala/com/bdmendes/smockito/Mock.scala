@@ -12,7 +12,8 @@ import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
-/** A `Mock` represents a type mocked by Mockito. See [[Smockito.mock]] for more information.
+/** A `Mock` represents a type mocked by Mockito, with a default answer strategy of throwing on
+  * unstubbed methods.
   */
 opaque type Mock[+T] <: T = T
 
@@ -47,7 +48,8 @@ private trait MockSyntax:
         case _: MockitoAssertionError =>
           false
 
-    /** Sets up a stub for a method, based on the received tupled arguments.
+    /** Sets up a stub for a method, based on the received tupled arguments. This will override any
+      * previous stubs for the same method.
       *
       * @param method
       *   the method to mock.

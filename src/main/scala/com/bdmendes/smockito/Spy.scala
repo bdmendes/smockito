@@ -2,8 +2,8 @@ package com.bdmendes.smockito
 
 import org.mockito.Mockito
 
-/** A `Spy` is a copied instance, for interception purposes. See [[Smockito.spy]] for more
-  * information.
+/** A `Spy` is a copied instance, for interception purposes. All methods of this instance behave as
+  * the real instance, unless stubbed otherwise.
   */
 opaque type Spy[+T] <: Mock[T] = Mock[T]
 

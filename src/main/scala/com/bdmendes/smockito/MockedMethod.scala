@@ -1,12 +1,13 @@
 package com.bdmendes.smockito
 
-/** The internal representation of a method to mock.
+/** The internal representation of a method to mock. The compiler synthesizes conversions from
+  * regular function types to this type, for up to 22 parameters, via implicit conversions.
   */
 opaque type MockedMethod[A <: Tuple, R] = Pack[A] => R
 
 extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])
-  def tupled: A => R = (args: A) => mockedMethod(pack(args))
-  def packed: Pack[A] => R = mockedMethod
+  private inline def tupled: A => R = (args: A) => mockedMethod(pack(args))
+  private inline def packed: Pack[A] => R = mockedMethod
 
 object MockedMethod:
   // We may use `TupledFunction` from the standard library once it goes stable. See
