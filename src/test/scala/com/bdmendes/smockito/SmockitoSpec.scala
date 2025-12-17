@@ -389,7 +389,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("provide a forward sugar for lifting partial functions to method calls of a real instance"):
+  test("provide a forward sugar for dispatching to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
     assert(mockRepository.exists("bdmendes"))
@@ -407,7 +407,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = mockRepository.get
 
-  test("integrate with an effect system"):
+  test("integrate with an effects system"):
     given ExecutionContext = ExecutionContext.global
 
     // Let's simulate cats-effect `IO`.
