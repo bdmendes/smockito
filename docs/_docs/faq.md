@@ -1,7 +1,3 @@
----
-title: FAQ
----
-
 ### Does Smockito support Scala 2?
 
 No. Smockito leverages a handful of powerful Scala 3 features, such as inlining, opaque types, context functions and match types. If you are on the process of migrating a Scala 2 codebase, it might be a good opportunity to replace the likes of [specs2-mock](https://mvnrepository.com/artifact/org.specs2/specs2-mock) or [mockito-scala](https://github.com/mockito/mockito-scala) as you migrate your modules.

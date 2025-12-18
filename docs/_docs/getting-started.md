@@ -1,7 +1,3 @@
----
-title: Getting Started
----
-
 # Getting Started
 
 To use Smockito in an existing sbt project with Scala 3, add the following dependency to your
