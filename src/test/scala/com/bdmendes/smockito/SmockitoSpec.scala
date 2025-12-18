@@ -407,7 +407,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = mockRepository.get
 
-  test("integrate with an effects system"):
+  test("integrate with an effect system"):
     given ExecutionContext = ExecutionContext.global
 
     // Let's simulate cats-effect `IO`.

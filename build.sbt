@@ -54,6 +54,8 @@ lazy val root =
         else
           localStaging.value
       },
+      Compile / doc / scalacOptions ++=
+        Seq("-siteroot", "docs", "-social-links:github::https://github.com/bdmendes/smockito"),
       autoAPIMappings := true,
       publishMavenStyle := true,
       Test / publishArtifact := false,

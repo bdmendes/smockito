@@ -1,0 +1,12 @@
+index: index.html
+subsection:
+  - title: Home
+    page: index.html
+  - title: Motivation
+    page: motivation.md
+  - title: Getting Started
+    page: getting-started.md
+  - title: Facilities
+    page: facilities.md
+  - title: FAQ
+    page: faq.md
