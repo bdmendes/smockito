@@ -59,15 +59,10 @@ trait Smockito extends MockSyntax:
 
 object Smockito:
 
-  private lazy val exceptionTrailer =
-    s"Please review the documentation at https://github.com/bdmendes/smockito. " +
-      "If you think this is a bug, please open an issue with a minimal reproducible example."
-
   private def describeMethod(method: Method): String =
     s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
 
-  sealed trait SmockitoException(val msg: String) extends Exception:
-    override def getMessage: String = s"$msg\n$exceptionTrailer"
+  sealed abstract class SmockitoException(msg: String) extends Exception(msg)
 
   object SmockitoException:
 
