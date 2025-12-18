@@ -1,5 +1,7 @@
 # Getting Started
 
+![Maven Central Version](https://img.shields.io/maven-central/v/com.bdmendes/smockito_3)
+
 To use Smockito in an existing sbt project with Scala 3, add the following dependency to your
 `build.sbt`:
 

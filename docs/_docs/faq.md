@@ -36,7 +36,7 @@ val repository =
 assert(repository.times(it.exists) == 0)
 ```
 
-Alternatively, create a `spy` instead:
+Alternatively, just create a `spy` in the first place:
 
 ```scala
 val repository = spy(Repository.fromDatabase[User])
@@ -69,6 +69,8 @@ def mockRepository(username: String): Mock[Repository[User]] =
     .on(it.exists)(_ == "johndoe")
     .on(it.greet()(using _: User))(_ => s"Hello, $username!")
 ```
+
+That said, if you really need to override a stub, you may do so by calling `on` again for the same method. The last stub takes precedence.
 
 ### Can I reason about invocation orders?
 
@@ -107,14 +109,10 @@ assert(getter.getNamesAdapter("dummy") == List("john"))
 assert(getter.times(() => it.getNames) == 1)
 ```
 
-### What happens if I stub a method more than once?
-
-The last stub takes precedence. If possible, follow the unique stub principle.
-
 ### I can't seem to stub a method/I found a bug.
 
 Are you performing eta-expansion correctly? Check out the main [SmockitoSpec](https://github.com/bdmendes/smockito/blob/master/src/test/scala/com/bdmendes/smockito/SmockitoSpec.scala) for more examples covering a variety of situations. If everything looks fine on your side, please file an issue with a minimal reproducible example.
 
 ### What can I do with the source code?
 
-Mostly anything you want to. Check the license. All contributions are appreciated.
+Mostly anything you want to. Check the [license](https://github.com/bdmendes/smockito/blob/master/LICENSE.md). All contributions are appreciated.
