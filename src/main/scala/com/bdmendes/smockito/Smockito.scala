@@ -8,9 +8,6 @@ import scala.reflect.ClassTag
   * [[on]], [[calls]] and [[times]]. Those extensions expect method references via
   * [[https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html context functions]]
   * with a [[Mock]] context parameter, retrievable via the [[it]] method.
-  *
-  * Checkout [[https://github.com/bdmendes/smockito the documentation]] for more information and
-  * usage patterns.
   */
 trait Smockito extends MockSyntax:
 
