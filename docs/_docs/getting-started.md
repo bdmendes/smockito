@@ -1,19 +1,8 @@
-# Smockito
+---
+title: Getting Started
+---
 
-<img src="./docs/_assets/logo.svg" width="125" height="125" align="right">
-
-[![Build](https://img.shields.io/github/actions/workflow/status/bdmendes/smockito/ci.yml)](https://github.com/bdmendes/smockito/actions)
-[![Codecov](https://img.shields.io/codecov/c/github/bdmendes/smockito/master)](https://app.codecov.io/gh/bdmendes/smockito)
-[![Maven Central](https://img.shields.io/maven-central/v/com.bdmendes/smockito_3)](https://central.sonatype.com/artifact/com.bdmendes/smockito_3/overview)
-[![Javadoc](https://javadoc.io/badge2/com.bdmendes/smockito_3/javadoc.svg)](https://javadoc.io/doc/com.bdmendes/smockito_3)
-
-Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://github.com/mockito/mockito). It enables setting up unique method and value stubs for any type in a type-safe manner, while providing an expressive interface for inspecting received arguments and call counts.
-
-Head to the [microsite](https://javadoc.io/doc/com.bdmendes/smockito_3/docs) for the full documentation and API reference.
-
-<br clear="right">
-
-## Quick Start
+# Getting Started
 
 To use Smockito in an existing sbt project with Scala 3, add the following dependency to your
 `build.sbt`:
@@ -34,12 +23,19 @@ In your specification, extend `Smockito`. This will bring the `mock` method and 
 
 ```scala
 abstract class Repository[T](val name: String):
+  def get: List[T]
+  def exists(username: String): Boolean
+  def greet()(using T): String
   def getWith(startsWith: String, endsWith: String): List[T]
 
 case class User(username: String)
 
 class RepositorySpecification extends Smockito:
   val repository = mock[Repository[User]]
+    .on(() => it.name)(_ => "xpto")
+    .on(() => it.get)(_ => List(User("johndoe")))
+    .on(it.exists)(_ == "johndoe")
+    .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
     .on(it.getWith):
       case ("john", name) if name.nonEmpty => List(User("johndoe"))
 ```
