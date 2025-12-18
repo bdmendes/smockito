@@ -11,8 +11,6 @@ Smockito is a tiny framework-agnostic Scala 3 facade for [Mockito](https://githu
 
 Head to the [microsite](https://javadoc.io/doc/com.bdmendes/smockito_3/docs) for the full documentation and API reference.
 
-<br clear="right">
-
 ## Quick Start
 
 To use Smockito in an existing sbt project with Scala 3, add the following dependency to your
