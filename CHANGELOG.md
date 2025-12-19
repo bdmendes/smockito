@@ -14,6 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.3.1 - 2025-12-19
+
+This release bumps Mockito to version 5.21. In addition, the documentation was vastly improved. Check out the new [microsite](https://javadoc.io/doc/com.bdmendes/smockito_3/latest/docs/index.html)!
+
+### What's Changed
+* Bump Mockito to 5.21 by @bdmendes in https://github.com/bdmendes/smockito/pull/126
+* Simplify docs and hide MockedMethod extensions by @bdmendes in https://github.com/bdmendes/smockito/pull/129
+* Bootstrap microsite by @bdmendes in https://github.com/bdmendes/smockito/pull/130
+* Complete microsite and update doc refs by @bdmendes in https://github.com/bdmendes/smockito/pull/131
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.3.0...v2.3.1
+
 ## 2.3.0 - 2025-12-03
 
 This release introduces the `spy` convenience method that delegates to a Mockito spy, returning a `Spy[T]`. In the Smockito land, a `Spy[T]` is also a `Mock[T]`, which means that you can use the same `on`, `calls` and `times` methods to set up stubs and reason about interactions, while retaining a real instance behavior. Bear in mind that setting up stubs on spied instances is effectively partial mocking which is generally discouraged, and that a spy is not the same as forwarding all methods to a real instance – it is a deep copy of the real instance.
