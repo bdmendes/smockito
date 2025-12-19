@@ -15,8 +15,12 @@ val filter = mock[Filter].on(it.filterBy)(_ => List(1, 2, 3))
 
 ```scala
 val filter = Mockito.mock(classOf[Filter], DefaultThrowAnswer)
-val handle = Mockito.doAnswer(_ => List(1, 2, 3)).when(filter)
-methodRef(using handle).apply(ArgumentMatchers.any[Int]())
+val answer =
+  (invocation: InvocationOnMock) =>
+    val args = invocation.getRawArguments.asInstanceOf[Int => Boolean]
+    stub(args) // in this case, stub is (_ => List(1, 2, 3))
+val handle = Mockito.doAnswer(answer).when(filter)
+mockedMethod(using handle).apply(ArgumentMatchers.any[Int => Boolean]())
 ```
 
 What's the deal with the [context parameter](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html)? Couldn't we just operate on `Mock[T] => MockedMethod[A, R]` and refer to self as `_` as common in many Scala APIs? We could, but there are some cases where this would confuse the compiler. For instance, if a method is overloaded, we have to explicitly specify the argument types to avoid ambiguity:
@@ -136,7 +140,7 @@ Smockito provides an helper for generating a stub that changes behavior based on
 ```scala
 val executor = 
   mock[Executor].onCall(it.compute(_: Int)):
-    case callNumber if callNumber == 1 => _ => throw RuntimeException("Boom")
+    case 1 => _ => throw RuntimeException("Boom")
     case _ => _ * 2
 ```
 
