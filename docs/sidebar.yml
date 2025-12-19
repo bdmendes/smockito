@@ -6,7 +6,5 @@ subsection:
     page: motivation.md
   - title: Getting Started
     page: getting-started.md
-  - title: Facilities
-    page: facilities.md
-  - title: FAQ
-    page: faq.md
+  - title: Guide
+    page: guide.md
