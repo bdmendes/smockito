@@ -20,7 +20,7 @@ val answer =
     val args = invocation.getRawArguments.asInstanceOf[Int => Boolean]
     stub(args) // in this case, stub is (_ => List(1, 2, 3))
 val handle = Mockito.doAnswer(answer).when(filter)
-mockedMethod(using handle).apply(ArgumentMatchers.any[Int]())
+mockedMethod(using handle).apply(ArgumentMatchers.any[Int => Boolean]())
 ```
 
 What's the deal with the [context parameter](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html)? Couldn't we just operate on `Mock[T] => MockedMethod[A, R]` and refer to self as `_` as common in many Scala APIs? We could, but there are some cases where this would confuse the compiler. For instance, if a method is overloaded, we have to explicitly specify the argument types to avoid ambiguity:
