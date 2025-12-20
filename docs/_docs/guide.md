@@ -172,7 +172,7 @@ val realExecutor = new Executor:
   override def compute(x: Int): Int = x * 2
   override def compute(x: String): String = x.reverse
 val executor = mock[Executor]
-  .forward(it.compute(_: Int))(realExecutor)
+  .forward(it.compute(_: Int), realExecutor)
   .on(it.compute(_: String))(_ => "mocked")
 ```
 
