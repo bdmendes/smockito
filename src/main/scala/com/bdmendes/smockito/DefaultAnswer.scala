@@ -4,7 +4,7 @@ import com.bdmendes.smockito.Smockito.SmockitoException.UnstubbedMethod
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 
-private class DefaultAnswer extends Answer[Any]:
+private object DefaultAnswer extends Answer[Any]:
 
   override def answer(invocation: InvocationOnMock): Any =
     val method = invocation.getMethod

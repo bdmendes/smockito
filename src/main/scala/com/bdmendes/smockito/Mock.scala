@@ -248,5 +248,5 @@ private object Mock:
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
-      Mockito.withSettings().defaultAnswer(DefaultAnswer())
+      Mockito.withSettings().defaultAnswer(DefaultAnswer)
     )
