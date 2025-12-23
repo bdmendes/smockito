@@ -8,3 +8,5 @@ subsection:
     page: getting-started.md
   - title: Guide
     page: guide.md
+  - title: FAQ
+    page: faq.md
