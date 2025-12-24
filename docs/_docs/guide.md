@@ -33,7 +33,7 @@ class Executor:
 val mock = mock[Executor].on(it.compute(_: Int))(_ => 42)
 ```
 
-Should we have used a regular function type and required `.on(_.compute(_: Int))`, this would result in a compilation error; there would be no way to tell if `_` is a second argument of `Mock[T] => MockedMethod[A,R]` or the first argument of `compute`. By using a context parameter, we avoid this ambiguity, as the compiler knows that `it` refers to the `Mock[T]` instance in scope.
+Should we have used a regular function type and required `.on(_.compute(_: Int))`, this would result in a compilation error; the compiler would see the second `_` as the second argument of `Mock[T] => MockedMethod[A,R]`. By using a context parameter, we avoid this behavior, as the compiler knows that `it` refers to the `Mock[T]` instance in scope, and the `_` inside `compute` is part of the eta-expansion.
 
 This idea was shamelessly borrowed from Kotlin's [implicit name of a single parameter in lambdas](https://kotlinlang.org/docs/lambdas.html#it-implicit-name-of-a-single-parameter). In the `Smockito` trait, the `it` method is simply defined as:
 
