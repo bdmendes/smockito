@@ -154,8 +154,9 @@ private trait MockSyntax:
             )
           cap.getAllValues.size
 
-    /** Sets up a stub for a method that calls the respective method of a real instance. At a high
-      * level, this desugars to:
+    /** Sets up a stub for a method that calls the respective method of a real instance.
+      *
+      * At a high level, this desugars to:
       *
       * {{{
       *   mock.on(it.someMethod)(realInstance.someMethod)
