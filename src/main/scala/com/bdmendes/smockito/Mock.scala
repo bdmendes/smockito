@@ -109,10 +109,9 @@ private trait MockSyntax:
         case _ =>
           assertMethodExists[A, R]()
           val argCaptors = mapTuple[A, ArgumentCaptor[?]](captor)
-          val _ =
-            method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
-              Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
-            )
+          method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
+            Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
+          )
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
