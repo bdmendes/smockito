@@ -133,7 +133,30 @@ def mockExecutor(returnValue: Int): Mock[Executor] =
 
 That said, if you really need to override a stub, you may do so by calling `on` again for the same method. The last stub takes precedence.
 
-## Simulating Transient Failures
+## Mocking Objects
+
+Mocking Scala `object`'s and Java static methods is not supported. Instead, consider refactoring your code to use [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection). For instance, instead of doing:
+
+```scala
+object Config:
+  def getSetting(key: String): String = ???
+
+class Service:
+  def performAction(): Unit =
+    val setting = Config.getSetting("important_key")
+```
+
+Do something like:
+
+```scala
+class Service(getSetting: String => String = Config.getSetting):
+  def performAction(): Unit =
+    val setting = getSetting("important_key")
+```
+
+It is then straightforward to inject a custom implementation of `getSetting` when testing `Service`. If the dependency is more complex and needs to be extracted to a trait, you can mock that trait as usual with Smockito.
+
+## Yielding Based on Call Number
 
 Smockito provides an helper for generating a stub that changes behavior based on call number, for instance to simulate transient failures. This can be achieved using `onCall`, which expects a mapping from call number to stub:
 
