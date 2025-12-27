@@ -176,7 +176,7 @@ val executor = mock[Executor]
   .on(it.compute(_: String))(_ => "mocked")
 ```
 
-This is, in a way, a form of *partial mocking*, although more explicit. Make sure to use it sparingly, as it may lead to brittle tests.
+This is, in a way, a form of *partial mocking*, although more explicit. Make sure to use it sparingly.
 
 ## Verifying Invocation Orders
 
