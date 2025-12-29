@@ -135,7 +135,7 @@ That said, if you really need to override a stub, you may do so by calling `on` 
 
 ## Mocking Objects
 
-A Scala `object` is a type with a singleton instance. If you explictly require it as a dependency and program against it, you may mock it like any other class. For instance, if you have:
+A Scala `object` is a type with a singleton instance. If you explicitly require it as a dependency and program against it, you may mock it like any other class. For instance, if you have:
 
 ```scala
 object Config:
