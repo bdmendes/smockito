@@ -637,7 +637,7 @@ object SmockitoSpec:
   abstract class Repository[T](val name: String):
     val longName = s"${name}${Repository.suffix}"
     def track(): Unit
-    def tag[T](x: List[T]): (List[T], List[String])
+    def tag[V](x: List[V]): (List[V], List[String])
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
