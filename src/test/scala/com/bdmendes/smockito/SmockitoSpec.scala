@@ -172,6 +172,20 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = repository.contains(mockUsers.head)
 
+  test("set up method stubs on polymorphic methods"):
+    val repository =
+      mock[Repository[User]].on(it.tag(_: List[User])): x =>
+        (x, x.map(u => s"t_${u.username}"))
+
+    val (users, tags) = repository.tag(mockUsers)
+
+    assertEquals(users, mockUsers)
+    assertEquals(tags, List("t_bdmendes", "t_apmendes", "t_sirze01", "t_fernandorego"))
+
+    // One cannot stub against multiple types.
+    intercept[ClassCastException]:
+      repository.tag(List("a", "b", "c"))
+
   test("disallow inspecting calls on values"):
     val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
 
@@ -623,6 +637,7 @@ object SmockitoSpec:
   abstract class Repository[T](val name: String):
     val longName = s"${name}${Repository.suffix}"
     def track(): Unit
+    def tag[V](x: List[V]): (List[V], List[String])
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
@@ -654,6 +669,8 @@ object SmockitoSpec:
   private val realRepository: FancyRepository[User] =
     new FancyRepository[User]:
       override def track(): Unit = ()
+      override def tag[V](x: List[V]): (List[V], List[String]) =
+        (x, x.map(y => s"${longName}_${y}"))
       override def get: List[User] = mockUsers
       override def getNames: List[String] = mockUsers.map(_.username)
       override def exists(username: String): Boolean = getNames.contains(username)
