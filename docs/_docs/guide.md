@@ -135,26 +135,29 @@ That said, if you really need to override a stub, you may do so by calling `on` 
 
 ## Mocking Objects
 
-Mocking Scala `object`'s and Java static methods is not supported. Instead, consider refactoring your code to use [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection). For instance, instead of doing:
+A Scala `object` is a type with a singleton instance. If you explicitly require it as a dependency and program against it, you may mock it like any other class. For instance, if you have:
 
 ```scala
 object Config:
   def getSetting(key: String): String = ???
-
-class Service:
-  def performAction(): Unit =
-    val setting = Config.getSetting("important_key")
+  
+class Service(config: Config.type = Config):
+  def fetchData(): String =
+    val url = config.getSetting("url")
+    ???
 ```
 
-Do something like:
+You may mock `Config` in your tests like so:
 
 ```scala
-class Service(getSetting: String => String = Config.getSetting):
-  def performAction(): Unit =
-    val setting = getSetting("important_key")
+val configMock = mock[Config.type]
+  .on(it.getSetting):
+    case "url" => "http://example.com"
+  
+val service = Service(configMock)
 ```
 
-It is then straightforward to inject a custom implementation of `getSetting` when testing `Service`. If the dependency is more complex and needs to be extracted to a trait, you can mock that trait as usual with Smockito.
+If the object is simple enough, it might be worth to depend on functions or traits instead, to make testing easier.
 
 ## Yielding Based on Call Number
 

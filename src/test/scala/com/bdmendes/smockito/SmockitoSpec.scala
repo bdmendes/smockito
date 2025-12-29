@@ -389,7 +389,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnknownMethod.type]:
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
-  test("provide a forward sugar for dispatching to a real instance"):
+  test("dispatch a method to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
     assert(mockRepository.exists("bdmendes"))
@@ -443,7 +443,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(repository.exists("bdmendes").unsafeRunSync())
 
-  test("support defining stubs outside of declaring scope"):
+  test("define stubs outside of declaring scope"):
     trait MockData:
       lazy val repository = mock[Repository[User]]
 
@@ -453,7 +453,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       assertEquals(repository.times(it.getWith), 1)
       assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
 
-  test("support calling a real method that dispatches to a stub"):
+  test("call a real method that dispatches to a stub"):
     abstract class Getter:
       def blank: Boolean
       def getNames: List[String]
@@ -531,7 +531,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(tracker, 1)
     assertEquals(repository.times(() => it.get), 1)
 
-  test("provide an onCall sugar to change behavior based on call number"):
+  test("change behavior based on call number"):
     val repository =
       mock[Repository[User]]
         .onCall(() => it.get):
@@ -603,10 +603,25 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!repository.calledAfter(it.exists, () => it.getNames))
     assert(repository.calledAfter(() => it.getNames, it.exists))
 
+  test("mock an object type"):
+    val repository =
+      mock[Repository.type]
+        .on(() => it.suffix)(_ => "RepoMock")
+        .on(() => it.randomName)(_ => "fixed-uuid")
+
+    val service = Service(realRepository, repository)
+
+    assertEquals(repository.suffix, "RepoMock")
+    assertEquals(service.randomName, "fixed-uuid")
+    assertEquals(service.randomName, "fixed-uuid")
+
+    assertEquals(repository.times(() => it.suffix), 1)
+    assertEquals(repository.times(() => it.randomName), 2)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
-    val longName = s"${name}Repository"
+    val longName = s"${name}${Repository.suffix}"
     def track(): Unit
     def get: List[T]
     def getNames: List[String]
@@ -620,11 +635,16 @@ object SmockitoSpec:
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
     def greet(upper: Boolean)(using T): String
 
+  object Repository:
+    val suffix = "Repository"
+    def randomName: String = java.util.UUID.randomUUID().toString
+
   abstract class FancyRepository[T] extends Repository[T]("fancy")
 
-  class Service[T](repository: Repository[T]):
+  class Service[T](repository: Repository[T], pool: Repository.type = Repository):
     def getWith(f: T => Boolean): List[T] = repository.get.filter(f)
     def exists(username: String): Boolean = repository.exists(username)
+    def randomName = pool.randomName
 
   case class User(username: String)
 
