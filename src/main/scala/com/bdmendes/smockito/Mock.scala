@@ -36,7 +36,7 @@ private trait MockSyntax:
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
       val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
       if matching[A, R](methods).isEmpty then
-        throw UnknownMethod
+        throw UnknownMethod()
 
     private inline def verifies(f: => Any): Boolean =
       // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
