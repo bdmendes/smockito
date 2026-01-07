@@ -63,7 +63,7 @@ object Smockito:
 
   object SmockitoException:
 
-    case object UnknownMethod
+    case class UnknownMethod()
         extends SmockitoException(
           s"The received method does not match any of the mock object's methods. " +
             "Are you performing eta-expansion correctly? " +

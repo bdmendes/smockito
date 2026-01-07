@@ -360,47 +360,46 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("throw on unknown received method"):
     def merge(x: User, y: User) = User(x.username + y.username)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].on(merge)(_ => mockUsers.head)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].times(merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calls(merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].forward(merge, null)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].onCall(merge)(_ => _ => mockUsers.head)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].real(merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledBefore(it.exists, merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledBefore(merge, it.exists)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledBefore(merge, merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledAfter(it.exists, merge)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledAfter(merge, it.exists)
 
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
       val _ = mock[Repository[User]].calledAfter(merge, merge)
 
-    // It also happens frequently that a method with contextuals gets eta-expanded
-    // in a way that's not intended due to an implicit capture.
-    given User = mockUsers.head
-
-    intercept[UnknownMethod.type]:
+    intercept[UnknownMethod]:
+      // It also happens frequently that a method with contextuals gets eta-expanded
+      // in a way that's not intended due to an implicit capture.
+      given User = mockUsers.head
       val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
 
   test("dispatch a method to a real instance"):
