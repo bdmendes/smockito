@@ -571,6 +571,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("bdmendes"), false)
     assertEquals(repository.times(it.exists), 3)
 
+  test("throw on unexpected call number"):
+    val repository =
+      mock[Repository[User]].onCall(it.exists):
+        case 1 =>
+          _ == "bdmendes"
+
+    assertEquals(repository.exists("bdmendes"), true)
+
+    intercept[UnexpectedCallNumber]:
+      repository.exists("bdmendes")
+
   test("reason about invocation orders"):
     val repository =
       mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)

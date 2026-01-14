@@ -187,10 +187,13 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def onCall[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: Int => Pack[A] => R2
+        stub: PartialFunction[Int, Pack[A] => R2]
     ): Mock[T] =
       val callCount = AtomicInteger(0)
-      val f = (args: Pack[A]) => stub(callCount.incrementAndGet())(args)
+      val f =
+        (args: Pack[A]) =>
+          val call = callCount.incrementAndGet()
+          stub.applyOrElse(call, _ => throw UnexpectedCallNumber(call)).apply(args)
       mock.on(method)(PartialFunctionProxy(f))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,

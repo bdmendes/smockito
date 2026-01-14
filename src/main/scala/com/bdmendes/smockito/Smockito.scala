@@ -78,6 +78,12 @@ object Smockito:
             s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
         )
 
+    case class UnexpectedCallNumber(callNumber: Int)
+        extends SmockitoException(
+          s"The method was called an unexpected number of times: $callNumber. " +
+            "Did you forget to handle this call number at the stub?"
+        )
+
     case class UnstubbedMethod(method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} is not stubbed " +
