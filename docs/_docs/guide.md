@@ -161,7 +161,7 @@ If the object is simple enough, it might be worth to depend on functions or trai
 
 ## Yielding Based on Call Number
 
-Smockito provides an helper for generating a stub that changes behavior based on call number, for instance to simulate transient failures. This can be achieved using `onCall`, which expects a partial mapping from call number to stub. It will throw `UnexpectedCallNumber` if the method is called an unexpected number of times.
+Smockito provides a helper for generating a stub that changes behavior based on call number, for instance to simulate transient failures. This can be achieved using `onCall`, which expects a partial mapping from call number to stub. It will throw `UnexpectedCallNumber` if the method is called an unexpected number of times.
 
 ```scala
 val executor = 
