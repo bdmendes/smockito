@@ -14,6 +14,22 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.4.0 - 2026-01-14
+
+This release refines the `onCall` signature to accept a partial function, throwing `UnexpectedCallNumber` automatically on unhandled call numbers. This means that one may now provide different stubs for each call while implicitly asserting that a method was called a certain number of times.
+
+Additionally, the docs and tests were improved to tackle more use cases.
+
+### What's Changed
+* Make DefaultAnswer an object by @bdmendes in https://github.com/bdmendes/smockito/pull/137
+* Add FAQ section to docs by @bdmendes in https://github.com/bdmendes/smockito/pull/138
+* Test `object` mocks and update docs for them by @bdmendes in https://github.com/bdmendes/smockito/pull/144
+* Test polymorphic methods by @bdmendes in https://github.com/bdmendes/smockito/pull/145
+* Preserve stack trace for UnknownMethod by @bdmendes in https://github.com/bdmendes/smockito/pull/147
+* Allow partiality on onCall by @bdmendes in https://github.com/bdmendes/smockito/pull/149
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.3.1...v2.4.0
+
 ## 2.3.1 - 2025-12-19
 
 This release bumps Mockito to version 5.21. In addition, the documentation was vastly improved. Check out the new [microsite](https://javadoc.io/doc/com.bdmendes/smockito_3/latest/docs/index.html)!
