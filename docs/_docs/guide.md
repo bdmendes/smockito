@@ -167,7 +167,7 @@ Smockito provides an helper for generating a stub that changes behavior based on
 val executor = 
   mock[Executor].onCall(it.compute(_: Int)):
     case 1 => _ => throw RuntimeException("Boom")
-    case _ => _ * 2
+    case 2 => _ * 2
 ```
 
 This avoids explicitly tracking call counts in your test code, leading to cleaner and more maintainable tests.
