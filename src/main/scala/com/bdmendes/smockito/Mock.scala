@@ -56,11 +56,11 @@ private trait MockSyntax:
             val unwrapped =
               arguments(index) match
                 case f: Function0[?] =>
-                  try
-                    f.apply().asInstanceOf[h]
-                  catch
-                    case _: ClassCastException =>
+                  inline erasedValue[h] match
+                    case _: Function0[?] =>
                       f
+                    case _ =>
+                      f.apply().asInstanceOf[h]
                 case other =>
                   other
             arguments.update(index, unwrapped.asInstanceOf[Object])
