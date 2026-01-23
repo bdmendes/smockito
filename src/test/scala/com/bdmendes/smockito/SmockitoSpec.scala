@@ -156,6 +156,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
+  test("set up method stubs on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ % 2 == 0)
+
+    assert(repository.hasCount(0))
+    assert(!repository.hasCount(1))
+
   test("set up method stubs on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
@@ -651,6 +657,7 @@ object SmockitoSpec:
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
+    def hasCount(count: => Int): Boolean
     def contains(user: User): Boolean
     def contains(username: String): Boolean
     def containsOneOf(username: String*): Boolean
@@ -684,6 +691,7 @@ object SmockitoSpec:
       override def get: List[User] = mockUsers
       override def getNames: List[String] = mockUsers.map(_.username)
       override def exists(username: String): Boolean = getNames.contains(username)
+      override def hasCount(count: => Int): Boolean = getNames.size == count
       override def contains(user: User): Boolean = mockUsers.contains(user)
       override def contains(username: String): Boolean = exists(username)
       override def containsOneOf(username: String*): Boolean = username.exists(contains)
