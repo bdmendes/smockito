@@ -32,7 +32,7 @@ private trait MockSyntax:
             argClasses.length == method.getParameterTypes.length &&
             argClasses
               .zip(method.getParameterTypes)
-              .forall((a, b) => b.isAssignableFrom(a) || b.isAssignableFrom(classOf[Function0[?]]))
+              .forall((a, b) => b.isAssignableFrom(a) || classOf[Function0[?]].isAssignableFrom(b))
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
