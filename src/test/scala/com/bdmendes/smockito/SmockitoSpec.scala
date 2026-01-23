@@ -238,6 +238,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       List(false -> User("bdmendes"))
     )
 
+  test("inspect calls on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+
+    assert(repository.hasCount(0))
+    assert(repository.hasCount(2))
+
+    assertEquals(repository.calls((count: Int) => it.hasCount(count)), List(0, 2))
+
   test("inspect calls on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
@@ -343,6 +351,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
     assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
+
+  test("count calls on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+
+    assert(repository.hasCount(0))
+    assert(repository.hasCount(2))
+
+    assertEquals(repository.times((count: Int) => it.hasCount(count)), 2)
 
   test("count calls on methods with variable arguments"):
     val repository =

@@ -63,7 +63,7 @@ private trait MockSyntax:
                       f
                 case other =>
                   other
-            arguments(index) = unwrapped.asInstanceOf[Object]
+            arguments.update(index, unwrapped.asInstanceOf[Object])
             unwrap[t](arguments, index + 1, false)
 
     private inline def verifies(f: => Any): Boolean =
@@ -144,7 +144,7 @@ private trait MockSyntax:
             .map(_.getAllValues.toArray)
             .transpose
             .toList
-            .map(args => pack(Tuple.fromArray(args).asInstanceOf[A]))
+            .map(args => pack(Tuple.fromArray(unwrap[A](args)).asInstanceOf[A]))
 
     /** Yields the number of times a stub was called. If you need the exact arguments, see
       * [[calls]].
