@@ -40,6 +40,32 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod()
 
+    private inline def unwrap[A](
+        arguments: Array[Object],
+        index: Int = 0,
+        needsCloning: Boolean = true
+    ): Array[Object] =
+      // By-name parameters are compiled as nullary functions, hence the special treatment.
+      inline erasedValue[A] match
+        case _: EmptyTuple =>
+          arguments
+        case _: (h *: t) =>
+          if needsCloning then
+            unwrap[h *: t](arguments.clone(), 0, false)
+          else
+            val unwrapped =
+              arguments(index) match
+                case f: Function0[?] =>
+                  try
+                    f.apply().asInstanceOf[h]
+                  catch
+                    case _: ClassCastException =>
+                      f
+                case other =>
+                  other
+            arguments(index) = unwrapped.asInstanceOf[Object]
+            unwrap[t](arguments, index + 1, false)
+
     private inline def verifies(f: => Any): Boolean =
       // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
       // In those cases, we must be careful not to swallow all exceptions.
@@ -66,7 +92,7 @@ private trait MockSyntax:
       assertMethodExists[A, R1]()
       val answer: Answer[R2] =
         invocation =>
-          val arguments = invocation.getRawArguments
+          val arguments = unwrap[A](invocation.getRawArguments)
           stub.applyOrElse(
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
