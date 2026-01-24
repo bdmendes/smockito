@@ -551,6 +551,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = getter.onCall(it.unstubbed)
     assertEquals(tracker, 0)
 
+  test("not call a thunk as a side effect of stubbing"):
+    var counter = 0
+
+    trait Getter:
+      def go(f: () => Future[Unit]): Unit
+
+    val getter = mock[Getter].on(it.go)(_ => ())
+
+    val _ = getter.go(() => Future.successful(counter += 1))
+
+    assertEquals(getter.times(it.go), 1)
+    assertEquals(counter, 0)
+
   test("always use the last set up stub"):
     var tracker = 0
     val repository =
