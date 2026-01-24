@@ -156,6 +156,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
+  test("set up method stubs on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ % 2 == 0)
+
+    assert(repository.hasCount(0))
+    assert(!repository.hasCount(1))
+
   test("set up method stubs on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
@@ -231,6 +237,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.calls(it.greet(_: Boolean)(using _: User)),
       List(false -> User("bdmendes"))
     )
+
+  test("inspect calls on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+
+    assert(repository.hasCount(0))
+    assert(repository.hasCount(2))
+
+    assertEquals(repository.calls((count: Int) => it.hasCount(count)), List(0, 2))
 
   test("inspect calls on methods with variable arguments"):
     val repository =
@@ -337,6 +351,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
     assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
+
+  test("count calls on methods with by-name parameters"):
+    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+
+    assert(repository.hasCount(0))
+    assert(repository.hasCount(2))
+
+    assertEquals(repository.times((count: Int) => it.hasCount(count)), 2)
 
   test("count calls on methods with variable arguments"):
     val repository =
@@ -529,6 +551,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = getter.onCall(it.unstubbed)
     assertEquals(tracker, 0)
 
+  test("not call a thunk as a side effect of stubbing"):
+    var counter = 0
+
+    trait Getter:
+      def go(f: () => Future[Unit]): Unit
+
+    val getter = mock[Getter].on(it.go)(_ => ())
+
+    val _ = getter.go(() => Future.successful(counter += 1))
+
+    assertEquals(getter.times(it.go), 1)
+    assertEquals(counter, 0)
+
   test("always use the last set up stub"):
     var tracker = 0
     val repository =
@@ -651,6 +686,7 @@ object SmockitoSpec:
     def get: List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
+    def hasCount(count: => Int): Boolean
     def contains(user: User): Boolean
     def contains(username: String): Boolean
     def containsOneOf(username: String*): Boolean
@@ -684,6 +720,7 @@ object SmockitoSpec:
       override def get: List[User] = mockUsers
       override def getNames: List[String] = mockUsers.map(_.username)
       override def exists(username: String): Boolean = getNames.contains(username)
+      override def hasCount(count: => Int): Boolean = getNames.size == count
       override def contains(user: User): Boolean = mockUsers.contains(user)
       override def contains(username: String): Boolean = exists(username)
       override def containsOneOf(username: String*): Boolean = username.exists(contains)

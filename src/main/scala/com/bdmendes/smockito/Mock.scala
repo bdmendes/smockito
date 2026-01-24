@@ -30,13 +30,41 @@ private trait MockSyntax:
         .filter: method =>
           method.getReturnType.isAssignableFrom(returnClass) &&
             argClasses.length == method.getParameterTypes.length &&
-            argClasses.zip(method.getParameterTypes).forall((a, b) => b.isAssignableFrom(a))
+            argClasses
+              .zip(method.getParameterTypes)
+              .forall((a, b) => b.isAssignableFrom(a) || classOf[Function0[?]].isAssignableFrom(b))
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
       val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod()
+
+    private inline def unwrap[A](
+        arguments: Array[Object],
+        index: Int = 0,
+        needsCloning: Boolean = true
+    ): Array[Object] =
+      // By-name parameters are compiled as nullary functions, hence the special treatment.
+      inline erasedValue[A] match
+        case _: EmptyTuple =>
+          arguments
+        case _: (h *: t) =>
+          if needsCloning then
+            unwrap[h *: t](arguments.clone(), 0, false)
+          else
+            val unwrapped =
+              arguments(index) match
+                case f: Function0[?] =>
+                  inline erasedValue[h] match
+                    case _: Function0[?] =>
+                      f
+                    case _ =>
+                      f.apply().asInstanceOf[h]
+                case other =>
+                  other
+            arguments.update(index, unwrapped.asInstanceOf[Object])
+            unwrap[t](arguments, index + 1, false)
 
     private inline def verifies(f: => Any): Boolean =
       // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
@@ -64,7 +92,7 @@ private trait MockSyntax:
       assertMethodExists[A, R1]()
       val answer: Answer[R2] =
         invocation =>
-          val arguments = invocation.getRawArguments
+          val arguments = unwrap[A](invocation.getRawArguments)
           stub.applyOrElse(
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
@@ -116,7 +144,7 @@ private trait MockSyntax:
             .map(_.getAllValues.toArray)
             .transpose
             .toList
-            .map(args => pack(Tuple.fromArray(args).asInstanceOf[A]))
+            .map(args => pack(Tuple.fromArray(unwrap[A](args)).asInstanceOf[A]))
 
     /** Yields the number of times a stub was called. If you need the exact arguments, see
       * [[calls]].
