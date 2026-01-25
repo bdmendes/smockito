@@ -157,7 +157,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
   test("set up method stubs on methods with by-name parameters"):
-    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ % 2 == 0)
+    val repository = mock[Repository[User]].on(it.hasCount(_: Int))(_ % 2 == 0)
 
     assert(repository.hasCount(0))
     assert(!repository.hasCount(1))
@@ -239,12 +239,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     )
 
   test("inspect calls on methods with by-name parameters"):
-    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+    val repository = mock[Repository[User]].on(it.hasCount(_: Int))(_ => true)
 
     assert(repository.hasCount(0))
     assert(repository.hasCount(2))
 
-    assertEquals(repository.calls((count: Int) => it.hasCount(count)), List(0, 2))
+    assertEquals(repository.calls(it.hasCount(_: Int)), List(0, 2))
 
   test("inspect calls on methods with variable arguments"):
     val repository =
@@ -353,12 +353,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
 
   test("count calls on methods with by-name parameters"):
-    val repository = mock[Repository[User]].on((count: Int) => it.hasCount(count))(_ => true)
+    val repository = mock[Repository[User]].on(it.hasCount(_: Int))(_ => true)
 
     assert(repository.hasCount(0))
     assert(repository.hasCount(2))
 
-    assertEquals(repository.times((count: Int) => it.hasCount(count)), 2)
+    assertEquals(repository.times(it.hasCount(_: Int)), 2)
 
   test("count calls on methods with variable arguments"):
     val repository =
