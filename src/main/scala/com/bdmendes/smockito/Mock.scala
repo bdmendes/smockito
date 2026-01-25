@@ -46,13 +46,13 @@ private trait MockSyntax:
         needsCloning: Boolean = true
     ): Array[Object] =
       // By-name parameters are compiled as nullary functions, hence the special treatment.
-      inline erasedValue[A] match
-        case _: EmptyTuple =>
-          arguments
-        case _: (h *: t) =>
-          if needsCloning then
-            unwrap[h *: t](arguments.clone(), 0, false)
-          else
+      if needsCloning then
+        unwrap[A](arguments.clone(), index, false)
+      else
+        inline erasedValue[A] match
+          case _: EmptyTuple =>
+            arguments
+          case _: (h *: t) =>
             val unwrapped =
               arguments(index) match
                 case f: Function0[?] =>
