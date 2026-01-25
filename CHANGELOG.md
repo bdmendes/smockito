@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.5.0 - 2026-01-25
+
+This release adds support for mocking methods with by-name parameters. In the perspective of the user, the usage looks like any other one whose eta-expansion was explicitly provided; behind the scenes, Smockito calls the compiled `Function0` automatically each time a by-name argument is referenced, e.g. in stub executions or `calls`.
+
+### What's Changed
+* Fix handling of by-name parameters by @bdmendes in https://github.com/bdmendes/smockito/pull/152
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.4.0...v2.5.0
+
 ## 2.4.0 - 2026-01-14
 
 This release refines the `onCall` signature to accept a partial function, throwing `UnexpectedCallNumber` automatically on unhandled call numbers. This means that one may now provide different stubs for each call while implicitly asserting that a method was called a certain number of times.
