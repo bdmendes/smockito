@@ -80,7 +80,7 @@ class AsyncRepository:
 
 class AsyncRepositorySpecification extends CatsEffectSuite with Smockito:
   val asyncRepository = mock[AsyncRepository]
-    .on(it.computeValue)(_ => IO.pure(_ * 2))
+    .on(it.computeValue)(IO.pure(_ * 2))
 ```
 
 Then, use your test framework's capabilities to work with the effect types as needed. In the example below, we make use of `CatsEffectSuite`'s support for testing `IO` values via its custom [fixture](https://scalameta.org/munit/docs/fixtures.html).
