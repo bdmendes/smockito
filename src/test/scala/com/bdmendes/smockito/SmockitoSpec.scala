@@ -564,6 +564,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(getter.times(it.go), 1)
     assertEquals(counter, 0)
 
+  test("accept a stub compiling to primitive types"):
+    trait Monitor:
+      def register[F[_], V](data: F[V]): F[V]
+
+    type Id[A] = A
+
+    val monitor = mock[Monitor].on(it.register(_: Id[Int]))(identity(_))
+    assertEquals(monitor.register[Id, Int](1), 1)
+    assertEquals(monitor.calls(it.register[Id, Int]), List(1))
+
   test("always use the last set up stub"):
     var tracker = 0
     val repository =

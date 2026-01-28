@@ -28,11 +28,12 @@ private trait MockSyntax:
       val returnClass = summonInline[ClassTag[R]].runtimeClass
       methods
         .filter: method =>
-          method.getReturnType.isAssignableFrom(returnClass) &&
+          (method.getReturnType.isAssignableFrom(returnClass) || returnClass.isPrimitive) &&
             argClasses.length == method.getParameterTypes.length &&
             argClasses
               .zip(method.getParameterTypes)
-              .forall((a, b) => b.isAssignableFrom(a) || classOf[Function0[?]].isAssignableFrom(b))
+              .forall: (a, b) =>
+                b.isAssignableFrom(a) || a.isPrimitive || classOf[Function0[?]].isAssignableFrom(b)
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
