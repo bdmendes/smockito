@@ -634,9 +634,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     type Id[A] = A
 
     val monitor = mock[Monitor].on(it.register(_: Id[Int]))(identity(_))
+
     assertEquals(monitor.register[Id, Int](1), 1)
+
     intercept[UnexpectedType]:
-      assertEquals(monitor.register[List, Int](List(1)), List(1))
+      val _ = monitor.register[List, Int](List(1))
+
+    intercept[UnexpectedType]:
+      val _ = monitor.calls(it.register(_: List[Int]))
+
+    // `times` does not touch captured values.
+    assertEquals(monitor.times(it.register(_: List[Int])), 2)
 
   test("reason about invocation orders"):
     val repository =
