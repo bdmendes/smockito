@@ -67,7 +67,12 @@ private trait MockSyntax:
                     case _ =>
                       f.apply().asInstanceOf[h]
                 case other =>
-                  other
+                  try
+                    other.asInstanceOf[h]
+                  catch
+                    case _: ClassCastException =>
+                      val expected = summonInline[ClassTag[h]].runtimeClass
+                      throw UnexpectedType(other, expected)
             arguments.update(index, unwrapped.asInstanceOf[Object])
             unwrap[t](arguments, index + 1, false)
 

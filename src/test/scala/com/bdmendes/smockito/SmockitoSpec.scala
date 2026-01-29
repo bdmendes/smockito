@@ -627,6 +627,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnexpectedCallNumber]:
       repository.exists("bdmendes")
 
+  test("throw on incompatible received argument type"):
+    trait Monitor:
+      def register[F[_], V](data: F[V]): F[V]
+
+    type Id[A] = A
+
+    val monitor = mock[Monitor].on(it.register(_: Id[Int]))(identity(_))
+    assertEquals(monitor.register[Id, Int](1), 1)
+    intercept[UnexpectedType]:
+      assertEquals(monitor.register[List, Int](List(1)), List(1))
+
   test("reason about invocation orders"):
     val repository =
       mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
