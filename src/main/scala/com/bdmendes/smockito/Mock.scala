@@ -24,16 +24,20 @@ private trait MockSyntax:
     private inline def matching[A <: Tuple, R](methods: Iterable[Method]): List[Method] =
       // Get all methods that may correspond to our types.
       // Due to erasure, we might get extra matches.
-      val argClasses = mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
-      val returnClass = summonInline[ClassTag[R]].runtimeClass
+      val stubArgClasses = mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
+      val stubReturnClass = summonInline[ClassTag[R]].runtimeClass
       methods
         .filter: method =>
-          (method.getReturnType.isAssignableFrom(returnClass) || returnClass.isPrimitive) &&
-            argClasses.length == method.getParameterTypes.length &&
-            argClasses
+          (
+            method.getReturnType.isAssignableFrom(stubReturnClass) ||
+              (stubReturnClass.isPrimitive && method.getReturnType == classOf[Object])
+          ) && stubArgClasses.length == method.getParameterTypes.length &&
+            stubArgClasses
               .zip(method.getParameterTypes)
-              .forall: (a, b) =>
-                b.isAssignableFrom(a) || a.isPrimitive || classOf[Function0[?]].isAssignableFrom(b)
+              .forall: (s, m) =>
+                m.isAssignableFrom(s) ||
+                  (s.isPrimitive && m == classOf[Object]) ||
+                  classOf[Function0[?]].isAssignableFrom(m)
         .toList
 
     private inline def assertMethodExists[A <: Tuple, R](): Unit =
