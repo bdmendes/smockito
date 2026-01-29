@@ -572,7 +572,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     val monitor = mock[Monitor].on(it.register(_: Id[Int]))(identity(_))
     assertEquals(monitor.register[Id, Int](1), 1)
-    assertEquals(monitor.calls(it.register[Id, Int]), List(1))
+    assertEquals(monitor.calls(it.register(_: Id[Int])), List(1))
 
   test("always use the last set up stub"):
     var tracker = 0
