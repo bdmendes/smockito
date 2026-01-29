@@ -69,7 +69,8 @@ object Smockito:
             "Are you performing eta-expansion correctly? " +
             "Double-check if this method has contextual parameters and " +
             "they are inadvertently being captured in the spec scope, " +
-            "or if one or more default parameters are being discarded."
+            "one or more default parameters are being discarded, " +
+            "or a variable number of arguments is being fixed."
         )
 
     case class UnexpectedArguments(method: Method, arguments: Array[Object])
@@ -95,5 +96,6 @@ object Smockito:
         extends SmockitoException(
           s"Expected a ${expected.getName}, but got $value which is of type " +
             s"${value.getClass.getName}. You may have defined a stub for a fixed " +
-            s"type parameter, or be hitting a Smockito limitation."
+            "type parameter, a fixed number of parameters, or be hitting a " +
+            "Smockito limitation."
         )
