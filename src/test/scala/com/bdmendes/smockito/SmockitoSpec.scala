@@ -629,7 +629,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("throw on incompatible received argument type"):
     trait Monitor:
-      def register[F[_], V](data: F[V]): F[V]
+      def register[F[_], V](data: => F[V]): F[V]
 
     type Id[A] = A
 

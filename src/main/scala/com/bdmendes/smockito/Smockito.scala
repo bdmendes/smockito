@@ -91,7 +91,7 @@ object Smockito:
             "Did you forget to stub the method, or was it called unexpectedly?"
         )
 
-    case class UnexpectedType(value: Object, expected: Class[?])
+    case class UnexpectedType(value: Any, expected: Class[?])
         extends SmockitoException(
           s"The stub expected a ${expected.getName}, but got $value which is of type " +
             s"${value.getClass.getName}. You may have defined a stub for a fixed " +
