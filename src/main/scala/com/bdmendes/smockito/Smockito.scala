@@ -90,3 +90,10 @@ object Smockito:
             s"and was called with arguments: (${arguments.mkString(", ")}). " +
             "Did you forget to stub the method, or was it called unexpectedly?"
         )
+
+    case class UnexpectedType(value: Any, expected: Class[?])
+        extends SmockitoException(
+          s"The stub expected a ${expected.getName}, but got $value which is of type " +
+            s"${value.getClass.getName}. You may have defined a stub for a fixed " +
+            s"type parameter, or be hitting a Smockito limitation."
+        )

@@ -65,10 +65,20 @@ private trait MockSyntax:
                     case _: Function0[?] =>
                       f
                     case _ =>
-                      f.apply().asInstanceOf[h]
+                      f.apply()
                 case other =>
                   other
-            arguments.update(index, unwrapped.asInstanceOf[Object])
+            val typeCheckedValue =
+              if unwrapped != null then
+                try
+                  unwrapped.asInstanceOf[h]
+                catch
+                  case _: ClassCastException =>
+                    val expected = summonInline[ClassTag[h]].runtimeClass
+                    throw UnexpectedType(unwrapped, expected)
+              else
+                unwrapped
+            arguments.update(index, typeCheckedValue.asInstanceOf[Object])
             unwrap[t](arguments, index + 1, false)
 
     private inline def verifies(f: => Any): Boolean =
