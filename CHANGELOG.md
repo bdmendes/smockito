@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.5.1 - 2026-01-31
+
+This release fixes an edge case related to the autoboxing of primitives and improves error messages.
+
+### What's Changed
+* Allow primitive stubs on method signature search by @bdmendes in https://github.com/bdmendes/smockito/pull/161
+* Introduce `UnexpectedType` exception by @bdmendes in https://github.com/bdmendes/smockito/pull/162
+* Improve type error exception messages by @bdmendes in https://github.com/bdmendes/smockito/pull/164
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.5.0...v2.5.1
+
 ## 2.5.0 - 2026-01-25
 
 This release adds support for mocking methods with by-name parameters. In the perspective of the user, the usage looks like any other one whose eta-expansion was explicitly provided; behind the scenes, Smockito calls the compiled `Function0` automatically each time a by-name argument is referenced, e.g. in stub executions or `calls`.
