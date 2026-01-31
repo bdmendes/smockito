@@ -59,11 +59,11 @@ object Smockito:
   private def describeMethod(method: Method): String =
     s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
 
-  sealed abstract class SmockitoException(msg: String) extends Exception(msg)
+  sealed abstract class SmockitoException private[smockito] (msg: String) extends Exception(msg)
 
   object SmockitoException:
 
-    case class UnknownMethod()
+    case class UnknownMethod private[smockito] ()
         extends SmockitoException(
           s"The received method does not match any of the mock object's methods. " +
             "Are you performing eta-expansion correctly? " +
@@ -73,26 +73,26 @@ object Smockito:
             "or a variable number of arguments is being fixed."
         )
 
-    case class UnexpectedArguments(method: Method, arguments: Array[Object])
+    case class UnexpectedArguments private[smockito] (method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} received unexpected arguments: " +
             s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
         )
 
-    case class UnexpectedCallNumber(callNumber: Int)
+    case class UnexpectedCallNumber private[smockito] (callNumber: Int)
         extends SmockitoException(
           s"The method was called an unexpected number of times: $callNumber. " +
             "Did you forget to handle this call number at the stub?"
         )
 
-    case class UnstubbedMethod(method: Method, arguments: Array[Object])
+    case class UnstubbedMethod private[smockito] (method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} is not stubbed " +
             s"and was called with arguments: (${arguments.mkString(", ")}). " +
             "Did you forget to stub the method, or was it called unexpectedly?"
         )
 
-    case class UnexpectedType(value: Any, expected: Class[?])
+    case class UnexpectedType private[smockito] (value: Any, expected: Class[?])
         extends SmockitoException(
           s"Expected a ${expected.getName}, but got $value which is of type " +
             s"${value.getClass.getName}. You may have defined a stub for a fixed " +
