@@ -7,7 +7,7 @@ import scala.util.Try
 
 object MockitoAgent:
 
-  def method =
+  private[internal] def method =
     // Unfortunately, we cannot be sure that Mockito exists in the class path in
     // some complicated build configurations. It's best not to load this agent
     // in that case, but nevertheless we want to be flexible.
