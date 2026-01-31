@@ -59,7 +59,7 @@ object Smockito:
   private def describeMethod(method: Method): String =
     s"The method ${method.getName} of class ${method.getDeclaringClass.getName}"
 
-  sealed abstract class SmockitoException(msg: String) extends Exception(msg)
+  sealed abstract class SmockitoException private[smockito](msg: String) extends Exception(msg)
 
   object SmockitoException:
 
