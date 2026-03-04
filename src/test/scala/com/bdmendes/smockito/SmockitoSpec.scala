@@ -1,6 +1,6 @@
 package com.bdmendes.smockito
 
-import com.bdmendes.smockito.Smockito.SmockitoException.*
+import com.bdmendes.smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-class SmockitoSpec extends munit.FunSuite with Smockito:
+class SmockitoSpec extends munit.FunSuite:
 
   inline def isSubtypeOf[A, B] =
     summonFrom:

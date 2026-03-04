@@ -1,6 +1,6 @@
 package com.bdmendes.smockito
 
-import com.bdmendes.smockito.Smockito.SmockitoException.UnstubbedMethod
+import com.bdmendes.smockito.SmockitoException.UnstubbedMethod
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 
