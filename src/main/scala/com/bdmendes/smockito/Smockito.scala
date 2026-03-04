@@ -4,9 +4,8 @@ import scala.reflect.ClassTag
 
 /** Creates a [[Mock]] instance of `T`.
   *
-  * A `Mock[T]` is the [[Smockito]] compile time representation of a type mocked by Mockito, erased
-  * at runtime. As such, after you set up method stubs, you may pass a mock anywhere a `T` is
-  * needed.
+  * A `Mock[T]` is the compile time representation of a type mocked by Mockito, erased at runtime.
+  * As such, after you set up method stubs, you may pass a mock anywhere a `T` is needed.
   *
   * @tparam T
   *   the type to mock.
@@ -17,9 +16,9 @@ def mock[T: ClassTag]: Mock[T] = Mock.apply
 
 /** Creates a [[Spy]] instance of `T`.
   *
-  * A `Spy[T]` is the [[Smockito]] compile time representation of a type spied by Mockito, erased at
-  * runtime. Keep in mind that Mockito spies are copies of real instances, so any method side
-  * effects won't affect the original object.
+  * A `Spy[T]` is the compile time representation of a type spied by Mockito, erased at runtime.
+  * Keep in mind that Mockito spies are copies of real instances, so any method side effects won't
+  * affect the original object.
   *
   * A `Spy[T]` is also a `Mock[T]`, so you may use all methods available on [[Mock]].
   *
