@@ -8,7 +8,7 @@ object Dependencies {
     // We want to be conservative with the Java version, but not too much.
     lazy val java = "17"
     lazy val mockito = "5.22.0"
-    lazy val munit = "1.2.3"
+    lazy val munit = "1.2.4"
   }
 
   lazy val mockito = "org.mockito" % "mockito-core" % Versions.mockito
