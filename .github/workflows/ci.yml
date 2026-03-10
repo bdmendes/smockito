@@ -52,4 +52,4 @@ jobs:
         run: |
           git config --global user.name github-actions
           git config --global user.email github-actions[bot]@users.noreply.github.com
-          sbt ghpagesPushSite
+          sbt "set git.remoteRepo := \"https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git\"" ghpagesPushSite
