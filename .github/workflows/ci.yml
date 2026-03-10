@@ -47,4 +47,9 @@ jobs:
 
       - name: Publish site
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        run: sbt ghpagesPushSite
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions[bot]@users.noreply.github.com
+          sbt ghpagesPushSite

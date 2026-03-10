@@ -25,7 +25,7 @@ lazy val root =
     .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
     .settings(
       name := "smockito",
-      git.remoteRepo := "git@github.com:bdmendes/smockito.git",
+      git.remoteRepo := "https://github.com/bdmendes/smockito.git",
       ghpagesNoJekyll := true,
       scalaVersion := Dependencies.Versions.scala,
       javaAgents := Seq(mockito % Test),
