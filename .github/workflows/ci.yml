@@ -10,6 +10,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,7 +40,11 @@ jobs:
       - name: Generate coverage report
         run: sbt coverageReport
 
-      - name: "Upload coverage to Codecov"
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Publish site
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: sbt ghpagesPushSite
