@@ -22,10 +22,11 @@ lazy val root =
   project
     .in(file("."))
     .enablePlugins(JavaAgent)
-    .enablePlugins(GhpagesPlugin)
+    .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
     .settings(
       name := "smockito",
       git.remoteRepo := "git@github.com:bdmendes/smockito.git",
+      ghpagesNoJekyll := true,
       scalaVersion := Dependencies.Versions.scala,
       javaAgents := Seq(mockito % Test),
       scalacOptions ++=
