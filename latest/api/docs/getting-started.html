@@ -19,22 +19,24 @@
  <h1 class="h500"><a href="#quick-start" class="anchor"></a>Quick Start</h1>
  <p>In your specification, extend <code>Smockito</code>. This will bring the <code>mock</code> method and relevant conversions to scope. To set up a mock, add stub definitions with the <code>on</code> method, which requires an <a href="https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html">eta-expanded</a> method reference, that you may easily express with <code>it</code>, and a <a href="https://docs.scala-lang.org/scala3/book/fun-partial-functions.html">partial function</a> to handle the relevant inputs.</p>
  <div class="snippet mono-small-block" scala-snippet="">
-  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>abstract class Repository[T](val name: String):
-</span><span line-number="2" class=""><span class="tooltip-container"></span>  def get: List[T]
-</span><span line-number="3" class=""><span class="tooltip-container"></span>  def exists(username: String): Boolean
-</span><span line-number="4" class=""><span class="tooltip-container"></span>  def greet()(using T): String
-</span><span line-number="5" class=""><span class="tooltip-container"></span>  def getWith(startsWith: String, endsWith: String): List[T]
-</span><span line-number="6" class=""><span class="tooltip-container"></span>
-</span><span line-number="7" class=""><span class="tooltip-container"></span>case class User(username: String)
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>import com.bdmendes.smockito.Smockito
+</span><span line-number="2" class=""><span class="tooltip-container"></span>
+</span><span line-number="3" class=""><span class="tooltip-container"></span>abstract class Repository[T](val name: String):
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  def get: List[T]
+</span><span line-number="5" class=""><span class="tooltip-container"></span>  def exists(username: String): Boolean
+</span><span line-number="6" class=""><span class="tooltip-container"></span>  def greet()(using T): String
+</span><span line-number="7" class=""><span class="tooltip-container"></span>  def getWith(startsWith: String, endsWith: String): List[T]
 </span><span line-number="8" class=""><span class="tooltip-container"></span>
-</span><span line-number="9" class=""><span class="tooltip-container"></span>class RepositorySpecification extends Smockito:
-</span><span line-number="10" class=""><span class="tooltip-container"></span>  val repository = mock[Repository[User]]
-</span><span line-number="11" class=""><span class="tooltip-container"></span>    .on(() =&gt; it.name)(_ =&gt; "xpto")
-</span><span line-number="12" class=""><span class="tooltip-container"></span>    .on(() =&gt; it.get)(_ =&gt; List(User("johndoe")))
-</span><span line-number="13" class=""><span class="tooltip-container"></span>    .on(it.exists)(_ == "johndoe")
-</span><span line-number="14" class=""><span class="tooltip-container"></span>    .on(it.greet()(using _: User))(user =&gt; s"Hello, ${user.username}!")
-</span><span line-number="15" class=""><span class="tooltip-container"></span>    .on(it.getWith):
-</span><span line-number="16" class=""><span class="tooltip-container"></span>      case ("john", name) if name.nonEmpty =&gt; List(User("johndoe"))
+</span><span line-number="9" class=""><span class="tooltip-container"></span>case class User(username: String)
+</span><span line-number="10" class=""><span class="tooltip-container"></span>
+</span><span line-number="11" class=""><span class="tooltip-container"></span>class RepositorySpecification extends Smockito:
+</span><span line-number="12" class=""><span class="tooltip-container"></span>  val repository = mock[Repository[User]]
+</span><span line-number="13" class=""><span class="tooltip-container"></span>    .on(() =&gt; it.name)(_ =&gt; "xpto")
+</span><span line-number="14" class=""><span class="tooltip-container"></span>    .on(() =&gt; it.get)(_ =&gt; List(User("johndoe")))
+</span><span line-number="15" class=""><span class="tooltip-container"></span>    .on(it.exists)(_ == "johndoe")
+</span><span line-number="16" class=""><span class="tooltip-container"></span>    .on(it.greet()(using _: User))(user =&gt; s"Hello, ${user.username}!")
+</span><span line-number="17" class=""><span class="tooltip-container"></span>    .on(it.getWith):
+</span><span line-number="18" class=""><span class="tooltip-container"></span>      case ("john", name) if name.nonEmpty =&gt; List(User("johndoe"))
 </span></code></pre>
   <div class="buttons"></div>
  </div>
@@ -56,29 +58,31 @@
  <h1 class="h500"><a href="#integrating-with-test-frameworks-and-coding-styles" class="anchor"></a>Integrating with Test Frameworks and Coding Styles</h1>
  <p>There is no special syntax required to use Smockito with different testing frameworks or coding styles. Simply extend <code>Smockito</code> in your test classes or traits, and you can use the mocking capabilities provided by Smockito seamlessly within your existing test setup. For example, with <code>munit</code>, one would do:</p>
  <div class="snippet mono-small-block" scala-snippet="">
-  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>import munit.FunSuite
-</span><span line-number="2" class=""><span class="tooltip-container"></span>
-</span><span line-number="3" class=""><span class="tooltip-container"></span>class MyTestSuite extends FunSuite with Smockito:
-</span><span line-number="4" class=""><span class="tooltip-container"></span>  test("example test"):
-</span><span line-number="5" class=""><span class="tooltip-container"></span>    val repository = mock[Repository[User]]
-</span><span line-number="6" class=""><span class="tooltip-container"></span>      .on(() =&gt; it.name)(_ =&gt; "xpto")
-</span><span line-number="7" class=""><span class="tooltip-container"></span>
-</span><span line-number="8" class=""><span class="tooltip-container"></span>    assertEquals(repository.name, "xpto")
-</span><span line-number="9" class=""><span class="tooltip-container"></span>    assertEquals(repository.times(() =&gt; it.name), 1)
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>import com.bdmendes.smockito.Smockito
+</span><span line-number="2" class=""><span class="tooltip-container"></span>import munit.FunSuite
+</span><span line-number="3" class=""><span class="tooltip-container"></span>
+</span><span line-number="4" class=""><span class="tooltip-container"></span>class MyTestSuite extends FunSuite with Smockito:
+</span><span line-number="5" class=""><span class="tooltip-container"></span>  test("example test"):
+</span><span line-number="6" class=""><span class="tooltip-container"></span>    val repository = mock[Repository[User]]
+</span><span line-number="7" class=""><span class="tooltip-container"></span>      .on(() =&gt; it.name)(_ =&gt; "xpto")
+</span><span line-number="8" class=""><span class="tooltip-container"></span>
+</span><span line-number="9" class=""><span class="tooltip-container"></span>    assertEquals(repository.name, "xpto")
+</span><span line-number="10" class=""><span class="tooltip-container"></span>    assertEquals(repository.times(() =&gt; it.name), 1)
 </span></code></pre>
   <div class="buttons"></div>
  </div>
  <p>There is also no special syntax involved for dealing with effect types such as <code>Future</code>, <code>IO</code>, etc. Simply stub methods returning effect types as you would with any other return type:</p>
  <div class="snippet mono-small-block" scala-snippet="">
-  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>import munit.CatsEffectSuite
-</span><span line-number="2" class=""><span class="tooltip-container"></span>import cats.effect.IO
-</span><span line-number="3" class=""><span class="tooltip-container"></span>
-</span><span line-number="4" class=""><span class="tooltip-container"></span>class AsyncRepository:
-</span><span line-number="5" class=""><span class="tooltip-container"></span>  def computeValue(x: Int): IO[Int]
-</span><span line-number="6" class=""><span class="tooltip-container"></span>
-</span><span line-number="7" class=""><span class="tooltip-container"></span>class AsyncRepositorySpecification extends CatsEffectSuite with Smockito:
-</span><span line-number="8" class=""><span class="tooltip-container"></span>  val asyncRepository = mock[AsyncRepository]
-</span><span line-number="9" class=""><span class="tooltip-container"></span>    .on(it.computeValue)(IO.pure(_ * 2))
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>import com.bdmendes.smockito.Smockito
+</span><span line-number="2" class=""><span class="tooltip-container"></span>import munit.CatsEffectSuite
+</span><span line-number="3" class=""><span class="tooltip-container"></span>import cats.effect.IO
+</span><span line-number="4" class=""><span class="tooltip-container"></span>
+</span><span line-number="5" class=""><span class="tooltip-container"></span>class AsyncRepository:
+</span><span line-number="6" class=""><span class="tooltip-container"></span>  def computeValue(x: Int): IO[Int]
+</span><span line-number="7" class=""><span class="tooltip-container"></span>
+</span><span line-number="8" class=""><span class="tooltip-container"></span>class AsyncRepositorySpecification extends CatsEffectSuite with Smockito:
+</span><span line-number="9" class=""><span class="tooltip-container"></span>  val asyncRepository = mock[AsyncRepository]
+</span><span line-number="10" class=""><span class="tooltip-container"></span>    .on(it.computeValue)(IO.pure(_ * 2))
 </span></code></pre>
   <div class="buttons"></div>
  </div>
