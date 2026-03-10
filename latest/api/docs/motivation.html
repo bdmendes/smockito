@@ -1,0 +1,118 @@
+<!DOCTYPE html><html data-pathToRoot="../" data-rawLocation="docs/motivation" data-dynamicSideMenu="false"><head><meta charset="utf-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta><title>Motivation</title><link rel="shortcut icon" type="image/x-icon" href="../favicon.ico"></link><script type="text/javascript" src="../scripts/theme.js"></script><script type="text/javascript" src="../scripts/searchData.js" defer="true"></script><script type="text/javascript" src="../scripts/scastieConfiguration.js" defer="true"></script><link rel="stylesheet" href="../styles/theme/bundle.css"></link><link rel="stylesheet" href="../styles/theme/components/bundle.css"></link><link rel="stylesheet" href="../styles/theme/components/button/bundle.css"></link><link rel="stylesheet" href="../styles/theme/layout/bundle.css"></link><link rel="stylesheet" href="../styles/nord-light.css"></link><link rel="stylesheet" href="../styles/dotty-icons.css"></link><link rel="stylesheet" href="../styles/filter-bar.css"></link><link rel="stylesheet" href="../styles/code-snippets.css"></link><link rel="stylesheet" href="../styles/searchbar.css"></link><link rel="stylesheet" href="../styles/social-links.css"></link><link rel="stylesheet" href="../styles/versions-dropdown.css"></link><link rel="stylesheet" href="../styles/content-contributors.css"></link><link rel="stylesheet" href="../styles/fontawesome.css"></link><script type="text/javascript" src="../hljs/highlight.pack.js" defer="true"></script><script type="text/javascript" src="../scripts/hljs-scala3.js" defer="true"></script><script type="text/javascript" src="../scripts/ux.js" defer="true"></script><script type="text/javascript" src="../scripts/common/component.js" defer="true"></script><script type="text/javascript" src="../scripts/common/utils.js" defer="true"></script><script type="text/javascript" src="../scripts/components/FilterBar.js" defer="true"></script><script type="text/javascript" src="../scripts/components/DocumentableList.js" defer="true"></script><script type="text/javascript" src="../scripts/components/Input.js" defer="true"></script><script type="text/javascript" src="../scripts/components/FilterGroup.js" defer="true"></script><script type="text/javascript" src="../scripts/components/Filter.js" defer="true"></script><script type="text/javascript" src="../scripts/scaladoc-scalajs.js" defer="true"></script><script type="text/javascript" src="../scripts/contributors.js" defer="true"></script><script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js" defer="true"></script><script type="text/javascript" src="https://d3js.org/d3.v6.min.js" defer="true"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/graphlib-dot@0.6.2/dist/graphlib-dot.min.js" defer="true"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.1/dagre-d3.min.js" defer="true"></script><script type="text/javascript" src="https://scastie.scala-lang.org/embedded.js" defer="true"></script><script type="text/javascript" src="../scripts/data.js" defer="true"></script><link rel="stylesheet" href="../styles/staticsitestyles.css"></link><script>var pathToRoot = "../";</script></head><body><div id=""><div id="header" class="body-small"><div class="header-container-left"><a href="../" class="logo-container"><span class="project-name h300">smockito</span></a><span onclick="dropdownHandler(event)" class="text-button with-arrow" id="dropdown-trigger"><a></a></span><div id="version-dropdown" class="dropdown-menu"></div></div><div class="header-container-right"><button id="search-toggle" class="icon-button"></button><span id="theme-toggle" class="icon-button"></span><span id="mobile-menu-toggle" class="icon-button hamburger"></span></div></div><div id="mobile-menu"><div class="mobile-menu-header body-small"><span class="mobile-menu-logo"><span class="project-name h300">smockito</span></span><button id="mobile-menu-close" class="icon-button close"></button></div><div class="mobile-menu-container body-medium"><input id="mobile-scaladoc-searchbar-input" class="scaladoc-searchbar-input" type="search" placeholder="Find anything"></input><span id="mobile-theme-toggle" class="mobile-menu-item mode"></span></div></div><span id="mobile-sidebar-toggle" class="floating-button"></span><div id="leftColumn" class="body-small"><div class="switcher-container"><a id="docs-nav-button" class="switcher h100 selected" href="index.html">Docs</a><a id="api-nav-button" class="switcher h100 " href="../index.html">API</a></div><nav id="docs-nav" class="side-menu"><div class="ni n0 "><span class="nh de"><a href="index.html"><span>Home</span></a></span></div><div class="ni n0 expanded"><span class="nh h100 selected de"><a href="#"><span>Motivation</span></a></span></div><div class="ni n0 "><span class="nh de"><a href="getting-started.html"><span>Getting Started</span></a></span></div><div class="ni n0 "><span class="nh de"><a href="guide.html"><span>Guide</span></a></span></div><div class="ni n0 "><span class="nh de"><a href="faq.html"><span>FAQ</span></a></span></div></nav></div><div id="footer" class="body-small"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div><div id="scaladoc-searchBar"></div><div id="main"><div class="breadcrumbs container"><a href="index.html">smockito</a>/<a href="motivation.html">Motivation</a></div><div id="content" class="body-medium"><div><section id="testing-with-mocks">
+ <h1 class="h500"><a href="#testing-with-mocks" class="anchor"></a>Testing with Mocks</h1>
+ <p>Software is tested so that we can have confidence that it behaves as expected, under a variety of conditions. While testing small and independent components is usually pretty straightforward, testing components that depend on other parts of the system can be more challenging.</p>
+ <p><em>Integration tests</em> are one way to test such components, by exercising them together with their dependencies using close to production configurations. However, integration tests can be slow, brittle, and hard to set up, making them less suitable for frequent execution during development. They also do not allow a proper incremental verification of a new component under development.</p>
+ <p>As such, most often we resort to <em>unit tests</em> for testing individual components in isolation.</p>
+</section>
+<section id="running-example">
+ <h2 class="h500"><a href="#running-example" class="anchor"></a>Running Example</h2>
+ <p>Say our platform boasts a database of users, with account information and links to activity. In backend code (using a simplified version of <a href="https://github.com/apache/pekko-http">Apache Pekko HTTP</a>), it probably will look something like this:</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>class UsersDatabase(ctx: PostgresContext) extends Database[User]:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  override val table = ctx.getTable("users")
+</span><span line-number="3" class=""><span class="tooltip-container"></span>  def getUsers(limit: Int): List[User] = table.get.limit(limit)
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  def updatePassword(user: User, password: String): Boolean = 
+</span><span line-number="5" class=""><span class="tooltip-container"></span>    table.upsert(user.updated(password = password.hashed))
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>In front of that we’ll have a user-facing API that the frontend communicates with, and that requires a database.</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>class UsersService(database: UsersDatabase) extends RestApi:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  val usersRoute = get:
+</span><span line-number="3" class=""><span class="tooltip-container"></span>    complete(database.getUsers(limit = params.get("limit")))
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>We now want to test this integration in our unit tests.</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>class UsersServiceSpec extends Specification:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  val mockUsers = List(User("jose"), User("bruno"))
+</span><span line-number="3" class=""><span class="tooltip-container"></span>
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  test("retrieve the first 10 known users"):
+</span><span line-number="5" class=""><span class="tooltip-container"></span>    val service = UsersService(???) // how to inject a `UsersDatabase`?
+</span><span line-number="6" class=""><span class="tooltip-container"></span>    assertEquals(service.usersRoute.get("limit" -&gt; 10).await, mockUsers)
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>Notice what we are doing:</p>
+ <ul>
+  <li>We want to test that for <em>some example input</em>, in this case a <code>limit</code> of <code>10</code>, for <em>some current system state</em>, in this case a database with two users, the <code>UsersService</code> behaves as expected, returning the two known users.</li>
+  <li>We need to know how to inject a database into the service, and are wondering <em>how</em> and <em>if</em> to do that. For starters, we don't have an obvious way to create a <code>PostgresContext</code> in tests.</li>
+ </ul>
+</section>
+<section id="the-case-for-mocks">
+ <h2 class="h500"><a href="#the-case-for-mocks" class="anchor"></a>The Case for Mocks</h2>
+ <p>In this day and age, hardware, cloud infrastructure, and containerization have made it easier to do things like spinning up temporary external services for testing. There are even nice abstractions like <a href="https://www.testcontainers.org/">Testcontainers</a> that make it easy to manage such resources in tests. As such, in the running example, we could spin up a temporary PostgreSQL instance, populate it with some test data, and have our <code>UsersService</code> connect to it.</p>
+ <p>This approach is perfectly valid, and in fact we should have some (more end-to-end) tests that do exactly that. However, there are also some things to consider:</p>
+ <ul>
+  <li><strong>Verbosity</strong>: preparing and tearing down external resources adds a lot of boilerplate to tests, making them harder to read and maintain. Here we are interested in testing the <code>UsersService</code>, not PostgreSQL setup or the <code>UsersDatabase</code> layer.</li>
+  <li><strong>Correctness</strong>: if the <code>UsersDatabase</code> component has bugs, they may affect our tests in unexpected ways, including making them <strong>pass</strong> when they should <strong>fail</strong>. We want to test the <code>UsersService</code> in isolation, not the <code>UsersDatabase</code> (or any intermediate logic layer) implementation.</li>
+ </ul>
+ <p>To address these concerns, <em>mocks</em> are a great tool. A <em>mock</em> (also called a <em>test double</em>) is a lightweight implementation of a dependency that we can use in tests to simulate specific behaviors and states, without the overhead of setting up real external dependencies.</p>
+ <blockquote>
+  <p>If you are a fan of Martin Fowler's work, you might be wondering about the difference between <em>mocks</em>, <em>stubs</em> and <em>fakes</em>. In Smockito, we use the term <em>mock</em> to refer to any test double that allows us to define custom behavior for its methods, regardless of whether we are verifying interactions or just providing canned responses.</p>
+ </blockquote>
+ <p>Mocking frameworks like Smockito make it easy to create and configure mocks, allowing us to focus on the behavior we want to test without needlessly extracting interfaces or writing boilerplate code for test purposes only.</p>
+</section>
+<section id="what-should-i-mock">
+ <h2 class="h500"><a href="#what-should-i-mock" class="anchor"></a>What Should I Mock?</h2>
+ <p>Mock with parsimony, at the "edges" of your system. In our running example, the <code>UsersService</code> depends on a <code>UsersDatabase</code>, which is an external dependency that we want to isolate from our tests. Therefore, it makes sense to mock the <code>UsersDatabase</code> component. It would not make sense to mock the <code>UsersService</code> itself, as that is the component we are trying to test. It also does not make sense to mock example inputs, since those are typically simple data structures that do not have complex behavior.</p>
+ <p>Mock legacy components more than new ones. In a modern, FP-inspired codebase, components are often designed to be small, pure, and composable, making them easier to test in isolation without ceremony or complicated setups. Mocking something at the middle of your abstraction stack is often a sign that the component could be refactored into smaller, more testable pieces.</p>
+</section>
+<section id="alternative-mocking-frameworks">
+ <h1 class="h500"><a href="#alternative-mocking-frameworks" class="anchor"></a>Alternative Mocking Frameworks</h1>
+ <p>In Scala, one may resort to Java mocking frameworks like <a href="https://site.mockito.org/">Mockito</a> or to Scala-specific ones like <a href="https://scalamock.org/">Scalamock</a>. Those are both great tools, but they have some limitations that Smockito aims to address.</p>
+</section>
+<section id="mockito">
+ <h2 class="h500"><a href="#mockito" class="anchor"></a>Mockito</h2>
+ <p>Mockito has a very powerful API and a large community. It has evolved over many years, and is battle-tested in a variety of scenarios. However, being a Java framework, it does not leverage Scala's type system to provide type-safe mocking capabilities. This often leads to runtime errors that could have been caught at compile time.</p>
+ <p>For the running example, one could do:</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>class UsersServiceSpec extends Specification:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  val mockUsers = List(User("jose"), User("bruno"))
+</span><span line-number="3" class=""><span class="tooltip-container"></span>
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  def setUpMockDatabase(): UsersDatabase =
+</span><span line-number="5" class=""><span class="tooltip-container"></span>    val database = Mockito.mock(classOf[UsersDatabase])
+</span><span line-number="6" class=""><span class="tooltip-container"></span>    Mockito
+</span><span line-number="7" class=""><span class="tooltip-container"></span>      .when(database.getUsers(ArgumentMatchers.any[Int]))
+</span><span line-number="8" class=""><span class="tooltip-container"></span>      .thenReturn(mockUsers)
+</span><span line-number="9" class=""><span class="tooltip-container"></span>    database
+</span><span line-number="10" class=""><span class="tooltip-container"></span>
+</span><span line-number="11" class=""><span class="tooltip-container"></span>  test("retrieve the first 10 known users"):
+</span><span line-number="12" class=""><span class="tooltip-container"></span>    val service = UsersService(setUpMockDatabase())
+</span><span line-number="13" class=""><span class="tooltip-container"></span>    assertEquals(usersRoute.get("limit" -&gt; 10).await, mockUsers)
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>Except for the verbosity, this is fine. However, we can very easily do nasty things with the Mockito API, that would only be caught at runtime:</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>def setUpMockDatabase(): UsersDatabase =
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  val database = Mockito.mock(classOf[UsersDatabase])
+</span><span line-number="3" class=""><span class="tooltip-container"></span>  Mockito
+</span><span line-number="4" class=""><span class="tooltip-container"></span>    .when(database.getUsers(ArgumentMatchers.any[Int]))
+</span><span line-number="5" class=""><span class="tooltip-container"></span>    .thenAnswer(_ =&gt; "a chess board") // the return type is not strongly typed
+</span><span line-number="6" class=""><span class="tooltip-container"></span>  database
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>Another issue is related to the default behavior of mocks. In Mockito, if a method that has not been explicitly stubbed is called, it returns a default value (e.g., <code>null</code> for reference types, <code>0</code> for numeric types). This can lead to tests passing when they should fail, as the mock may return unexpected values that do not reflect the intended behavior, which might be for that code path not to be executed at all. If a method should return e.g. an empty collection for the tested scenario, I believe it is better to be explicit about that in the test setup.</p>
+</section>
+<section id="scalamock">
+ <h2 class="h500"><a href="#scalamock" class="anchor"></a>Scalamock</h2>
+ <p>Scalamock is a native solution, with a great API and very sane defaults. In the running example, one could set up the database like so:</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>def setUpMockDatabase(): UsersDatabase =
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  val database = stub[UsersDatabase]
+</span><span line-number="3" class=""><span class="tooltip-container"></span>  database.getUsers.returnsWith(mockUsers)
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  database
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>However, at runtime we find through a <code>NullPointerException</code> that the <code>UsersDatabase</code> type is not mockable since it is a class, not a trait or abstract class, that evaluates a value dependent on a real <code>PostgresContext</code>. This is a common limitation in Scala mocking frameworks, as they often rely on proxying or subclassing to create mocks, which requires the target type to be open for extension. The only solution would be to extract a common interface for <code>UsersDatabase</code>, which is extra boilerplate and indirection just for testing purposes: in reality, we won't have any other implementation of <code>UsersDatabase</code> in production code.</p>
+</section>
+<section id="the-smockito-approach">
+ <h1 class="h500"><a href="#the-smockito-approach" class="anchor"></a>The Smockito Approach</h1>
+ <p>Smockito desugars to Mockito calls in a way that leverages stronger type safety guarantees provided by Scala 3, while providing a more idiomatic and expressive API. It is also opinionated in that it configures mocks to throw an <code>UnexpectedArguments</code> exception when a method is called with arguments that have not been explicitly handled, and <code>UnstubbedMethod</code> when a method that has not been stubbed is called. This way, tests fail fast and loudly when the mock is used in unexpected ways.</p>
+ <p>Smockito is a small, pragmatic library that tries to solve a real world problem using a powerful backend (Mockito) and taking inspiration from a great API (Scalamock). Check the <a href="getting-started.html">Getting Started</a> guide for a quick introduction, and then head to the <a href="guide.html">Guide</a> for a deeper dive into Smockito's capabilities.</p>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#testing-with-mocks">Testing with Mocks</a><ul><li><a href="#running-example">Running Example</a></li><li><a href="#the-case-for-mocks">The Case for Mocks</a></li><li><a href="#what-should-i-mock">What Should I Mock?</a></li></ul></li><li><a href="#alternative-mocking-frameworks">Alternative Mocking Frameworks</a><ul><li><a href="#mockito">Mockito</a></li><li><a href="#scalamock">Scalamock</a></li></ul></li><li><a href="#the-smockito-approach">The Smockito Approach</a></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
