@@ -1,4 +1,6 @@
+addSbtPlugin("com.github.sbt" % "sbt-ghpages" % "0.9.0")
 addSbtPlugin("com.github.sbt" % "sbt-javaagent" % "0.2.0")
+addSbtPlugin("com.github.sbt" % "sbt-site" % "1.5.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.6")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
