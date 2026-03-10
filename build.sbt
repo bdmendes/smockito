@@ -26,7 +26,6 @@ lazy val root =
     .settings(
       name := "smockito",
       git.remoteRepo := "git@github.com:bdmendes/smockito.git",
-      excludeFilter / ghpagesCleanSite := "index.html",
       ghpagesNoJekyll := true,
       scalaVersion := Dependencies.Versions.scala,
       javaAgents := Seq(mockito % Test),
