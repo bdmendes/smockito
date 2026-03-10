@@ -30,6 +30,8 @@ javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
 In your specification, extend `Smockito`. This will bring the `mock` method and relevant conversions to scope. To set up a mock, add stub definitions with the `on` method, which requires an [eta-expanded](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) method reference, that you may easily express with `it`, and a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html) to handle the relevant inputs.
 
 ```scala
+import com.bdmendes.smockito.Smockito
+
 abstract class Repository[T](val name: String):
   def getWith(startsWith: String, endsWith: String): List[T]
 

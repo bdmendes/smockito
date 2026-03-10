@@ -22,6 +22,8 @@ javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
 In your specification, extend `Smockito`. This will bring the `mock` method and relevant conversions to scope. To set up a mock, add stub definitions with the `on` method, which requires an [eta-expanded](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) method reference, that you may easily express with `it`, and a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html) to handle the relevant inputs.
 
 ```scala
+import com.bdmendes.smockito.Smockito
+
 abstract class Repository[T](val name: String):
   def get: List[T]
   def exists(username: String): Boolean
@@ -58,6 +60,7 @@ You may reason about method interactions with `calls` and `times`. If arguments 
 There is no special syntax required to use Smockito with different testing frameworks or coding styles. Simply extend `Smockito` in your test classes or traits, and you can use the mocking capabilities provided by Smockito seamlessly within your existing test setup. For example, with `munit`, one would do:
 
 ```scala
+import com.bdmendes.smockito.Smockito
 import munit.FunSuite
 
 class MyTestSuite extends FunSuite with Smockito:
@@ -72,6 +75,7 @@ class MyTestSuite extends FunSuite with Smockito:
 There is also no special syntax involved for dealing with effect types such as `Future`, `IO`, etc. Simply stub methods returning effect types as you would with any other return type:
 
 ```scala
+import com.bdmendes.smockito.Smockito
 import munit.CatsEffectSuite
 import cats.effect.IO
 
