@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.5.2 - 2026-03-12
+
+This release updates the Mockito backend to version 5.23 and makes exception constructors package-private, as they are not meant to be instantiated by users or otherwise expected in any way. In addition, the Scaladoc is now hosted via GH Pages, which should improve its availability and loading times.
+
+### What's Changed
+* Make SmockitoException constructor package-private by @bdmendes in https://github.com/bdmendes/smockito/pull/167
+* Host Scaladoc via GH Pages by @bdmendes in https://github.com/bdmendes/smockito/pull/178
+* Update mockito-core to 5.23.0 by @scala-steward in https://github.com/bdmendes/smockito/pull/185
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.5.1...v2.5.2
+
 ## 2.5.1 - 2026-01-31
 
 This release fixes an edge case related to the autoboxing of primitives and improves error messages.
