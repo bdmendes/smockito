@@ -77,7 +77,7 @@ Smockito will throw an exception behind the scenes if this stub gets called with
 
 # Setting up Spies
 
-In Smockito, a spy is a special kind of mock whose default answer is to delegate to a real instance. It is created with the `spy` method, which takes a real instance as an argument. For example:
+In Smockito, a spy is a special kind of mock whose methods get prefilled with the behavior of a real instance. They are created with the `spy` method, which takes a real instance as an argument. For example:
 
 ```scala
 val realFilter = new Filter:
@@ -87,7 +87,7 @@ val realFilter = new Filter:
 val filterSpy = spy(realFilter)
 ```
 
-`filterSpy` is now a proxy of `realFilter`. Calling `filterSpy.filterBy(_ > 3)` will return `List(4, 5)`, as expected.
+`filterSpy` is now a copy of `realFilter`. Calling `filterSpy.filterBy(_ > 3)` will return `List(4, 5)`, as expected.
 
 The main advantage of a spy is being able to reason about method interactions while using a real implementation, as explained in the next subsection, with minimal boilerplate. You may also configure methods to override the real behavior, just like with regular mocks, with `on`, but that leads to *partial mocking* which is generally considered a bad practice.
 

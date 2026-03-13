@@ -706,11 +706,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.suffix), 1)
     assertEquals(repository.times(() => it.randomName), 2)
 
-  test("spy a lambda"):
-    val f = spy((n: Int) => n * 2)
-    assertEquals(f(2), 4)
-    assertEquals(f.calls(it.apply), List(2))
-
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
