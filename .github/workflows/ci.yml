@@ -10,9 +10,6 @@ jobs:
     name: CI
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,12 +41,3 @@ jobs:
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Publish site
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions[bot]@users.noreply.github.com
-          sbt "set git.remoteRepo := \"https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git\"" ghpagesPushSite
