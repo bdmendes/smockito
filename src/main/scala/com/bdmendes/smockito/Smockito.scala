@@ -14,8 +14,9 @@ trait Smockito extends MockSyntax:
   /** Creates a [[Mock]] instance of `T`.
     *
     * A `Mock[T]` is the [[Smockito]] compile time representation of a type mocked by Mockito,
-    * erased at runtime. As such, after you set up method stubs, you may pass a mock anywhere a `T`
-    * is needed.
+    * erased at runtime, whose default answer is to throw.
+    *
+    * You may pass a mock anywhere a `T` is needed.
     *
     * @tparam T
     *   the type to mock.
@@ -26,21 +27,17 @@ trait Smockito extends MockSyntax:
 
   /** Creates a [[Spy]] instance of `T`.
     *
-    * A `Spy[T]` is the [[Smockito]] compile time representation of a type spied by Mockito, erased
-    * at runtime. Keep in mind that Mockito spies are copies of real instances, so any method side
-    * effects won't affect the original object.
+    * A `Spy[T]` is the [[Smockito]] compile time representation of a type mocked by Mockito, erased
+    * at runtime, whose default answer is to forward all method calls to a real instance.
     *
-    * A `Spy[T]` is also a `Mock[T]`, so you may use all methods available on [[Mock]].
-    *
-    * If you only need to forward a few methods to a real instance, consider using the [[forward]]
-    * method on a [[Mock]] instead for clarity and performance.
+    * You may pass a spy anywhere a `T` is needed.
     *
     * @tparam T
     *   the type to spy.
     * @return
     *   the spy instance.
     */
-  def spy[T](realInstance: T): Spy[T] = Spy.apply(realInstance)
+  def spy[T: ClassTag](realInstance: T): Spy[T] = Spy.apply(realInstance)
 
   /** Retrieves the mock in scope. This is the recommended way to refer to a mock available in
     * context, as is the case when using methods of [[Mock]].

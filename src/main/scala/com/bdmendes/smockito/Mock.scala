@@ -7,6 +7,7 @@ import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
 import org.mockito.exceptions.base.MockitoAssertionError
+import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -290,8 +291,19 @@ private object Mock:
       override def apply(args: Pack[A]): R = f(args)
       override def isDefinedAt(x: Pack[A]): Boolean = true
 
+  object MockAnswer extends Answer[Any]:
+
+    override def answer(invocation: InvocationOnMock): Any =
+      val method = invocation.getMethod
+      if method.getName.contains("$default$") then
+        // The Scala compiler synthesizes default arguments as methods.
+        try invocation.callRealMethod()
+        catch _ => null
+      else
+        throw UnstubbedMethod(method, invocation.getRawArguments)
+
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
-      Mockito.withSettings().defaultAnswer(DefaultAnswer)
+      Mockito.withSettings().defaultAnswer(MockAnswer)
     )
