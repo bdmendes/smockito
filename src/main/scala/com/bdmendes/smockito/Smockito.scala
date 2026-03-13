@@ -40,7 +40,7 @@ trait Smockito extends MockSyntax:
     * @return
     *   the spy instance.
     */
-  def spy[T](realInstance: T): Spy[T] = Spy.apply(realInstance)
+  def spy[T: ClassTag](realInstance: T): Spy[T] = Spy.apply(realInstance)
 
   /** Retrieves the mock in scope. This is the recommended way to refer to a mock available in
     * context, as is the case when using methods of [[Mock]].
