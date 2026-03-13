@@ -62,6 +62,7 @@ lazy val root =
       autoAPIMappings := true,
       publishMavenStyle := true,
       Test / publishArtifact := false,
+      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "--log=debug"),
       pomIncludeRepository := (_ => false)
     )
 
