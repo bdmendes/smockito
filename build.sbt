@@ -62,6 +62,7 @@ lazy val root =
       autoAPIMappings := true,
       publishMavenStyle := true,
       Test / publishArtifact := false,
+      Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "--log=debug"),
       pomIncludeRepository := (_ => false)
     )
 
@@ -78,6 +79,7 @@ releaseProcess :=
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
+    releaseStepCommandAndRemaining("ghpagesPushSite"),
     releaseStepCommandAndRemaining("publishSigned"),
     releaseStepCommand("sonaRelease"),
     setNextVersion,
