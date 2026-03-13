@@ -114,11 +114,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="smockito/Smockito.html#mock-fffff5df">mock</a> and <a href="smockito/Smockito.html#spy-957">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="smockito/Smockito.html#on-fffff4c2">on</a>, <a href="smockito/Smockito.html#calls-fffff60f">calls</a> and <a href="smockito/Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="smockito/Smockito.html#it-957">it</a> method.</p>
+             <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="smockito/Smockito.html#mock-fffff5df">mock</a> and <a href="smockito/Smockito.html#spy-fffff732">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="smockito/Smockito.html#on-fffff4c2">on</a>, <a href="smockito/Smockito.html#calls-fffff60f">calls</a> and <a href="smockito/Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="smockito/Smockito.html#it-957">it</a> method.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="smockito/Smockito.html#mock-fffff5df">mock</a> and <a href="smockito/Smockito.html#spy-957">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="smockito/Smockito.html#on-fffff4c2">on</a>, <a href="smockito/Smockito.html#calls-fffff60f">calls</a> and <a href="smockito/Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="smockito/Smockito.html#it-957">it</a> method.</p>
+              <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="smockito/Smockito.html#mock-fffff5df">mock</a> and <a href="smockito/Smockito.html#spy-fffff732">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="smockito/Smockito.html#on-fffff4c2">on</a>, <a href="smockito/Smockito.html#calls-fffff60f">calls</a> and <a href="smockito/Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="smockito/Smockito.html#it-957">it</a> method.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -314,11 +314,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A <code>Spy</code> is a copied instance, for interception purposes. All methods of this instance behave as the real instance, unless stubbed otherwise.</p>
+             <p>A <code>Spy</code> is a mock whose default answer is to forward all method calls to a real instance, unless stubbed otherwise.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A <code>Spy</code> is a copied instance, for interception purposes. All methods of this instance behave as the real instance, unless stubbed otherwise.</p>
+              <p>A <code>Spy</code> is a mock whose default answer is to forward all method calls to a real instance, unless stubbed otherwise.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
