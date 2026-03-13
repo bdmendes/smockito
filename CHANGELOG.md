@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.5.3 - 2026-03-14
+
+Starting from this release, Smockito spies will fall back to a Mockito `mock` with a default delegating answer when a real Mockito spy cannot be created. Most notably, this enables spying on lambdas. Existing valid usages are unaffected.
+
+### What's Changed
+* Implement spies via default forward answer by @bdmendes in https://github.com/bdmendes/smockito/pull/188
+* Minimize diff with 2.5.2 by @bdmendes in https://github.com/bdmendes/smockito/pull/189
+* Publish site on release step by @bdmendes in https://github.com/bdmendes/smockito/pull/190
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.5.2...v2.5.3
+
 ## 2.5.2 - 2026-03-12
 
 This release updates the Mockito backend to version 5.23 and makes exception constructors package-private, as they are not meant to be instantiated by users or otherwise expected in any way. In addition, the Scaladoc is now hosted via GH Pages, which should improve its availability and loading times.
