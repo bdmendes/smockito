@@ -78,6 +78,7 @@ releaseProcess :=
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
+    releaseStepCommandAndRemaining("ghpagesPushSite"),
     releaseStepCommandAndRemaining("publishSigned"),
     releaseStepCommand("sonaRelease"),
     setNextVersion,
