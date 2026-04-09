@@ -721,6 +721,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
 
+  test("return self on an onCall stub"):
+    trait Counter:
+      def increment(): Counter
+
+    val counter =
+      mock[Counter].onCall(() => it.increment()): _ =>
+        _ => it
+
+    assertEquals(counter.increment().increment(), counter)
+    assertEquals(counter.times(() => it.increment()), 2)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
