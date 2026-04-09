@@ -102,13 +102,13 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def on[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: PartialFunction[Pack[A], R2]
+        stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
     ): Mock[T] =
       assertMethodExists[A, R1]()
       val answer: Answer[R2] =
         invocation =>
           val arguments = unwrap[A](invocation.getRawArguments)
-          stub.applyOrElse(
+          stub(using mock).applyOrElse(
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
           )
@@ -230,13 +230,13 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def onCall[A <: Tuple, R1, R2 <: R1](method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: PartialFunction[Int, Pack[A] => R2]
+        stub: Mock[T] ?=> PartialFunction[Int, Pack[A] => R2]
     ): Mock[T] =
       val callCount = AtomicInteger(0)
       val f =
         (args: Pack[A]) =>
           val call = callCount.incrementAndGet()
-          stub.applyOrElse(call, _ => throw UnexpectedCallNumber(call)).apply(args)
+          stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call)).apply(args)
       mock.on(method)(PartialFunctionProxy(f))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,

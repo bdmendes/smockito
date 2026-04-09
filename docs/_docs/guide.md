@@ -18,7 +18,7 @@ val filter = Mockito.mock(classOf[Filter], DefaultThrowAnswer)
 val answer =
   (invocation: InvocationOnMock) =>
     val args = invocation.getRawArguments.asInstanceOf[Int => Boolean]
-    stub(args) // in this case, stub is (_ => List(1, 2, 3))
+    stub(using filter)(args) // in this case, stub is (_ => List(1, 2, 3))
 val handle = Mockito.doAnswer(answer).when(filter)
 mockedMethod(using handle).apply(ArgumentMatchers.any[Int => Boolean]())
 ```
@@ -219,3 +219,15 @@ assert(executor.calledBefore(it.compute(_: Int), it.compute(_: String)))
 ```
 
 When doing so, consider whether this behavior is a hard requirement of your system or merely an implementation detail. If it is the latter, the assertion might be an overspecification.
+
+## Referencing the Mocked Instance in a Stub
+
+A reference to the mocked instance itself is available in the stubbing context of the `on` and `onCall` methods via `it`.
+
+```scala
+  trait Counter:
+    def increment(): Counter
+
+  val counter = mock[Counter].on(() => it.increment())(_ => it)
+  assert(counter.increment().increment() == counter)
+```
