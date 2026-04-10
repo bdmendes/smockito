@@ -15,7 +15,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="Smockito.html#mock-fffff5df">mock</a> and <a href="Smockito.html#spy-fffff732">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="Smockito.html#on-fffff4c2">on</a>, <a href="Smockito.html#calls-fffff60f">calls</a> and <a href="Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="../smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="Smockito.html#it-957">it</a> method.</p>
+  <p>The trait to mix in for using Smockito facilities in a specification. It includes the <a href="Smockito.html#mock-fffff5df">mock</a> and <a href="Smockito.html#spy-fffff732">spy</a> methods for creating mocks, and the various syntax extensions on them, such as <a href="Smockito.html#on-c22">on</a>, <a href="Smockito.html#calls-fffff60f">calls</a> and <a href="Smockito.html#times-fffff4a4">times</a>. Those extensions expect method references via <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context functions</a> with a <a href="../smockito.html#Mock-0">Mock</a> context parameter, retrievable via the <a href="Smockito.html#it-957">it</a> method.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -155,12 +155,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Creates a <a href="../smockito.html#Mock-0">Mock</a> instance of <code>T</code>.</p>
+             <p>Creates a <a href="../smockito.html#Mock-0">Mock</a> instance of <code>T</code>. A <code>Mock[T]</code> is the compile time representation of an instance of <code>T</code> mocked by Mockito, erased at runtime, whose default answer is to throw.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Creates a <a href="../smockito.html#Mock-0">Mock</a> instance of <code>T</code>.</p>
-              <p>A <code>Mock[T]</code> is the <a href="Smockito.html">Smockito</a> compile time representation of a type mocked by Mockito, erased at runtime. As such, after you set up method stubs, you may pass a mock anywhere a <code>T</code> is needed.</p>
+              <p>Creates a <a href="../smockito.html#Mock-0">Mock</a> instance of <code>T</code>. A <code>Mock[T]</code> is the compile time representation of an instance of <code>T</code> mocked by Mockito, erased at runtime, whose default answer is to throw.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -200,14 +199,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Creates a <a href="../smockito.html#Spy-0">Spy</a> instance of <code>T</code>.</p>
+             <p>Creates a <a href="../smockito.html#Spy-0">Spy</a> instance of <code>T</code>. A <code>Spy[T]</code> is the compile time representation of a real instance of <code>T</code> copied by Mockito for spying purposes, erased at runtime.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Creates a <a href="../smockito.html#Spy-0">Spy</a> instance of <code>T</code>.</p>
-              <p>A <code>Spy[T]</code> is the <a href="Smockito.html">Smockito</a> compile time representation of a type spied by Mockito, erased at runtime. Keep in mind that Mockito spies are copies of real instances, so any method side effects won't affect the original object.</p>
-              <p>A <code>Spy[T]</code> is also a <code>Mock[T]</code>, so you may use all methods available on <a href="../smockito.html#Mock-0">Mock</a>.</p>
-              <p>If you only need to forward a few methods to a real instance, consider using the <a href="Smockito.html#forward-fffffb09">forward</a> method on a <a href="../smockito.html#Mock-0">Mock</a> instead for clarity and performance.</p>
+              <p>Creates a <a href="../smockito.html#Spy-0">Spy</a> instance of <code>T</code>. A <code>Spy[T]</code> is the compile time representation of a real instance of <code>T</code> copied by Mockito for spying purposes, erased at runtime.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -215,7 +211,7 @@ node3 -> node2;
                T
               </dt>
               <dd class="body-medium">
-               <p>the type to spy.</p>
+               <p>the type of the real instance to spy on.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -474,12 +470,12 @@ node3 -> node2;
            </div>
           </div>
          </div>
-         <div class="documentableElement" id="on-fffff4c2" data-f-keywords="inline" data-f-inherited="MockSyntax">
+         <div class="documentableElement" id="on-c22" data-f-keywords="inline" data-f-inherited="MockSyntax">
           <div class="documentableElement-expander">
            <button class="icon-button ar show-content"></button>
            <div class="header monospace mono-medium">
             <div class="signature">
-             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Smockito.html#on-fffff4c2" t="n" class="documentableName ">on</a>[<span t="k"></span><span data-unresolved-link="" t="t">A</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Tuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">R1</span>, <span t="k"></span><span data-unresolved-link="" t="t">R2</span><span t="k"> &lt;: </span><span t="t">R1</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">method</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="../smockito.html#MockedMethod-0" t="t">MockedMethod</a>[<span t="t">A</span>, <span t="t">R1</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">stub</span>: <a href="https://www.scala-lang.org/api/2.13.16/scala/PartialFunction.html" t="t">PartialFunction</a>[<a href="../smockito.html#Pack-0" t="t">Pack</a>[<span t="t">A</span>], <span t="t">R2</span>]): <a href="../smockito.html#Mock-0" t="t">Mock</a>[<span data-unresolved-link="" t="t">T</span>]
+             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Smockito.html#on-c22" t="n" class="documentableName ">on</a>[<span t="k"></span><span data-unresolved-link="" t="t">A</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Tuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">R1</span>, <span t="k"></span><span data-unresolved-link="" t="t">R2</span><span t="k"> &lt;: </span><span t="t">R1</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">method</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="../smockito.html#MockedMethod-0" t="t">MockedMethod</a>[<span t="t">A</span>, <span t="t">R1</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">stub</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="https://www.scala-lang.org/api/2.13.16/scala/PartialFunction.html" t="t">PartialFunction</a>[<a href="../smockito.html#Pack-0" t="t">Pack</a>[<span t="t">A</span>], <span t="t">R2</span>]): <a href="../smockito.html#Mock-0" t="t">Mock</a>[<span data-unresolved-link="" t="t">T</span>]
             </div>
            </div>
           </div>
@@ -530,12 +526,12 @@ node3 -> node2;
            </div>
           </div>
          </div>
-         <div class="documentableElement" id="onCall-fffff4c2" data-f-keywords="inline" data-f-inherited="MockSyntax">
+         <div class="documentableElement" id="onCall-c22" data-f-keywords="inline" data-f-inherited="MockSyntax">
           <div class="documentableElement-expander">
            <button class="icon-button ar show-content"></button>
            <div class="header monospace mono-medium">
             <div class="signature">
-             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Smockito.html#onCall-fffff4c2" t="n" class="documentableName ">onCall</a>[<span t="k"></span><span data-unresolved-link="" t="t">A</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Tuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">R1</span>, <span t="k"></span><span data-unresolved-link="" t="t">R2</span><span t="k"> &lt;: </span><span t="t">R1</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">method</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="../smockito.html#MockedMethod-0" t="t">MockedMethod</a>[<span t="t">A</span>, <span t="t">R1</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">stub</span>: <a href="https://www.scala-lang.org/api/2.13.16/scala/PartialFunction.html" t="t">PartialFunction</a>[<a href="https://www.scala-lang.org/api/2.13.16/scala/Int.html" t="t">Int</a>, (<a href="../smockito.html#Pack-0" t="t">Pack</a>[<span t="t">A</span>])<span t="k"> =&gt; </span><span t="t">R2</span>]): <a href="../smockito.html#Mock-0" t="t">Mock</a>[<span data-unresolved-link="" t="t">T</span>]
+             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Smockito.html#onCall-c22" t="n" class="documentableName ">onCall</a>[<span t="k"></span><span data-unresolved-link="" t="t">A</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Tuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">R1</span>, <span t="k"></span><span data-unresolved-link="" t="t">R2</span><span t="k"> &lt;: </span><span t="t">R1</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">method</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="../smockito.html#MockedMethod-0" t="t">MockedMethod</a>[<span t="t">A</span>, <span t="t">R1</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">stub</span>: (<a href="../smockito.html#Mock-0" t="t">Mock</a>[<span t="t">T</span>])<span t="k"> ?=&gt; </span><a href="https://www.scala-lang.org/api/2.13.16/scala/PartialFunction.html" t="t">PartialFunction</a>[<a href="https://www.scala-lang.org/api/2.13.16/scala/Int.html" t="t">Int</a>, (<a href="../smockito.html#Pack-0" t="t">Pack</a>[<span t="t">A</span>])<span t="k"> =&gt; </span><span t="t">R2</span>]): <a href="../smockito.html#Mock-0" t="t">Mock</a>[<span data-unresolved-link="" t="t">T</span>]
             </div>
            </div>
           </div>

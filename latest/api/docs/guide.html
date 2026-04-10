@@ -16,7 +16,7 @@
 </span><span line-number="2" class=""><span class="tooltip-container"></span>val answer =
 </span><span line-number="3" class=""><span class="tooltip-container"></span>  (invocation: InvocationOnMock) =&gt;
 </span><span line-number="4" class=""><span class="tooltip-container"></span>    val args = invocation.getRawArguments.asInstanceOf[Int =&gt; Boolean]
-</span><span line-number="5" class=""><span class="tooltip-container"></span>    stub(args) // in this case, stub is (_ =&gt; List(1, 2, 3))
+</span><span line-number="5" class=""><span class="tooltip-container"></span>    stub(using filter)(args) // in this case, stub is (_ =&gt; List(1, 2, 3))
 </span><span line-number="6" class=""><span class="tooltip-container"></span>val handle = Mockito.doAnswer(answer).when(filter)
 </span><span line-number="7" class=""><span class="tooltip-container"></span>mockedMethod(using handle).apply(ArgumentMatchers.any[Int =&gt; Boolean]())
 </span></code></pre>
@@ -216,4 +216,17 @@
   <div class="buttons"></div>
  </div>
  <p>When doing so, consider whether this behavior is a hard requirement of your system or merely an implementation detail. If it is the latter, the assertion might be an overspecification.</p>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#referencing-methods-with-eta-expansion">Referencing Methods with Eta-Expansion</a></li><li><a href="#setting-up-mocks">Setting up Mocks</a></li><li><a href="#setting-up-spies">Setting up Spies</a></li><li><a href="#reasoning-about-interactions">Reasoning about Interactions</a></li><li><a href="#other-use-cases">Other Use Cases</a><ul><li><a href="#resetting-mocks">Resetting Mocks</a></li><li><a href="#overriding-stubs">Overriding Stubs</a></li><li><a href="#mocking-objects">Mocking Objects</a></li><li><a href="#yielding-based-on-call-number">Yielding Based on Call Number</a></li><li><a href="#calling-real-methods">Calling Real Methods</a></li><li><a href="#forwarding-calls">Forwarding Calls</a></li><li><a href="#verifying-invocation-orders">Verifying Invocation Orders</a></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section>
+<section id="referencing-the-mocked-instance-in-a-stub">
+ <h2 class="h500"><a href="#referencing-the-mocked-instance-in-a-stub" class="anchor"></a>Referencing the Mocked Instance in a Stub</h2>
+ <p>A reference to the mocked instance itself is available in the stubbing context of the <code>on</code> and <code>onCall</code> methods via <code>it</code>.</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>  trait Counter:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>    def increment(): Counter
+</span><span line-number="3" class=""><span class="tooltip-container"></span>
+</span><span line-number="4" class=""><span class="tooltip-container"></span>  val counter = mock[Counter].on(() =&gt; it.increment())(_ =&gt; it)
+</span><span line-number="5" class=""><span class="tooltip-container"></span>  assert(counter.increment().increment() == counter)
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#referencing-methods-with-eta-expansion">Referencing Methods with Eta-Expansion</a></li><li><a href="#setting-up-mocks">Setting up Mocks</a></li><li><a href="#setting-up-spies">Setting up Spies</a></li><li><a href="#reasoning-about-interactions">Reasoning about Interactions</a></li><li><a href="#other-use-cases">Other Use Cases</a><ul><li><a href="#resetting-mocks">Resetting Mocks</a></li><li><a href="#overriding-stubs">Overriding Stubs</a></li><li><a href="#mocking-objects">Mocking Objects</a></li><li><a href="#yielding-based-on-call-number">Yielding Based on Call Number</a></li><li><a href="#calling-real-methods">Calling Real Methods</a></li><li><a href="#forwarding-calls">Forwarding Calls</a></li><li><a href="#verifying-invocation-orders">Verifying Invocation Orders</a></li><li><a href="#referencing-the-mocked-instance-in-a-stub">Referencing the Mocked Instance in a Stub</a></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
