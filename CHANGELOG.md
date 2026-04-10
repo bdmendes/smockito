@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.6.0 - 2026-04-10
+
+This release makes the mock itself available in the context of a stub via `it`, improving the mocking experience for method chains.
+
+### What's Changed
+* Simplify docs a bit by @bdmendes in https://github.com/bdmendes/smockito/pull/195
+* Allow self-references in stubs by @bdmendes in https://github.com/bdmendes/smockito/pull/197
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.5.3...v2.6.0
+
 ## 2.5.3 - 2026-03-14
 
 Starting from this release, Smockito spies will fall back to a Mockito `mock` with a default delegating answer when a real Mockito spy cannot be created. Most notably, this enables spying on lambdas. Existing valid usages are unaffected.
