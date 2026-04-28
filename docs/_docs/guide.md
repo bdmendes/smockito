@@ -23,12 +23,15 @@ val handle = Mockito.doAnswer(answer).when(filter)
 mockedMethod(using handle).apply(ArgumentMatchers.any[Int => Boolean]())
 ```
 
+#### Mock context parameter
+
 What's the deal with the [context parameter](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html)? Couldn't we just operate on `Mock[T] => MockedMethod[A, R]` and refer to self as `_` as common in many Scala APIs? We could, but there are some cases where this would confuse the compiler. For instance, if a method is overloaded, we have to explicitly specify the argument types to avoid ambiguity:
 
 ```scala
 class Executor:
   def compute(x: Int): Int = ???
   def compute(x: String): String = ???
+  def describe: String = ???
 
 val mock = mock[Executor].on(it.compute(_: Int))(_ => 42)
 ```
@@ -39,6 +42,15 @@ This idea was shamelessly borrowed from Kotlin's [implicit name of a single para
 
 ```scala
 def it[T](using mock: Mock[T]): Mock[T] = mock
+```
+
+#### Auto expansion of unary methods and values
+
+For unary methods or values, if they do not yield a function type, you do not need to manually eta-expand them with `() => it.symbol`. Smockito lifts an `R` to a `MockedMethod[?, R]` automatically, without evaluating it.
+
+```scala
+// same as mock.on(() => it.describe)(_ => "an executor")
+mock.on(it.describe)(_ => "an executor")
 ```
 
 # Setting up Mocks
@@ -228,6 +240,6 @@ A reference to the mocked instance itself is available in the stubbing context o
   trait Counter:
     def increment(): Counter
 
-  val counter = mock[Counter].on(() => it.increment())(_ => it)
+  val counter = mock[Counter].on(it.increment())(_ => it)
   assert(counter.increment().increment() == counter)
 ```
