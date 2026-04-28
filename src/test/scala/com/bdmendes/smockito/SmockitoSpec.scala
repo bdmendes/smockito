@@ -86,7 +86,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         "database"
 
     assert(!typeChecks("repository.on(() => it.longName)(_ => 2)"))
-    assert(!typeChecks("repository.on(it.longName)(_ => \"database\")"))
 
     assertEquals(repository.longName, "database")
     assertEquals(counter, 1)
