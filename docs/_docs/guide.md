@@ -46,7 +46,7 @@ def it[T](using mock: Mock[T]): Mock[T] = mock
 
 #### Auto expansion of unary methods and values
 
-For unary methods or values, if they do not yield a function type, you do not need to manually eta-expand them with `() => it.symbol`. Smockito lifts an `R` to a `MockedMethod[?, R]` automatically, without evaluating it.
+Unary methods or values that do not yield a function type do not require manual eta-expansion with `() => it.symbol`. Smockito lifts an `R` to a `MockedMethod[?, R]` automatically, without evaluating it.
 
 ```scala
 // same as mock.on(() => it.describe)(_ => "an executor")
