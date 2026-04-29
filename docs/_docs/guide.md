@@ -44,9 +44,9 @@ This idea was shamelessly borrowed from Kotlin's [implicit name of a single para
 def it[T](using mock: Mock[T]): Mock[T] = mock
 ```
 
-#### Auto expansion of unary methods and values
+#### Auto expansion of nullary methods and values
 
-Unary methods or values that do not yield a function type do not require manual eta-expansion with `() => it.symbol`. Smockito lifts an `R` to a `MockedMethod[?, R]` automatically, without evaluating it.
+Nullary methods or values that do not yield a function type do not require manual eta-expansion with `() => it.symbol` in a `Mock` position. Smockito lifts an `R` to a `MockedMethod[Unit, R]` automatically, without evaluating it.
 
 ```scala
 // same as mock.on(() => it.describe)(_ => "an executor")
