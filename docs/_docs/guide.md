@@ -23,6 +23,8 @@ val handle = Mockito.doAnswer(answer).when(filter)
 mockedMethod(using handle).apply(ArgumentMatchers.any[Int => Boolean]())
 ```
 
+## Mock context parameter
+
 What's the deal with the [context parameter](https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html)? Couldn't we just operate on `Mock[T] => MockedMethod[A, R]` and refer to self as `_` as common in many Scala APIs? We could, but there are some cases where this would confuse the compiler. For instance, if a method is overloaded, we have to explicitly specify the argument types to avoid ambiguity:
 
 ```scala
@@ -75,7 +77,7 @@ val executor = mock[Executor]
 
 Smockito will throw an exception behind the scenes if this stub gets called with an unexpected argument (here, any integer other than `2`), making sure that all interactions with the mock are explicitly defined.
 
-#### To mutate or not to mutate
+## To mutate or not to mutate
 
 You may think of `on` as a transformer method on the mock it is called on. In this schema, setting up a stub for method `foo` on mock `m1` yields an `m2` with the same stubs as `m1` plus the new one for `foo`. This is a perfectly valid mental model, and one that incentivizes immutability and discourages shared state between tests.
 
