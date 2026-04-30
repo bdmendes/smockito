@@ -75,6 +75,14 @@ val executor = mock[Executor]
 
 Smockito will throw an exception behind the scenes if this stub gets called with an unexpected argument (here, any integer other than `2`), making sure that all interactions with the mock are explicitly defined.
 
+#### To mutate or not to mutate
+
+You may think of `on` as a transformer method on the mock it is called on. In this schema, setting up a stub for method `foo` on mock `m1` yields an `m2` with the same stubs as `m1` plus the new one for `foo`. This is a perfectly valid mental model, and one that incentivizes immutability and discourages shared state between tests.
+
+That said, Smockito desugars to mutable Mockito APIs and does not create a new mock instance for each stub, so the `on` method does mutate the mock instance it is called on, and actually returns the same instance. Circumventing this would require setting up a fresh mock instance for each stub with the same stubs as the previous one, which would be less efficient and disallow use cases where one does want to mutate a mock instance.
+
+In the general case, Smockito advocates for creating a mock once per test case, with all needed stubs configured upfront.
+
 # Setting up Spies
 
 In Smockito, a spy is a special kind of mock whose methods get prefilled with the behavior of a real instance. They are created with the `spy` method, which takes a real instance as an argument. For example:
