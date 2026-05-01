@@ -22,6 +22,9 @@
 </span></code></pre>
   <div class="buttons"></div>
  </div>
+</section>
+<section id="mock-context-parameter">
+ <h2 class="h500"><a href="#mock-context-parameter" class="anchor"></a>Mock context parameter</h2>
  <p>What's the deal with the <a href="https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html">context parameter</a>? Couldn't we just operate on <code>Mock[T] =&gt; MockedMethod[A, R]</code> and refer to self as <code>_</code> as common in many Scala APIs? We could, but there are some cases where this would confuse the compiler. For instance, if a method is overloaded, we have to explicitly specify the argument types to avoid ambiguity:</p>
  <div class="snippet mono-small-block" scala-snippet="">
   <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>class Executor:
@@ -39,6 +42,34 @@
 </span></code></pre>
   <div class="buttons"></div>
  </div>
+</section>
+<section id="method-accessor-sanity-check">
+ <h2 class="h500"><a href="#method-accessor-sanity-check" class="anchor"></a>Method accessor sanity check</h2>
+ <p>Smockito asserts at compile time that received methods are expressions that select a method on the mock type via <code>it</code>. This is achieved with a macro that analyzes the abstract syntax tree of the method reference passed to <code>on</code>, <code>calls</code>, <code>times</code> and friends to ensure it conforms to the expected shape. If it doesn't, a compilation error is raised with a helpful message.</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>|    val repository = mock[Repository[User]].on(unrelated.contains)(_ =&gt; true)
+</span><span line-number="2" class=""><span class="tooltip-container"></span>|                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+</span><span line-number="3" class=""><span class="tooltip-container"></span>|Smockito expects a direct method reference via `it` (e.g. `it.foo`),
+</span><span line-number="4" class=""><span class="tooltip-container"></span>|got unrelated expression
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>This macro is not perfect, and there are instances where it cannot possibly catch all invalid method references. For example, if a contextual parameter is available in scope, eta-expansion will capture its value, rendering a function whose signature effectively does not exist in the mocked type.</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>trait Foo:
+</span><span line-number="2" class=""><span class="tooltip-container"></span>  def describe(using Printer[String]): String
+</span><span line-number="3" class=""><span class="tooltip-container"></span>
+</span><span line-number="4" class=""><span class="tooltip-container"></span>given Printer[String] = ???
+</span><span line-number="5" class=""><span class="tooltip-container"></span>
+</span><span line-number="6" class=""><span class="tooltip-container"></span>// fails at runtime as `describe` is actually unary
+</span><span line-number="7" class=""><span class="tooltip-container"></span>val invalidFoo = mock[Foo].on(it.describe)(_ =&gt; "foo")
+</span><span line-number="8" class=""><span class="tooltip-container"></span>
+</span><span line-number="9" class=""><span class="tooltip-container"></span>// you must perform manual eta-expansion here
+</span><span line-number="10" class=""><span class="tooltip-container"></span>val validFoo = mock[Foo].on(it.describe(using _: Printer[String]))(_ =&gt; "foo")
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>Nevertheless, Smockito also performs a runtime verification using reflection to assert that the received signature exists in the mocked type, via shape comparison, and throws an <code>UnknownMethod</code> exception that clearly signals the issue if it doesn't.</p>
 </section>
 <section id="setting-up-mocks">
  <h1 class="h500"><a href="#setting-up-mocks" class="anchor"></a>Setting up Mocks</h1>
@@ -72,6 +103,12 @@
   <div class="buttons"></div>
  </div>
  <p>Smockito will throw an exception behind the scenes if this stub gets called with an unexpected argument (here, any integer other than <code>2</code>), making sure that all interactions with the mock are explicitly defined.</p>
+</section>
+<section id="to-mutate-or-not-to-mutate">
+ <h2 class="h500"><a href="#to-mutate-or-not-to-mutate" class="anchor"></a>To mutate or not to mutate</h2>
+ <p>You may think of <code>on</code> as a transformer method on the mock it is called on. In this schema, setting up a stub for method <code>foo</code> on mock <code>m1</code> yields an <code>m2</code> with the same stubs as <code>m1</code> plus the new one for <code>foo</code>. This is a perfectly valid mental model, and one that incentivizes immutability and discourages shared state between tests.</p>
+ <p>That said, Smockito desugars to mutable Mockito APIs and does not create a new mock instance for each stub, so the <code>on</code> method does mutate the mock instance it is called on, and actually returns the same instance. Circumventing this would require setting up a fresh mock instance for each stub with the same stubs as the previous one, which would be less efficient and disallow use cases where one does want to mutate a mock instance.</p>
+ <p>In the general case, Smockito advocates for creating a mock once per test case, with all needed stubs configured upfront.</p>
 </section>
 <section id="setting-up-spies">
  <h1 class="h500"><a href="#setting-up-spies" class="anchor"></a>Setting up Spies</h1>
@@ -229,4 +266,4 @@
 </span></code></pre>
   <div class="buttons"></div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#referencing-methods-with-eta-expansion">Referencing Methods with Eta-Expansion</a></li><li><a href="#setting-up-mocks">Setting up Mocks</a></li><li><a href="#setting-up-spies">Setting up Spies</a></li><li><a href="#reasoning-about-interactions">Reasoning about Interactions</a></li><li><a href="#other-use-cases">Other Use Cases</a><ul><li><a href="#resetting-mocks">Resetting Mocks</a></li><li><a href="#overriding-stubs">Overriding Stubs</a></li><li><a href="#mocking-objects">Mocking Objects</a></li><li><a href="#yielding-based-on-call-number">Yielding Based on Call Number</a></li><li><a href="#calling-real-methods">Calling Real Methods</a></li><li><a href="#forwarding-calls">Forwarding Calls</a></li><li><a href="#verifying-invocation-orders">Verifying Invocation Orders</a></li><li><a href="#referencing-the-mocked-instance-in-a-stub">Referencing the Mocked Instance in a Stub</a></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#referencing-methods-with-eta-expansion">Referencing Methods with Eta-Expansion</a><ul><li><a href="#mock-context-parameter">Mock context parameter</a></li><li><a href="#method-accessor-sanity-check">Method accessor sanity check</a></li></ul></li><li><a href="#setting-up-mocks">Setting up Mocks</a><ul><li><a href="#to-mutate-or-not-to-mutate">To mutate or not to mutate</a></li></ul></li><li><a href="#setting-up-spies">Setting up Spies</a></li><li><a href="#reasoning-about-interactions">Reasoning about Interactions</a></li><li><a href="#other-use-cases">Other Use Cases</a><ul><li><a href="#resetting-mocks">Resetting Mocks</a></li><li><a href="#overriding-stubs">Overriding Stubs</a></li><li><a href="#mocking-objects">Mocking Objects</a></li><li><a href="#yielding-based-on-call-number">Yielding Based on Call Number</a></li><li><a href="#calling-real-methods">Calling Real Methods</a></li><li><a href="#forwarding-calls">Forwarding Calls</a></li><li><a href="#verifying-invocation-orders">Verifying Invocation Orders</a></li><li><a href="#referencing-the-mocked-instance-in-a-stub">Referencing the Mocked Instance in a Stub</a></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
