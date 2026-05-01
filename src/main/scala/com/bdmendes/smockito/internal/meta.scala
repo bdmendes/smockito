@@ -13,9 +13,9 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def abortOnInvalidMethodSelection[T: Type, F[_], A <: Tuple: Type](expr: Expr[F[T] ?=> Any])(using
+  def matchedMethodName[T: Type, F[_], A <: Tuple: Type](expr: Expr[F[T] ?=> Any])(using
       q: Quotes
-  ): Expr[Unit] =
+  ): Expr[String] =
     import q.reflect.*
 
     val targetType = TypeRepr.of[T]
@@ -30,7 +30,7 @@ object meta:
         case _ =>
           report.errorAndAbort("Could not determine expected arity")
 
-    def findAndCheck(term: Term): Boolean =
+    def findAndCheck(term: Term): Option[String] =
       term match
         case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
           val actualArity = s.symbol.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
@@ -40,11 +40,11 @@ object meta:
               s"Method '${s.symbol.name}' in ${typeName} has $actualArity parameter${plural} " +
                 s"but received function expects $expectedArity; eta-expand manually"
             )
-          true
+          Some(s.symbol.name)
         case Lambda(_, body) =>
           findAndCheck(body)
         case Apply(fn, args) =>
-          findAndCheck(fn) || args.exists(findAndCheck)
+          findAndCheck(fn).orElse(args.iterator.flatMap(findAndCheck).nextOption())
         case TypeApply(fn, _) =>
           findAndCheck(fn)
         case Block(_, e) =>
@@ -52,9 +52,10 @@ object meta:
         case Inlined(_, _, body) =>
           findAndCheck(body)
         case _ =>
-          false
+          None
 
-    if !findAndCheck(expr.asTerm) then
-      report.errorAndAbort(s"Expected selection of a mockable method of $typeName")
-
-    '{}
+    findAndCheck(expr.asTerm) match
+      case Some(methodName) =>
+        Expr(methodName)
+      case None =>
+        report.errorAndAbort(s"Expected selection of a mockable method of $typeName")

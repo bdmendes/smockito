@@ -34,5 +34,5 @@ private object MetaSpec:
 
   private inline def abortInvalidEntry[T, F[_]](inline expr: Any): Unit =
     ${
-      abortOnInvalidMethodSelection[T, F, Tuple1[?]]('expr)
+      matchedMethodName[T, F, Tuple1[?]]('expr)
     }

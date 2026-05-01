@@ -21,30 +21,11 @@ private trait MockSyntax:
 
   extension [T](mock: Mock[T])
 
-    private inline def matching[A <: Tuple, R](methods: Iterable[Method]): List[Method] =
-      // Get all methods that may correspond to our types.
-      // Due to erasure, we might get extra matches.
-      val stubArgClasses = meta.mapTuple[A, ClassTag[?]](ct).map(_.runtimeClass)
-      val stubReturnClass = summonInline[ClassTag[R]].runtimeClass
-      methods
-        .filter: method =>
-          (
-            method.getReturnType.isAssignableFrom(stubReturnClass) ||
-              (stubReturnClass.isPrimitive && method.getReturnType == classOf[Object])
-          ) && stubArgClasses.length == method.getParameterTypes.length &&
-            stubArgClasses
-              .zip(method.getParameterTypes)
-              .forall: (s, m) =>
-                m.isAssignableFrom(s) ||
-                  (s.isPrimitive && m == classOf[Object]) ||
-                  classOf[Function0[?]].isAssignableFrom(m)
-        .toList
-
-    private inline def assertValidMethodSelection[A <: Tuple, R](
+    private inline def validateAndRetrieveName[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
-    ): Unit =
+    ): String =
       ${
-        meta.abortOnInvalidMethodSelection[T, Mock, A]('method)
+        meta.matchedMethodName[T, Mock, A]('method)
       }
 
     private inline def unwrap[A](
@@ -106,7 +87,7 @@ private trait MockSyntax:
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
     ): Mock[T] =
-      assertValidMethodSelection(method)
+      validateAndRetrieveName(method)
       val answer: Answer[R2] =
         invocation =>
           val arguments = unwrap[A](invocation.getRawArguments)
@@ -133,7 +114,7 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
-      assertValidMethodSelection(method)
+      validateAndRetrieveName(method)
       method(using Mockito.doCallRealMethod().when(mock)).tupled(
         Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       )
@@ -152,7 +133,7 @@ private trait MockSyntax:
         case _: EmptyTuple =>
           error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
-          assertValidMethodSelection(method)
+          validateAndRetrieveName(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
             Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
@@ -172,25 +153,20 @@ private trait MockSyntax:
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      assertValidMethodSelection(method)
+      val methodName = validateAndRetrieveName(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          // Unfortunately, Mockito does not expose a reliable API for this use case.
-          // We have to check all matching invocations, minding type erasure, and manually
-          // validate the result.
-          val invocations =
-            matching[EmptyTuple, R](
-              Mockito.mockingDetails(mock).getInvocations.asScala.map(_.getMethod)
-            ).size
-          val validInvocations = (invocations to 1 by -1).find: count =>
-            verifies:
-              method(using Mockito.verify(mock, Mockito.times(count))).tupled(
-                EmptyTuple.asInstanceOf[A]
-              )
-          validInvocations.getOrElse(0)
+          Mockito
+            .mockingDetails(mock)
+            .getInvocations
+            .asScala
+            .filter(inv =>
+              inv.getMethod.getName == methodName && inv.getMethod.getParameters.isEmpty
+            )
+            .size
         case _: (h *: t) =>
-          // We do a little trick here: capturing the first argument is enough for counting the
-          // number of calls.
+          // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
+          // the first argument only, which is enough for counting the number of calls.
           val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
             Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
@@ -255,8 +231,8 @@ private trait MockSyntax:
         inline a: Mock[T] ?=> MockedMethod[A1, R1],
         inline b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
-      assertValidMethodSelection(a)
-      assertValidMethodSelection(b)
+      validateAndRetrieveName(a)
+      validateAndRetrieveName(b)
       val ordered = Mockito.inOrder(mock)
       verifies:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
