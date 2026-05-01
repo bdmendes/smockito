@@ -40,12 +40,7 @@ private trait MockSyntax:
                   classOf[Function0[?]].isAssignableFrom(m)
         .toList
 
-    private inline def assertMethodExists[A <: Tuple, R](): Unit =
-      val methods = summonInline[ClassTag[T]].runtimeClass.getMethods
-      if matching[A, R](methods).isEmpty then
-        throw UnknownMethod()
-
-    private inline def assertIsMethodSelection[A <: Tuple, R](
+    private inline def assertValidMethodSelection[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
     ): Unit =
       ${
@@ -111,8 +106,7 @@ private trait MockSyntax:
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
     ): Mock[T] =
-      assertIsMethodSelection(method)
-      assertMethodExists[A, R1]()
+      assertValidMethodSelection(method)
       val answer: Answer[R2] =
         invocation =>
           val arguments = unwrap[A](invocation.getRawArguments)
@@ -139,8 +133,7 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
-      assertIsMethodSelection(method)
-      assertMethodExists[A, R]()
+      assertValidMethodSelection(method)
       method(using Mockito.doCallRealMethod().when(mock)).tupled(
         Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       )
@@ -157,10 +150,9 @@ private trait MockSyntax:
     inline def calls[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): List[Pack[A]] =
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          error("`calls` is not available for nullary methods. Use `times` instead.")
+          error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
-          assertIsMethodSelection(method)
-          assertMethodExists[A, R]()
+          assertValidMethodSelection(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
             Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
@@ -180,8 +172,7 @@ private trait MockSyntax:
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      assertIsMethodSelection(method)
-      assertMethodExists[A, R]()
+      assertValidMethodSelection(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Unfortunately, Mockito does not expose a reliable API for this use case.
@@ -264,10 +255,8 @@ private trait MockSyntax:
         inline a: Mock[T] ?=> MockedMethod[A1, R1],
         inline b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
-      assertIsMethodSelection(a)
-      assertIsMethodSelection(b)
-      assertMethodExists[A1, R1]()
-      assertMethodExists[A2, R2]()
+      assertValidMethodSelection(a)
+      assertValidMethodSelection(b)
       val ordered = Mockito.inOrder(mock)
       verifies:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(

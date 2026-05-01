@@ -52,12 +52,6 @@ object Smockito:
 
   object SmockitoException:
 
-    case class UnknownMethod private[smockito] ()
-        extends SmockitoException(
-          s"The received method does not match any of the mock object's methods. " +
-            "Are you performing eta-expansion correctly?"
-        )
-
     case class UnexpectedArguments private[smockito] (method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} received unexpected arguments: " +
