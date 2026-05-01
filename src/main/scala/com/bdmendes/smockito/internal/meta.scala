@@ -19,7 +19,7 @@ object meta:
     import q.reflect.*
 
     val targetType = TypeRepr.of[T]
-    val typeName = targetType.show(using Printer.TypeReprShortCode)
+    lazy val typeName = targetType.show(using Printer.TypeReprShortCode)
 
     val expectedArity: Int =
       TypeRepr.of[A].dealias match
