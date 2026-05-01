@@ -380,7 +380,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.contains(_: String)), 1)
 
   test("reject received unrelated expression"):
-    def assertHasRejection(errors: String) = assert(errors.contains("got unrelated expression"))
+    def assertHasRejection(errors: String) =
+      assert(errors.contains("Expected selection of a mockable method"))
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]

@@ -55,8 +55,6 @@ object meta:
           false
 
     if !findAndCheck(expr.asTerm) then
-      report.errorAndAbort(
-        s"Expected selection of a mockable method of $typeName, got unrelated expression"
-      )
+      report.errorAndAbort(s"Expected selection of a mockable method of $typeName")
 
     '{}

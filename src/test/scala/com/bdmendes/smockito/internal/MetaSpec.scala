@@ -13,7 +13,7 @@ class MetaSpec extends munit.FunSuite:
 
   test("abort on invalid method selection"):
     inline def hasRejection(expr: String): Boolean =
-      compileErrors(expr).contains("got unrelated expression")
+      compileErrors(expr).contains("Expected selection of a mockable method")
 
     // The compiler can't see that `target` and `abortInvalidEntry` are being referenced below,
     // so force one of them to suppress the warning.

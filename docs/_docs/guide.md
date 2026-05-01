@@ -50,8 +50,7 @@ Smockito asserts at compile time that received methods are expressions that sele
 ```scala
 |    val repository = mock[Repository[User]].on(unrelated.contains)(_ => true)
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|Expected selection of a mockable method of Repository[User],
-|got unrelated expression
+|Expected selection of a mockable method of Repository[User]
 ```
 
 Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type.
