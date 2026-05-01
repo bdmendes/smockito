@@ -19,15 +19,18 @@ class MetaSpec extends munit.FunSuite:
     // so force one of them to suppress the warning.
     val _ = target
 
-    assert(!hasRejection("abortInvalidEntry(target.charAt)"))
-    assert(!hasRejection("abortInvalidEntry(target.charAt(_: Int))"))
-    assert(!hasRejection("abortInvalidEntry((pos: Int) => target.charAt(pos))"))
-    assert(hasRejection("abortInvalidEntry(0)"))
-    assert(hasRejection("abortInvalidEntry(() => true)"))
-    assert(hasRejection("abortInvalidEntry((_: String) => true)"))
+    assert(!hasRejection("abortInvalidEntry[String, Id](target.charAt)"))
+    assert(!hasRejection("abortInvalidEntry[String, Id](target.charAt(_: Int))"))
+    assert(!hasRejection("abortInvalidEntry[String, Id]((pos: Int) => target.charAt(pos))"))
+    assert(hasRejection("abortInvalidEntry[String, Id](0)"))
+    assert(hasRejection("abortInvalidEntry[Int, Id](target.charAt)"))
+    assert(hasRejection("abortInvalidEntry[String, Id](() => true)"))
+    assert(hasRejection("abortInvalidEntry[String, Id]((_: String) => true)"))
 
 private object MetaSpec:
-  val target: String = "Some string"
+  opaque type Id[+T] <: T = T
+
+  val target: Id[String] = "Some string"
 
   private inline def abortInvalidEntry[T, F[_]](inline expr: Any): Unit =
     ${
