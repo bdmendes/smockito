@@ -1,6 +1,5 @@
 package com.bdmendes.smockito.internal
 
-import com.bdmendes.smockito.*
 import scala.compiletime.*
 import scala.quoted.*
 import scala.reflect.ClassTag
@@ -14,9 +13,9 @@ private[smockito] object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def abortOnInvalidMethodSelection[T: Type, A <: Tuple: Type, R: Type](
-      method: Expr[Mock[T] ?=> MockedMethod[A, R]]
-  )(using q: Quotes): Expr[Unit] =
+  def abortOnInvalidMethodSelection[T: Type, F[_]](expr: Expr[F[T] ?=> Any])(using
+      q: Quotes
+  ): Expr[Unit] =
     import q.reflect.*
 
     val mockType = TypeRepr.of[T]
@@ -41,9 +40,9 @@ private[smockito] object meta:
         case _ =>
           false
 
-    if !hasSelectOnMock(method.asTerm) then
+    if !hasSelectOnMock(expr.asTerm) then
       report.errorAndAbort(
-        "Smockito expects a direct method reference via `it` (e.g. `it.someMethod`), got unrelated expression"
+        "Smockito expects a direct method reference via `it` (e.g. `it.foo`), got unrelated expression"
       )
 
     '{}

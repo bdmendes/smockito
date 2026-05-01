@@ -50,7 +50,7 @@ Smockito asserts at compile time that received methods are expressions that sele
 ```scala
 |    val repository = mock[Repository[User]].on(unrelated.contains)(_ => true)
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|Smockito expects a direct method reference via `it` (e.g. `it.someMethod`),
+|Smockito expects a direct method reference via `it` (e.g. `it.foo`),
 |got unrelated expression
 ```
 

@@ -49,7 +49,7 @@ private trait MockSyntax:
         inline method: Mock[T] ?=> MockedMethod[A, R]
     ): Unit =
       ${
-        meta.abortOnInvalidMethodSelection[T, A, R]('method)
+        meta.abortOnInvalidMethodSelection[T, Mock]('method)
       }
 
     private inline def unwrap[A](
