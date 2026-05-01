@@ -379,15 +379,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.contains(_: String)), 1)
 
-  test("reject non-method-reference functions at compile time"):
-    assert(!typeChecks("""mock[Repository[User]].on((_: String) => true)(_ => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].times((_: String) => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].calls((_: String) => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].forward((_: String) => true, null)"""))
-    assert(!typeChecks("""mock[Repository[User]].real((_: String) => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].onCall((_: String) => true)(_ => _ => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].calledBefore(it.exists, (_: String) => true)"""))
-    assert(!typeChecks("""mock[Repository[User]].calledAfter(it.exists, (_: String) => true)"""))
+  test("reject received unrelated expression at compile time"):
+    def assertHasRejection(errors: String) = assert(errors.contains("got unrelated expression"))
+
+    // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
+    val repository = mock[Repository[User]]
+    val _ = repository
+
+    assertHasRejection(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
+    assertHasRejection(compileErrors("""repository.times((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.calls((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.forward((_: String) => true, null)"""))
+    assertHasRejection(compileErrors("""repository.real((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.onCall((_: String) => true)(_ => _ => true)"""))
+    assertHasRejection(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
 
   test("throw on unknown received method"):
     intercept[UnknownMethod]:
