@@ -18,14 +18,14 @@ object meta:
   ): Expr[Unit] =
     import q.reflect.*
 
-    val mockType = TypeRepr.of[T]
+    val targetType = TypeRepr.of[T]
 
     // Walk the tree looking for any Select whose prefix has type T (or subtype).
     // That's the signature of `it.someMethod` (where `it: T`), as opposed to
     // an arbitrary lambda whose body has no such selection.
     def hasSelectOnF(term: Term): Boolean =
       term match
-        case Select(prefix, _) if prefix.tpe <:< mockType =>
+        case Select(prefix, _) if prefix.tpe <:< targetType =>
           true
         case Lambda(_, body) =>
           hasSelectOnF(body)
