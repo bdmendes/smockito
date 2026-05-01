@@ -13,36 +13,49 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def abortOnInvalidMethodSelection[T: Type, F[_]](expr: Expr[F[T] ?=> Any])(using
+  def abortOnInvalidMethodSelection[T: Type, F[_], A <: Tuple: Type](expr: Expr[F[T] ?=> Any])(using
       q: Quotes
   ): Expr[Unit] =
     import q.reflect.*
 
     val targetType = TypeRepr.of[T]
 
-    // Walk the tree looking for any Select whose prefix has type T (or subtype).
-    // That's the signature of `it.someMethod` (where `it: T`), as opposed to
-    // an arbitrary lambda whose body has no such selection.
-    def hasSelectOnF(term: Term): Boolean =
+    val expectedArity: Int =
+      TypeRepr.of[A].dealias match
+        case t if t =:= TypeRepr.of[EmptyTuple] =>
+          0
+        case AppliedType(_, args) =>
+          args.length
+        case _ =>
+          -1
+
+    def findAndCheck(term: Term): Boolean =
       term match
-        case Select(prefix, _) if prefix.tpe <:< targetType =>
+        case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
+          val actualArity = s.symbol.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
+          if expectedArity >= 0 && actualArity != expectedArity then
+            val plural = Option.when(actualArity >= 0)("s").getOrElse("")
+            report.errorAndAbort(
+              s"Method '${s.symbol.name}' has $actualArity parameter${plural} " +
+                s"but received function expects $expectedArity; eta-expand manually"
+            )
           true
         case Lambda(_, body) =>
-          hasSelectOnF(body)
+          findAndCheck(body)
         case Apply(fn, args) =>
-          hasSelectOnF(fn) || args.exists(hasSelectOnF)
+          findAndCheck(fn) || args.exists(findAndCheck)
         case TypeApply(fn, _) =>
-          hasSelectOnF(fn)
-        case Block(_, expr) =>
-          hasSelectOnF(expr)
+          findAndCheck(fn)
+        case Block(_, e) =>
+          findAndCheck(e)
         case Inlined(_, _, body) =>
-          hasSelectOnF(body)
+          findAndCheck(body)
         case _ =>
           false
 
-    if !hasSelectOnF(expr.asTerm) then
+    if !findAndCheck(expr.asTerm) then
       report.errorAndAbort(
-        "Smockito expects a direct method reference via `it` (e.g. `it.foo`), got unrelated expression"
+        "Expected selection of a mockable method on the mocked type, got unrelated expression"
       )
 
     '{}
