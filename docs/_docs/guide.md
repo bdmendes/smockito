@@ -43,6 +43,17 @@ This idea was shamelessly borrowed from Kotlin's [implicit name of a single para
 def it[T](using mock: Mock[T]): Mock[T] = mock
 ```
 
+## Method accessor sanity check
+
+Smockito asserts at compile time that received methods are expressions that select a method on the mock type via `it`. This is achieved with a macro that analyzes the abstract syntax tree of the method reference passed to `on`, `calls`, `times` and friends to ensure it conforms to the expected shape. If it doesn't, a compilation error is raised with a helpful message.
+
+```scala
+|    val repository = mock[Repository[User]].on(unrelated.contains)(_ => true)
+|                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Smockito expects a direct method reference via `it` (e.g. `it.someMethod`),
+|got unrelated expression
+```
+
 # Setting up Mocks
 
 With the eta-expansion and context parameters in place, setting up mocks becomes straightforward.

@@ -43,7 +43,7 @@ private[smockito] object meta:
 
     if !hasSelectOnMock(method.asTerm) then
       report.errorAndAbort(
-        "Smockito expects a direct method reference via `it` (e.g. `it.someMethod`), found unrelated expression"
+        "Smockito expects a direct method reference via `it` (e.g. `it.someMethod`), got unrelated expression"
       )
 
     '{}
