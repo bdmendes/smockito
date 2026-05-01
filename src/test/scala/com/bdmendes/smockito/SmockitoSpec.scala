@@ -379,8 +379,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.contains(_: String)), 1)
 
-  test("reject received unrelated expression at compile time"):
-    def assertHasRejection(errors: String) = assert(errors.contains("got unrelated expression"))
+  test("count calls on overloaded methods with different arities"):
+    val repository =
+      mock[Repository[User]]
+        .on(() => it.get)(_ => List.empty)
+        .on(it.get(_: Boolean))(_ => List.empty)
+
+    val _ = repository.get
+    val _ = repository.get(true)
+
+    assertEquals(repository.times(() => it.get), 1)
+    assertEquals(repository.times(it.get(_: Boolean)), 1)
+
+  test("reject received unrelated expression"):
+    def assertHasRejection(errors: String) =
+      assert(errors.contains("Expected selection of a mockable method"))
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]
@@ -395,12 +408,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertHasRejection(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
     assertHasRejection(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
 
-  test("throw on unknown received method"):
-    intercept[UnknownMethod]:
-      // It also happens frequently that a method with contextuals gets eta-expanded
-      // in a way that's not intended due to an implicit capture.
-      given User = mockUsers.head
-      val _ = mock[Repository[User]].on(it.greet)(_ => "hi!")
+  test("reject unknown received method"):
+    given User = mockUsers.head
+    val _ = summon[User]
+
+    def assertHasRejection(errors: String) = assert(errors.contains("received function expects"))
+
+    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""))
+    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""))
 
   test("dispatch a method to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
@@ -717,6 +732,7 @@ object SmockitoSpec:
     def track(): Unit
     def tag[V](x: List[V]): (List[V], List[String])
     def get: List[T]
+    def get(odd: Boolean): List[T]
     def getNames: List[String]
     def exists(username: String): Boolean
     def hasCount(count: => Int): Boolean
@@ -751,6 +767,7 @@ object SmockitoSpec:
       override def tag[V](x: List[V]): (List[V], List[String]) =
         (x, x.map(y => s"${longName}_${y}"))
       override def get: List[User] = mockUsers
+      override def get(odd: Boolean): List[User] = mockUsers
       override def getNames: List[String] = mockUsers.map(_.username)
       override def exists(username: String): Boolean = getNames.contains(username)
       override def hasCount(count: => Int): Boolean = getNames.size == count

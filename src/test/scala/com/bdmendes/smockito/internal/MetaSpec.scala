@@ -13,26 +13,23 @@ class MetaSpec extends munit.FunSuite:
 
   test("abort on invalid method selection"):
     inline def hasRejection(expr: String): Boolean =
-      compileErrors(expr).contains("got unrelated expression")
+      compileErrors(expr).contains("Expected selection of a mockable method")
 
-    // The compiler can't see that `target` and `abortInvalidEntry` are being referenced below,
-    // so force one of them to suppress the warning.
-    val _ = target
+    assertEquals(matchedMethodEntry[String, Id](target.charAt), "charAt")
+    assertEquals(matchedMethodEntry[String, Id](target.charAt(_: Int)), "charAt")
+    assertEquals(matchedMethodEntry[String, Id]((pos: Int) => target.charAt(pos)), "charAt")
 
-    assert(!hasRejection("abortInvalidEntry[String, Id](target.charAt)"))
-    assert(!hasRejection("abortInvalidEntry[String, Id](target.charAt(_: Int))"))
-    assert(!hasRejection("abortInvalidEntry[String, Id]((pos: Int) => target.charAt(pos))"))
-    assert(hasRejection("abortInvalidEntry[String, Id](0)"))
-    assert(hasRejection("abortInvalidEntry[Int, Id](target.charAt)"))
-    assert(hasRejection("abortInvalidEntry[String, Id](() => true)"))
-    assert(hasRejection("abortInvalidEntry[String, Id]((_: String) => true)"))
+    assert(hasRejection("matchedMethodEntry[String, Id](0)"))
+    assert(hasRejection("matchedMethodEntry[Int, Id](target.charAt)"))
+    assert(hasRejection("matchedMethodEntry[String, Id](() => true)"))
+    assert(hasRejection("matchedMethodEntry[String, Id]((_: String) => true)"))
 
 private object MetaSpec:
   opaque type Id[+T] <: T = T
 
   val target: Id[String] = "Some string"
 
-  private inline def abortInvalidEntry[T, F[_]](inline expr: Any): Unit =
+  private inline def matchedMethodEntry[T, F[_]](inline expr: Any): String =
     ${
-      abortOnInvalidMethodSelection[T, F]('expr)
+      matchedMethodName[T, F, Tuple1[?]]('expr)
     }
