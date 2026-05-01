@@ -28,13 +28,13 @@ object meta:
         case AppliedType(_, args) =>
           args.length
         case _ =>
-          -1
+          report.errorAndAbort("Could not determine expected arity")
 
     def findAndCheck(term: Term): Boolean =
       term match
         case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
           val actualArity = s.symbol.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
-          if expectedArity >= 0 && actualArity != expectedArity then
+          if actualArity != expectedArity then
             val plural = Option.when(actualArity >= 0)("s").getOrElse("")
             report.errorAndAbort(
               s"Method '${s.symbol.name}' in ${typeName} has $actualArity parameter${plural} " +
