@@ -19,7 +19,7 @@ class MetaSpec extends munit.FunSuite:
     // so force one of them to suppress the warning.
     val _ = target
 
-    assert(!hasRejection("abortInvalidEntry(target.charAt))"))
+    assert(!hasRejection("abortInvalidEntry(target.charAt)"))
     assert(!hasRejection("abortInvalidEntry(target.charAt(_: Int))"))
     assert(!hasRejection("abortInvalidEntry((pos: Int) => target.charAt(pos))"))
     assert(hasRejection("abortInvalidEntry(0)"))
