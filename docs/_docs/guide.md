@@ -54,6 +54,23 @@ Smockito asserts at compile time that received methods are expressions that sele
 |got unrelated expression
 ```
 
+This macro is not perfect, and there are instances where it cannot possibly catch all invalid method references. For example, if a contextual parameter is available in scope, eta-expansion will capture its value, rendering a function whose signature effectively does not exist in the mocked type.
+
+```scala
+trait Foo:
+  def describe(using Printer[String]): String
+
+given Printer[String] = ???
+
+// fails at runtime as `describe` is actually unary
+val invalidFoo = mock[Foo].on(it.describe)(_ => "foo")
+
+// you must perform manual eta-expansion here
+val validFoo = mock[Foo].on(it.describe(using _: Printer[String]))(_ => "foo")
+```
+
+Nevertheless, Smockito also performs a runtime verification using reflection to assert that the received signature exists in the mocked type, via shape comparison, and throws an `UnknownMethod` exception that clearly signals the issue if it doesn't.
+
 # Setting up Mocks
 
 With the eta-expansion and context parameters in place, setting up mocks becomes straightforward.
