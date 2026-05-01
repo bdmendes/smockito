@@ -14,15 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
-## 2.7.0 - 2026-05-01
+## 2.7.0 - 2026-05-02
 
-This release introduces a new compile time check for the sanity of received method references via AST inspection: they must be direct selectors with an `it` target. This should not break any current, valid usages.
+This release introduces a new compile time check for the sanity of received method references via AST inspection: they must be direct selectors with an `it` target, and match the expected method shape. This should not break any current, valid usages. With this macro in place, `times` for nullary methods was simplified, and the `UnknownMethod` exception removed.
 
 In addition, the docs were augmented with discussion around the mutability semantics of the API, clarifying the rationale behind the functional feel in front of a mutable implementation and guiding users towards better test architectures.
 
 ### What's Changed
 * Add mutation discussion to guide by @bdmendes in https://github.com/bdmendes/smockito/pull/204
 * Check for sane method selection at compile time by @bdmendes in https://github.com/bdmendes/smockito/pull/206
+* Rework times to match via name and introduce matched method shape check by @bdmendes in https://github.com/bdmendes/smockito/pull/210
 
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.6.0...2.7.0
 

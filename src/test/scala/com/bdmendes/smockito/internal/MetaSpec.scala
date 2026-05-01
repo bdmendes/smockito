@@ -11,7 +11,7 @@ class MetaSpec extends munit.FunSuite:
 
     assert(mapTuple[(String, Int, Long), String](f).sameElements(Array("String", "int", "long")))
 
-  test("retrieved matched method name"):
+  test("retrieve matched method name"):
     inline def hasRejection(expr: String): Boolean =
       compileErrors(expr).contains("Expected selection of a mockable method")
 
