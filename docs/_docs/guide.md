@@ -56,11 +56,11 @@ Smockito asserts at compile time that received methods are expressions that sele
 Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type, directing the user to eta-expand manually.
 
 ```scala
-|trait Printer[A]
-|trait Foo:
-|  def describe(upper: Boolean)(using Printer[String]): String
+|    trait Printer[A]
+|    trait Foo:
+|      def describe(upper: Boolean)(using Printer[String]): String
 |
-|given Printer[String] = ???
+|    given Printer[String] = ???
 |
 |    val invalidFoo = mock[Foo].on(it.describe)(_ => "foo")
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
