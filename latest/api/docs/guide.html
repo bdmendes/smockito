@@ -49,27 +49,24 @@
  <div class="snippet mono-small-block" scala-snippet="">
   <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>|    val repository = mock[Repository[User]].on(unrelated.contains)(_ =&gt; true)
 </span><span line-number="2" class=""><span class="tooltip-container"></span>|                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-</span><span line-number="3" class=""><span class="tooltip-container"></span>|Smockito expects a direct method reference via `it` (e.g. `it.foo`),
-</span><span line-number="4" class=""><span class="tooltip-container"></span>|got unrelated expression
+</span><span line-number="3" class=""><span class="tooltip-container"></span>|Expected selection of a mockable method of Repository[User]
 </span></code></pre>
   <div class="buttons"></div>
  </div>
- <p>This macro is not perfect, and there are instances where it cannot possibly catch all invalid method references. For example, if a contextual parameter is available in scope, eta-expansion will capture its value, rendering a function whose signature effectively does not exist in the mocked type.</p>
+ <p>Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type, directing the user to eta-expand manually.</p>
  <div class="snippet mono-small-block" scala-snippet="">
-  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>trait Foo:
-</span><span line-number="2" class=""><span class="tooltip-container"></span>  def describe(using Printer[String]): String
-</span><span line-number="3" class=""><span class="tooltip-container"></span>
-</span><span line-number="4" class=""><span class="tooltip-container"></span>given Printer[String] = ???
-</span><span line-number="5" class=""><span class="tooltip-container"></span>
-</span><span line-number="6" class=""><span class="tooltip-container"></span>// fails at runtime as `describe` is actually unary
-</span><span line-number="7" class=""><span class="tooltip-container"></span>val invalidFoo = mock[Foo].on(it.describe)(_ =&gt; "foo")
-</span><span line-number="8" class=""><span class="tooltip-container"></span>
-</span><span line-number="9" class=""><span class="tooltip-container"></span>// you must perform manual eta-expansion here
-</span><span line-number="10" class=""><span class="tooltip-container"></span>val validFoo = mock[Foo].on(it.describe(using _: Printer[String]))(_ =&gt; "foo")
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>|    trait Printer[A]
+</span><span line-number="2" class=""><span class="tooltip-container"></span>|    trait Foo:
+</span><span line-number="3" class=""><span class="tooltip-container"></span>|      def describe(upper: Boolean)(using Printer[String]): String
+</span><span line-number="4" class=""><span class="tooltip-container"></span>|
+</span><span line-number="5" class=""><span class="tooltip-container"></span>|    given Printer[String] = ???
+</span><span line-number="6" class=""><span class="tooltip-container"></span>|
+</span><span line-number="7" class=""><span class="tooltip-container"></span>|    val invalidFoo = mock[Foo].on(it.describe)(_ =&gt; "foo")
+</span><span line-number="8" class=""><span class="tooltip-container"></span>|                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+</span><span line-number="9" class=""><span class="tooltip-container"></span>|Method describe in Foo has 2 parameters but received function expects 1
 </span></code></pre>
   <div class="buttons"></div>
  </div>
- <p>Nevertheless, Smockito also performs a runtime verification using reflection to assert that the received signature exists in the mocked type, via shape comparison, and throws an <code>UnknownMethod</code> exception that clearly signals the issue if it doesn't.</p>
 </section>
 <section id="setting-up-mocks">
  <h1 class="h500"><a href="#setting-up-mocks" class="anchor"></a>Setting up Mocks</h1>
