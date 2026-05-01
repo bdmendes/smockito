@@ -19,6 +19,7 @@ object meta:
     import q.reflect.*
 
     val targetType = TypeRepr.of[T]
+    val typeName = targetType.show(using Printer.TypeReprShortCode)
 
     val expectedArity: Int =
       TypeRepr.of[A].dealias match
@@ -36,7 +37,7 @@ object meta:
           if expectedArity >= 0 && actualArity != expectedArity then
             val plural = Option.when(actualArity >= 0)("s").getOrElse("")
             report.errorAndAbort(
-              s"Method '${s.symbol.name}' has $actualArity parameter${plural} " +
+              s"Method '${s.symbol.name}' in ${typeName} has $actualArity parameter${plural} " +
                 s"but received function expects $expectedArity; eta-expand manually"
             )
           true
@@ -54,7 +55,6 @@ object meta:
           false
 
     if !findAndCheck(expr.asTerm) then
-      val typeName = targetType.show(using Printer.TypeReprShortCode)
       report.errorAndAbort(
         s"Expected selection of a mockable method of $typeName, got unrelated expression"
       )

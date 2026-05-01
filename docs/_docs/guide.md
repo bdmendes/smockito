@@ -65,7 +65,7 @@ Eta-expansion in Scala has its quirks: for instance, it captures any context par
 |
 |    val invalidFoo = mock[Foo].on(it.describe)(_ => "foo")
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|Method 'describe' has 2 parameters but received function expects 1;
+|Method 'describe' in Foo has 2 parameters but received function expects 1;
 |eta-expand manually
 ```
 
