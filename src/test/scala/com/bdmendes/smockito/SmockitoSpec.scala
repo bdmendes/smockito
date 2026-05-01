@@ -379,45 +379,23 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.times(it.contains(_: String)), 1)
 
+  test("reject received unrelated expression at compile time"):
+    def assertHasRejection(errors: String) = assert(errors.contains("got unrelated expression"))
+
+    // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
+    val repository = mock[Repository[User]]
+    val _ = repository
+
+    assertHasRejection(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
+    assertHasRejection(compileErrors("""repository.times((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.calls((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.forward((_: String) => true, null)"""))
+    assertHasRejection(compileErrors("""repository.real((_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.onCall((_: String) => true)(_ => _ => true)"""))
+    assertHasRejection(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
+    assertHasRejection(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
+
   test("throw on unknown received method"):
-    def merge(x: User, y: User) = User(x.username + y.username)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].on(merge)(_ => mockUsers.head)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].times(merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calls(merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].forward(merge, null)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].onCall(merge)(_ => _ => mockUsers.head)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].real(merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledBefore(it.exists, merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledBefore(merge, it.exists)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledBefore(merge, merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledAfter(it.exists, merge)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledAfter(merge, it.exists)
-
-    intercept[UnknownMethod]:
-      val _ = mock[Repository[User]].calledAfter(merge, merge)
-
     intercept[UnknownMethod]:
       // It also happens frequently that a method with contextuals gets eta-expanded
       // in a way that's not intended due to an implicit capture.
