@@ -160,8 +160,9 @@ private trait MockSyntax:
             .mockingDetails(mock)
             .getInvocations
             .asScala
-            .filter(inv =>
-              inv.getMethod.getName == methodName && inv.getMethod.getParameters.isEmpty
+            .filter(invocation =>
+              invocation.getMethod.getName == methodName &&
+                invocation.getMethod.getParameters.isEmpty
             )
             .size
         case _: (h *: t) =>
