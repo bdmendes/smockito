@@ -55,11 +55,7 @@ object Smockito:
     case class UnknownMethod private[smockito] ()
         extends SmockitoException(
           s"The received method does not match any of the mock object's methods. " +
-            "Are you performing eta-expansion correctly? " +
-            "Double-check if this method has contextual parameters and " +
-            "they are inadvertently being captured in the spec scope, " +
-            "one or more default parameters are being discarded, " +
-            "or a variable number of arguments is being fixed."
+            "Are you performing eta-expansion correctly?"
         )
 
     case class UnexpectedArguments private[smockito] (method: Method, arguments: Array[Object])
