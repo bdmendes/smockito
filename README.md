@@ -55,3 +55,5 @@ You may reason about method interactions with `calls` and `times`. If arguments 
   assert(repository.calls(it.getWith) == List(("john", "doe")))
   assert(repository.times(it.getWith) == 1)
 ```
+
+The Smockito API is immutable. `on` returns a new `Mock` instance, with an empty call history.

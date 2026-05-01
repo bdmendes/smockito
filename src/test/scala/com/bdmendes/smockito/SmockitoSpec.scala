@@ -458,10 +458,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("define stubs outside of declaring scope"):
     trait MockData:
-      lazy val repository = mock[Repository[User]]
+      lazy val repository = mock[Repository[User]].on(it.getWith)(_ => List.empty)
 
     new MockData:
-      repository.on(it.getWith)(_ => List.empty)
       assertEquals(repository.getWith("bd", "mendes"), List.empty)
       assertEquals(repository.times(it.getWith), 1)
       assertEquals(repository.calls(it.getWith), List(("bd", "mendes")))
@@ -710,6 +709,48 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
 
+  test("not mutate the original mock via `on`"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
+    val repository2 = repository.on(() => it.get)(_ => mockUsers)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository2.get, mockUsers)
+
+    assertEquals(repository.times(() => it.get), 1)
+    assertEquals(repository2.times(() => it.get), 1)
+
+  test("not mutate the original mock via `onCall`"):
+    val repository = mock[Repository[User]].on(() => it.get)(_ => List.empty)
+    val repository2 = repository.on(() => it.get)(_ => mockUsers)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository2.get, mockUsers)
+
+    assertEquals(repository.times(() => it.get), 1)
+    assertEquals(repository2.times(() => it.get), 1)
+
+  test("not mutate the original mock via `forward`"):
+    val repository = mock[Repository[User]].on(() => it.longName)(_ => "mocked")
+    val repository2 = repository.forward(() => it.longName, realRepository)
+
+    assertEquals(repository.longName, "mocked")
+    assertEquals(repository2.longName, "fancyRepository")
+
+    assertEquals(repository.times(() => it.longName), 1)
+    assertEquals(repository2.times(() => it.longName), 1)
+
+  test("not mutate the original mock via `real`"):
+    val repository = mock[Repository[User]].on(it.greet(_: Boolean)(using _: User))(_ => "mocked")
+    val repository2 = repository.real(it.greet(_: Boolean)(using _: User))
+
+    given User = null
+
+    assertEquals(repository.greet(false), "mocked")
+    assertEquals(repository2.greet(false), "hi!")
+
+    assertEquals(repository.times(it.greet(_: Boolean)(using _: User)), 1)
+    assertEquals(repository2.times(it.greet(_: Boolean)(using _: User)), 1)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -727,7 +768,7 @@ object SmockitoSpec:
     def getWithDefaults(startsWith: String, endsWith: Option[String] = Some(name.toString)): List[T]
     def getWithDefaultsFree(startsWith: String, endsWith: Option[String] = None): List[T]
     def getWithCurried(startsWith: String)(endsWith: String): List[T]
-    def greet(upper: Boolean)(using T): String
+    def greet(upper: Boolean)(using T): String = "hi!"
 
   object Repository:
     val suffix = "Repository"

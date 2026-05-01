@@ -55,6 +55,8 @@ You may reason about method interactions with `calls` and `times`. If arguments 
   assert(repository.times(it.getWith) == 1)
 ```
 
+The Smockito API is immutable. `on` returns a new `Mock` instance, with an empty call history.
+
 # Integrating with Test Frameworks and Coding Styles
 
 There is no special syntax required to use Smockito with different testing frameworks or coding styles. Simply extend `Smockito` in your test classes or traits, and you can use the mocking capabilities provided by Smockito seamlessly within your existing test setup. For example, with `munit`, one would do:

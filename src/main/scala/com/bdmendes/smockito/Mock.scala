@@ -4,6 +4,8 @@ import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta
 import java.lang.reflect.Method
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
 import org.mockito.exceptions.base.MockitoAssertionError
@@ -98,36 +100,90 @@ private trait MockSyntax:
         case _: MockitoAssertionError =>
           false
 
-    /** Sets up a stub for a method, based on the received tupled arguments. This will override any
-      * previous stubs for the same method.
+    /** Sets up a new mock with the same stubs as this one, plus a new stub for a method based on
+      * the received tupled arguments. Any existing stub for the same method is overriden.
       *
       * @param method
       *   the method to mock.
       * @param stub
       *   the stub implementation, based on the received arguments.
       * @return
-      *   the mocked type.
+      *   a fresh mock with the new stub added.
       */
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
-    ): Mock[T] =
+    )(using ClassTag[T]): Mock[T] =
       assertIsMethodSelection(method)
       assertMethodExists[A, R1]()
-      val answer: Answer[R2] =
-        invocation =>
-          val arguments = unwrap[A](invocation.getRawArguments)
-          stub(using mock).applyOrElse(
-            pack(Tuple.fromArray(arguments).asInstanceOf[A]),
-            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
-          )
-      method(using Mockito.doAnswer(answer).when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
-      )
-      mock
+      Mock.materialize(mock): m =>
+        val answer: Answer[R2] =
+          invocation =>
+            val arguments = unwrap[A](invocation.getRawArguments)
+            stub(using m).applyOrElse(
+              pack(Tuple.fromArray(arguments).asInstanceOf[A]),
+              _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+            )
+        method(using Mockito.doAnswer(answer).when(m)).tupled(
+          Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+        )
 
-    /** Sets up a stub that delegates to the real implementation of this method. Useful when you
-      * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
-      * later with [[on]]. Otherwise, use with care.
+    /** Sets up a new mock with the same stubs as this one, plus a new stub for a method based on
+      * the call number. For the version operating only on the expected set of inputs, see [[on]].
+      *
+      * @param method
+      *   the method to mock.
+      * @param stub
+      *   the stub implementation, based on the call number of the respective method, starting at 1.
+      * @return
+      *   a fresh mock with the new stub added.
+      */
+    inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
+        stub: Mock[T] ?=> PartialFunction[Int, Pack[A] => R2]
+    )(using ClassTag[T]): Mock[T] =
+      assertIsMethodSelection(method)
+      assertMethodExists[A, R1]()
+      Mock.materialize(mock): m =>
+        val callCount = AtomicInteger(0)
+        val answer: Answer[R2] =
+          invocation =>
+            val arguments = unwrap[A](invocation.getRawArguments)
+            val call = callCount.incrementAndGet()
+            stub(using m)
+              .applyOrElse(call, _ => throw UnexpectedCallNumber(call))
+              .apply(pack(Tuple.fromArray(arguments).asInstanceOf[A]))
+        method(using Mockito.doAnswer(answer).when(m)).tupled(
+          Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+        )
+
+    /** Sets up a new mock with the same stubs as this one, plus a new stub for a method that
+      * delegates to a real instance.
+      *
+      * At a high level, this desugars to:
+      *
+      * {{{
+      *   mock.on(it.someMethod)(realInstance.someMethod)
+      * }}}
+      *
+      * If you need to forward multiple methods, consider using a [[Spy]] instead.
+      *
+      * @param method
+      *   the mocked method.
+      * @param realInstance
+      *   the real instance.
+      * @return
+      *   a fresh mock with the new stub added.
+      */
+    inline def forward[A <: Tuple, R](
+        inline method: Mock[T] ?=> MockedMethod[A, R],
+        realInstance: T
+    )(using ClassTag[T]): Mock[T] =
+      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
+      mock.on(method)(PartialFunctionProxy(realMethod))
+
+    /** Sets up a new mock with the same stubs as this one, plus a new stub that delegates to the
+      * real implementation of this method. Useful when you want to preserve an adapter method’s
+      * behavior while stubbing a method lower in the hierarchy later with [[on]]. Otherwise, use
+      * with care.
       *
       * Notice that, if the real implementation interacts with a class value that is not available
       * in the mocking context, the stub will throw with a [[java.lang.NullPointerException]].
@@ -136,15 +192,17 @@ private trait MockSyntax:
       * @param method
       *   the method whose real implementation shall be called.
       * @return
-      *   the mocked type.
+      *   a fresh mock that will call the real implementation of the method.
       */
-    inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
+    inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R])(using
+        ClassTag[T]
+    ): Mock[T] =
       assertIsMethodSelection(method)
       assertMethodExists[A, R]()
-      method(using Mockito.doCallRealMethod().when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
-      )
-      mock
+      Mock.materialize(mock): m =>
+        method(using Mockito.doCallRealMethod().when(m)).tupled(
+          Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+        )
 
     /** Yields the captured arguments received by a stubbed method, in chronological order. If you
       * only need to reason about the number of interactions, [[times]] is more efficient.
@@ -206,50 +264,6 @@ private trait MockSyntax:
           )
           cap.getAllValues.size
 
-    /** Sets up a stub for a method that calls the respective method of a real instance.
-      *
-      * At a high level, this desugars to:
-      *
-      * {{{
-      *   mock.on(it.someMethod)(realInstance.someMethod)
-      * }}}
-      *
-      * If you need to forward multiple methods, consider using a [[Spy]] instead.
-      *
-      * @param method
-      *   the mocked method.
-      * @param realInstance
-      *   the real instance.
-      * @return
-      *   the mocked type.
-      */
-    inline def forward[A <: Tuple, R](
-        inline method: Mock[T] ?=> MockedMethod[A, R],
-        realInstance: T
-    ): Mock[T] =
-      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
-      mock.on(method)(PartialFunctionProxy(realMethod))
-
-    /** Sets up a stub for a method that behaves differently based on the call number. For the
-      * version operating only on the expected set of inputs, see [[on]].
-      *
-      * @param method
-      *   the method to mock.
-      * @param stub
-      *   the stub implementation, based on the call number of the respective method, starting at 1.
-      * @return
-      *   the mocked type.
-      */
-    inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: Mock[T] ?=> PartialFunction[Int, Pack[A] => R2]
-    ): Mock[T] =
-      val callCount = AtomicInteger(0)
-      val f =
-        (args: Pack[A]) =>
-          val call = callCount.incrementAndGet()
-          stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call)).apply(args)
-      mock.on(method)(PartialFunctionProxy(f))
-
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
       *
@@ -308,3 +322,16 @@ private object Mock:
       ct.runtimeClass.asInstanceOf[Class[T]],
       Mockito.withSettings().defaultAnswer(DefaultAnswer)
     )
+
+  val recipeRegistry = Collections.synchronizedMap(IdentityHashMap.apply())
+
+  def materialize[T: ClassTag](mock: Mock[T])(recipe: Mock[T] => Unit): Mock[T] =
+    val recipes =
+      recipeRegistry
+        .computeIfAbsent(mock.asInstanceOf[Object], _ => Vector.empty)
+        .asInstanceOf[Vector[Mock[T] => Unit]]
+    val newMock = apply[T]
+    recipes.foreach(_.apply(newMock))
+    recipe(newMock)
+    recipeRegistry.put(newMock.asInstanceOf[Object], recipes :+ recipe)
+    newMock

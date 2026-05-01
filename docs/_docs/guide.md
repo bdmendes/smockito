@@ -87,7 +87,7 @@ At this point, calling any method on `filter` will throw an exception, as Smocki
 val filter = mock[Filter].on(it.filterBy)(_ => List(1, 2, 3))
 ```
 
-`on` returns the same mock instance, allowing for method chaining. We can set up multiple methods in a single statement:
+Since the Smockito API is immutable, `on` returns a fresh instance with the same stubs as the previous one plus the new one. Call `on` again on the new instance to set up a mock in a chaining fashion:
 
 ```scala
 val executor = mock[Executor]
@@ -104,14 +104,6 @@ val executor = mock[Executor]
 ```
 
 Smockito will throw an exception behind the scenes if this stub gets called with an unexpected argument (here, any integer other than `2`), making sure that all interactions with the mock are explicitly defined.
-
-## To mutate or not to mutate
-
-You may think of `on` as a transformer method on the mock it is called on. In this schema, setting up a stub for method `foo` on mock `m1` yields an `m2` with the same stubs as `m1` plus the new one for `foo`. This is a perfectly valid mental model, and one that incentivizes immutability and discourages shared state between tests.
-
-That said, Smockito desugars to mutable Mockito APIs and does not create a new mock instance for each stub, so the `on` method does mutate the mock instance it is called on, and actually returns the same instance. Circumventing this would require setting up a fresh mock instance for each stub with the same stubs as the previous one, which would be less efficient and disallow use cases where one does want to mutate a mock instance.
-
-In the general case, Smockito advocates for creating a mock once per test case, with all needed stubs configured upfront.
 
 # Setting up Spies
 
@@ -154,22 +146,16 @@ For methods with multiple parameters, `calls` returns a tuple of arguments for e
 
 With the basics covered, you should be able to use Smockito for most common mocking scenarios. However, there are some additional use cases that may arise in more complex tests.
 
-## Resetting Mocks
+## Mutating Mocks
 
-A specification typically includes several test cases that share some common setup. In such scenarios, you might be inclined to reuse the same mock instance across multiple tests, and look for ways to reset its state between tests. However, this approach can lead to brittle tests that are hard to reason about and is by design non-thread-safe.
-
-As such, Smockito provides no built-in mechanism for resetting mocks. Instead, it is recommended to create a new mock instance for each test case to ensure isolation and prevent state leakage.
-
-## Overriding Stubs
-
-In the same spirit of avoiding shared state between tests, you should avoid overriding stubs on the same mock instance. If you need different behavior for the same method in different test cases, create separate mock instances with the desired stubs for each test. That is as simple as creating an helper method:
+The Smockito API is immutable, so there is no way to mutate mocks. If you need different behavior for the same method in different test cases, create separate mock instances with the desired stubs for each test. That is as simple as creating a helper method:
 
 ```scala
 def mockExecutor(returnValue: Int): Mock[Executor] =
   mock[Executor].on(it.compute(_: Int))(_ => returnValue)
 ```
 
-That said, if you really need to override a stub, you may do so by calling `on` again for the same method. The last stub takes precedence.
+That said, you may override a stub in a fresh instance by calling `on` again for the same method. The last stub takes precedence.
 
 ## Mocking Objects
 
