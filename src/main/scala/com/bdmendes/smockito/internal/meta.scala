@@ -35,7 +35,7 @@ object meta:
         case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
           val actualArity = s.symbol.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
           if actualArity != expectedArity then
-            val plural = Option.when(actualArity >= 0)("s").getOrElse("")
+            val plural = Option.when(actualArity != 1)("s").getOrElse("")
             report.errorAndAbort(
               s"Method ${s.symbol.name} in $typeName has $actualArity parameter$plural " +
                 s"but received function expects $expectedArity"
