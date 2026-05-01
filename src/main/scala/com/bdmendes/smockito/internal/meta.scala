@@ -54,8 +54,9 @@ object meta:
           false
 
     if !findAndCheck(expr.asTerm) then
+      val typeName = targetType.show(using Printer.TypeReprShortCode)
       report.errorAndAbort(
-        "Expected selection of a mockable method on the mocked type, got unrelated expression"
+        s"Expected selection of a mockable method of $typeName, got unrelated expression"
       )
 
     '{}
