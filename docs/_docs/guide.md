@@ -53,7 +53,7 @@ Smockito asserts at compile time that received methods are expressions that sele
 |Expected selection of a mockable method of Repository[User]
 ```
 
-Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type.
+Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type, directing the user to eta-expand manually.
 
 ```scala
 |trait Printer[A]
@@ -64,8 +64,7 @@ Eta-expansion in Scala has its quirks: for instance, it captures any context par
 |
 |    val invalidFoo = mock[Foo].on(it.describe)(_ => "foo")
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|Method 'describe' in Foo has 2 parameters but received function expects 1;
-|eta-expand manually
+|Method describe in Foo has 2 parameters but received function expects 1
 ```
 
 # Setting up Mocks

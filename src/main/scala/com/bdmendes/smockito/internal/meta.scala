@@ -37,8 +37,8 @@ object meta:
           if actualArity != expectedArity then
             val plural = Option.when(actualArity >= 0)("s").getOrElse("")
             report.errorAndAbort(
-              s"Method '${s.symbol.name}' in ${typeName} has $actualArity parameter${plural} " +
-                s"but received function expects $expectedArity; eta-expand manually"
+              s"Method ${s.symbol.name} in $typeName has $actualArity parameter$plural " +
+                s"but received function expects $expectedArity"
             )
           Some(s.symbol.name)
         case Lambda(_, body) =>

@@ -400,7 +400,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     given User = mockUsers.head
     val _ = summon[User]
 
-    def assertHasRejection(errors: String) = assert(errors.contains("eta-expand manually"))
+    def assertHasRejection(errors: String) = assert(errors.contains("received function expects"))
 
     assertHasRejection(compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""))
     assertHasRejection(compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""))
