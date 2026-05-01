@@ -25,7 +25,7 @@ In addition, the docs were augmented with discussion around the mutability seman
 * Check for sane method selection at compile time by @bdmendes in https://github.com/bdmendes/smockito/pull/206
 * Rework times to match via name and introduce matched method shape check by @bdmendes in https://github.com/bdmendes/smockito/pull/210
 
-**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.6.0...2.7.0
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.6.0...v2.7.0
 
 ## 2.6.0 - 2026-04-10
 
