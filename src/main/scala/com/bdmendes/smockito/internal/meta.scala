@@ -34,15 +34,8 @@ private[smockito] object meta:
           hasSelectOnMock(fn) || args.exists(hasSelectOnMock)
         case TypeApply(fn, _) =>
           hasSelectOnMock(fn)
-        case Typed(inner, _) =>
-          hasSelectOnMock(inner)
-        case Block(stmts, expr) =>
-          stmts.exists:
-            case t: Term =>
-              hasSelectOnMock(t)
-            case _ =>
-              false
-          || hasSelectOnMock(expr)
+        case Block(_, expr) =>
+          hasSelectOnMock(expr)
         case Inlined(_, _, body) =>
           hasSelectOnMock(body)
         case _ =>

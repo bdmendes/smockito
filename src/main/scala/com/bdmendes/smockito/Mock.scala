@@ -45,7 +45,7 @@ private trait MockSyntax:
       if matching[A, R](methods).isEmpty then
         throw UnknownMethod()
 
-    private transparent inline def assertIsMethodSelection[A <: Tuple, R](
+    private inline def assertIsMethodSelection[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
     ): Unit =
       ${
