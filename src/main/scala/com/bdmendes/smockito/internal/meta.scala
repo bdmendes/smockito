@@ -23,31 +23,48 @@ object meta:
     val targetType = TypeRepr.of[T]
     val returnType = TypeRepr.of[R]
 
-    lazy val expectedArity: Int =
+    lazy val receivedParamTypes: List[TypeRepr] =
       TypeRepr.of[A].dealias match
         case t if t =:= TypeRepr.of[EmptyTuple] =>
-          0
+          Nil
         case AppliedType(_, args) =>
-          args.length
+          args
         case _ =>
-          report.errorAndAbort("Could not determine expected arity")
+          report.errorAndAbort("Could not determine received parameter types")
 
-    def finalResultType(t: TypeRepr): TypeRepr =
+    def methodSignature(t: TypeRepr): (List[TypeRepr], TypeRepr) =
       t match
-        case MethodType(_, _, ret) =>
-          finalResultType(ret)
+        case MethodType(_, params, ret) =>
+          val (retParams, result) = methodSignature(ret)
+          (params ++ retParams, result)
         case PolyType(_, _, ret) =>
-          finalResultType(ret)
+          methodSignature(ret)
         case _ =>
+          (Nil, t)
+
+    def normalize(t: TypeRepr): TypeRepr =
+      t.widenTermRefByName.widenByName.dealias match
+        case AppliedType(tycon, arg :: Nil) if tycon.typeSymbol == defn.RepeatedParamClass =>
+          TypeRepr.of[Seq].appliedTo(arg).dealias
+        case t =>
           t
 
-    def checkAndReturn(sym: Symbol, methodReturn: => TypeRepr): Option[String] =
-      val actualArity = sym.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
-      if actualArity != expectedArity then
-        val plural = Option.when(actualArity != 1)("s").getOrElse("")
+    def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
+      expected.dealias match
+        case TypeBounds(low, high) =>
+          normalize(low) <:< actual && actual <:< normalize(high)
+        case expected =>
+          normalize(expected) <:< actual
+
+    def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
+
+    def checkAndReturn(sym: Symbol, methodType: => TypeRepr): Option[String] =
+      val (params, methodReturn) = methodSignature(methodType)
+      val methodParamTypes = params.map(normalize)
+      if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
         report.errorAndAbort(
-          s"Method ${sym.name} in ${targetType.show} has $actualArity parameter$plural " +
-            s"but received function expects $expectedArity"
+          s"Method ${sym.name} in ${targetType.show} expects ${showTypes(methodParamTypes)} " +
+            s"but received function expects ${showTypes(receivedParamTypes.map(normalize))}"
         )
       if !(returnType <:< methodReturn) then
         report.errorAndAbort(
@@ -59,9 +76,9 @@ object meta:
     def findAndCheck(term: Term): Option[String] =
       term match
         case tapp @ TypeApply(s @ Select(prefix, _), _) if prefix.tpe <:< targetType =>
-          checkAndReturn(s.symbol, finalResultType(tapp.tpe.widen))
+          checkAndReturn(s.symbol, normalize(tapp.tpe))
         case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
-          checkAndReturn(s.symbol, finalResultType(prefix.tpe.memberType(s.symbol).widen))
+          checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
         case Lambda(_, body) =>
           findAndCheck(body)
         case Apply(fn, args) =>
