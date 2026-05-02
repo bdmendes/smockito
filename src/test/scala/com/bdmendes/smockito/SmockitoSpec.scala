@@ -392,30 +392,31 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.get(_: Boolean)), 1)
 
   test("reject received unrelated expression"):
-    def assertHasRejection(errors: String) =
+    def assertRejects(errors: String) =
       assert(errors.contains("Expected selection of a mockable method"))
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]
     val _ = repository
 
-    assertHasRejection(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
-    assertHasRejection(compileErrors("""repository.times((_: String) => true)"""))
-    assertHasRejection(compileErrors("""repository.calls((_: String) => true)"""))
-    assertHasRejection(compileErrors("""repository.forward((_: String) => true, null)"""))
-    assertHasRejection(compileErrors("""repository.real((_: String) => true)"""))
-    assertHasRejection(compileErrors("""repository.onCall((_: String) => true)(_ => _ => true)"""))
-    assertHasRejection(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
-    assertHasRejection(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
+    assertRejects(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
+    assertRejects(compileErrors("""repository.times((_: String) => true)"""))
+    assertRejects(compileErrors("""repository.calls((_: String) => true)"""))
+    assertRejects(compileErrors("""repository.forward((_: String) => true, null)"""))
+    assertRejects(compileErrors("""repository.real((_: String) => true)"""))
+    assertRejects(compileErrors("""repository.onCall((_: String) => true)(_ => _ => true)"""))
+    assertRejects(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
+    assertRejects(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
 
   test("reject unknown received method"):
     given User = mockUsers.head
     val _ = summon[User]
 
-    def assertHasRejection(errors: String) = assert(errors.contains("received function expects"))
+    def assertRejects(errors: String) = assert(errors.contains("received function expects"))
 
-    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""))
-    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""))
+    assertRejects(compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""))
+    assertRejects(compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""))
+    assertRejects(compileErrors("""mock[Repository[User]].on(() => println(it.get))(_ => ())"""))
 
   test("dispatch a method to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)

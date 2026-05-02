@@ -31,5 +31,5 @@ private object MetaSpec:
 
   private inline def matchedMethodEntry[T, F[_]](inline expr: Any): String =
     ${
-      matchedMethodName[T, F, Tuple1[?]]('expr)
+      matchedMethodName[T, F, Tuple1[?], Char]('expr)
     }

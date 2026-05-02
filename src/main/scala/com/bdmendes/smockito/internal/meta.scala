@@ -13,15 +13,17 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def matchedMethodName[T: Type, F[_], A <: Tuple: Type](expr: Expr[F[T] ?=> Any])(using
+  def matchedMethodName[T: Type, F[_], A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(using
       q: Quotes
   ): Expr[String] =
     import q.reflect.*
 
-    val targetType = TypeRepr.of[T]
-    lazy val typeName = targetType.show(using Printer.TypeReprShortCode)
+    given Printer[TypeRepr] = Printer.TypeReprShortCode
 
-    val expectedArity: Int =
+    val targetType = TypeRepr.of[T]
+    val returnType = TypeRepr.of[R]
+
+    lazy val expectedArity: Int =
       TypeRepr.of[A].dealias match
         case t if t =:= TypeRepr.of[EmptyTuple] =>
           0
@@ -30,17 +32,36 @@ object meta:
         case _ =>
           report.errorAndAbort("Could not determine expected arity")
 
+    def finalResultType(t: TypeRepr): TypeRepr =
+      t match
+        case MethodType(_, _, ret) =>
+          finalResultType(ret)
+        case PolyType(_, _, ret) =>
+          finalResultType(ret)
+        case _ =>
+          t
+
+    def checkAndReturn(sym: Symbol, methodReturn: TypeRepr): Option[String] =
+      val actualArity = sym.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
+      if actualArity != expectedArity then
+        val plural = Option.when(actualArity != 1)("s").getOrElse("")
+        report.errorAndAbort(
+          s"Method ${sym.name} in ${targetType.show} has $actualArity parameter$plural " +
+            s"but received function expects $expectedArity"
+        )
+      if !(returnType <:< methodReturn) then
+        report.errorAndAbort(
+          s"Method ${sym.name} in ${targetType.show} returns ${methodReturn.show} " +
+            s"but received function returns ${returnType.show}"
+        )
+      Some(sym.name)
+
     def findAndCheck(term: Term): Option[String] =
       term match
+        case tapp @ TypeApply(s @ Select(prefix, _), _) if prefix.tpe <:< targetType =>
+          checkAndReturn(s.symbol, finalResultType(tapp.tpe.widen))
         case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
-          val actualArity = s.symbol.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
-          if actualArity != expectedArity then
-            val plural = Option.when(actualArity != 1)("s").getOrElse("")
-            report.errorAndAbort(
-              s"Method ${s.symbol.name} in $typeName has $actualArity parameter$plural " +
-                s"but received function expects $expectedArity"
-            )
-          Some(s.symbol.name)
+          checkAndReturn(s.symbol, finalResultType(prefix.tpe.memberType(s.symbol).widen))
         case Lambda(_, body) =>
           findAndCheck(body)
         case Apply(fn, args) =>
@@ -58,4 +79,4 @@ object meta:
       case Some(methodName) =>
         Expr(methodName)
       case None =>
-        report.errorAndAbort(s"Expected selection of a mockable method of $typeName")
+        report.errorAndAbort(s"Expected selection of a mockable method of ${targetType.show}")

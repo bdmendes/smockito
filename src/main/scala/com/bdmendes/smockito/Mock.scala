@@ -25,7 +25,7 @@ private trait MockSyntax:
         inline method: Mock[T] ?=> MockedMethod[A, R]
     ): String =
       ${
-        meta.matchedMethodName[T, Mock, A]('method)
+        meta.matchedMethodName[T, Mock, A, R]('method)
       }
 
     private inline def unwrap[A](
