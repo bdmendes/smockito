@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.1 - 2026-05-02
+
+This release further tightens compile time checks for received methods by verifying that their return type matches that of the referenced method. This should not break any current, valid usages.
+
+### What's Changed
+* Match return type of stub at compile time by @bdmendes in https://github.com/bdmendes/smockito/pull/211
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.0...v2.7.1
+
 ## 2.7.0 - 2026-05-02
 
 This release introduces a new compile time check for the sanity of received method references via AST inspection: they must be direct selectors with an `it` target, and match the expected method shape. This should not break any current, valid usages. With this macro in place, `times` for nullary methods was simplified, and the `UnknownMethod` exception removed.
