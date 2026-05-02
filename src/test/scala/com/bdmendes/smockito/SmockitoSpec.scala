@@ -412,10 +412,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     given User = mockUsers.head
     val _ = summon[User]
 
-    def assertHasRejection(errors: String) = assert(errors.contains("received function expects"))
+    def assertHasRejection(errors: String, action: String) =
+      assert(errors.contains(s"received function $action"))
 
-    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""))
-    assertHasRejection(compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""))
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""),
+      "expects"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""),
+      "expects"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(() => println(it.get))(_ => ())"""),
+      "returns"
+    )
 
   test("dispatch a method to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
