@@ -41,7 +41,7 @@ object meta:
         case _ =>
           t
 
-    def checkAndReturn(sym: Symbol, methodReturn: TypeRepr): Option[String] =
+    def checkAndReturn(sym: Symbol, methodReturn: => TypeRepr): Option[String] =
       val actualArity = sym.paramSymss.filterNot(_.exists(_.isType)).map(_.length).sum
       if actualArity != expectedArity then
         val plural = Option.when(actualArity != 1)("s").getOrElse("")
