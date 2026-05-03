@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.1 - 2026-05-03
+
+This release tightens compile time checks for received methods even further, now ensuring that the received argument types match those of the referenced method, besides the parameter count.
+
+### What's Changed
+* Check for full parameter match in validation macro by @bdmendes in https://github.com/bdmendes/smockito/pull/213
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.1...v2.7.2
+
 ## 2.7.1 - 2026-05-02
 
 This release further tightens compile time checks for received methods by verifying that their return type matches that of the referenced method. This should not break any current, valid usages.
