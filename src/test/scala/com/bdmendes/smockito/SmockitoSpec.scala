@@ -754,6 +754,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(foo.nullary, "bar")
     assertEquals(foo.times(() => it.nullary), 1)
 
+  test("allow partial mocking in spies"):
+    val repository = spy(realRepository)
+
+    assertEquals(repository.get, mockUsers)
+    assertEquals(repository.exists("bdmendes"), true)
+
+    repository.on(() => it.get)(_ => List.empty)
+
+    assertEquals(repository.get, List.empty)
+    assertEquals(repository.exists("bdmendes"), true)
+
+    assertEquals(repository.times(() => it.get), 2)
+    assertEquals(repository.times(it.exists), 2)
+    assertEquals(repository.calls(it.exists), List("bdmendes", "bdmendes"))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
