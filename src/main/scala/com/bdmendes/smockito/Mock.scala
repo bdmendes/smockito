@@ -21,9 +21,9 @@ private trait MockSyntax:
 
   extension [T](mock: Mock[T])
 
-    private inline def validateAndRetrieveName[A <: Tuple, R](
+    private inline def validateMethod[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
-    ): String =
+    ): Unit =
       ${
         meta.matchedMethodName[T, Mock, A, R]('method)
       }
@@ -87,7 +87,7 @@ private trait MockSyntax:
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
     ): Mock[T] =
-      validateAndRetrieveName(method)
+      validateMethod(method)
       val answer: Answer[R2] =
         invocation =>
           val arguments = unwrap[A](invocation.getRawArguments)
@@ -114,7 +114,7 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
-      validateAndRetrieveName(method)
+      validateMethod(method)
       method(using Mockito.doCallRealMethod().when(mock)).tupled(
         Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       )
@@ -133,7 +133,7 @@ private trait MockSyntax:
         case _: EmptyTuple =>
           error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
-          validateAndRetrieveName(method)
+          validateMethod(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
             Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
@@ -153,10 +153,11 @@ private trait MockSyntax:
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      validateAndRetrieveName(method)
+      validateMethod(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          // Due to possibly different target names, we cannot rely on the method name.
+          // Mockito has no reliable API for this use case, so we have to resort to inspecting the
+          // mock's invocations and considering all possible matches.
           val returnClass = summonInline[ClassTag[R]].runtimeClass
           val possiblyMatching =
             Mockito
@@ -241,8 +242,8 @@ private trait MockSyntax:
         inline a: Mock[T] ?=> MockedMethod[A1, R1],
         inline b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
-      validateAndRetrieveName(a)
-      validateAndRetrieveName(b)
+      validateMethod(a)
+      validateMethod(b)
       val ordered = Mockito.inOrder(mock)
       verifies:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
