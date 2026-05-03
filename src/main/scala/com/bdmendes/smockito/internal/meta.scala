@@ -58,7 +58,7 @@ object meta:
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
-    def checkAndReturn(sym: Symbol, methodType: => TypeRepr): Option[String] =
+    def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[String] =
       val (params, methodReturn) = methodSignature(methodType)
       val methodParamTypes = params.map(normalize)
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
@@ -82,7 +82,7 @@ object meta:
         case Lambda(_, body) =>
           findAndCheck(body)
         case Apply(fn, args) =>
-          findAndCheck(fn).orElse(args.iterator.flatMap(findAndCheck).nextOption())
+          (fn :: args).iterator.flatMap(findAndCheck).nextOption()
         case TypeApply(fn, _) =>
           findAndCheck(fn)
         case Block(_, e) =>
