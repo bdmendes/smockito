@@ -424,6 +424,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       "expects"
     )
     assertHasRejection(
+      compileErrors("""mock[Repository[User]].on((_: Int, _: Boolean) => it.get(true))"""),
+      "expects"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on((_: Int) => it.get(true))"""),
+      "expects"
+    )
+    assertHasRejection(
       compileErrors("""mock[Repository[User]].on(() => println(it.get))(_ => ())"""),
       "returns"
     )
