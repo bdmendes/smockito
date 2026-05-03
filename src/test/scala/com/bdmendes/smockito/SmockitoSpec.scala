@@ -4,6 +4,7 @@ import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.SmockitoSpec.*
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
+import scala.annotation.targetName
 import scala.annotation.unused
 import scala.compiletime.summonFrom
 import scala.compiletime.testing.typeChecks
@@ -743,6 +744,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
+
+  test("be resilient to different target names"):
+    trait Foo:
+      @targetName("someNullary")
+      def nullary: String
+
+    val foo = mock[Foo].on(() => it.nullary)(_ => "bar")
+    assertEquals(foo.nullary, "bar")
+    assertEquals(foo.times(() => it.nullary), 1)
 
 object SmockitoSpec:
 

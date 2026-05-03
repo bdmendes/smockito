@@ -153,18 +153,27 @@ private trait MockSyntax:
       *   the number of calls to the stub.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      val methodName = validateAndRetrieveName(method)
+      validateAndRetrieveName(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          Mockito
-            .mockingDetails(mock)
-            .getInvocations
-            .asScala
-            .filter(invocation =>
-              invocation.getMethod.getName == methodName &&
-                invocation.getMethod.getParameters.isEmpty
-            )
-            .size
+          // Due to possibly different target names, we cannot rely on the method name.
+          val returnClass = summonInline[ClassTag[R]].runtimeClass
+          val possiblyMatching =
+            Mockito
+              .mockingDetails(mock)
+              .getInvocations
+              .asScala
+              .filter(invocation =>
+                invocation.getMethod.getParameters.isEmpty &&
+                  invocation.getMethod.getReturnType.isAssignableFrom(returnClass)
+              )
+              .size
+          val validInvocations = (possiblyMatching to 1 by -1).find: count =>
+            verifies:
+              method(using Mockito.verify(mock, Mockito.times(count))).tupled(
+                EmptyTuple.asInstanceOf[A]
+              )
+          validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
