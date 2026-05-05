@@ -165,7 +165,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
+      mock[Repository[User]].on(it.containsOneOf(_*)): names =>
         names.contains("bdmendes")
 
     assert(repository.containsOneOf("bdmendes", "apmendes"))
@@ -249,15 +249,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
+      mock[Repository[User]].on(it.containsOneOf(_*)): names =>
         names.contains("bdmendes")
 
     val _ = repository.containsOneOf("bdmendes", "apmendes")
 
-    assertEquals(
-      repository.calls((names: Seq[String]) => it.containsOneOf(names*)),
-      List(Seq("bdmendes", "apmendes"))
-    )
+    assertEquals(repository.calls(it.containsOneOf(_*)), List(Seq("bdmendes", "apmendes")))
 
   test("inspect calls on overloaded methods"):
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
@@ -363,12 +360,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("count calls on methods with variable arguments"):
     val repository =
-      mock[Repository[User]].on((names: Seq[String]) => it.containsOneOf(names*)): names =>
+      mock[Repository[User]].on(it.containsOneOf(_*)): names =>
         names.contains("bdmendes")
 
     val _ = repository.containsOneOf("bdmendes", "apmendes")
 
-    assertEquals(repository.times((names: Seq[String]) => it.containsOneOf(names*)), 1)
+    assertEquals(repository.times(it.containsOneOf(_*)), 1)
 
   test("count calls on overloaded methods"):
     val repository = mock[Repository[User]].on(it.contains(_: String))(_ => true)
