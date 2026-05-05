@@ -54,7 +54,7 @@ object meta:
         case TypeBounds(low, high) =>
           normalize(low) <:< actual && actual <:< normalize(high)
         case expected =>
-          normalize(expected) <:< actual
+          normalize(expected) =:= actual
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
