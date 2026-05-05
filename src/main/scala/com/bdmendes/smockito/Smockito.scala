@@ -55,26 +55,22 @@ object Smockito:
     case class UnexpectedArguments private[smockito] (method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} received unexpected arguments: " +
-            s"(${arguments.mkString(", ")}). " + "Did you forget to handle this case at the stub?"
+            s"(${arguments.mkString(", ")})."
         )
 
     case class UnexpectedCallNumber private[smockito] (callNumber: Int)
         extends SmockitoException(
-          s"The method was called an unexpected number of times: $callNumber. " +
-            "Did you forget to handle this call number at the stub?"
+          s"The method was called an unexpected number of times: $callNumber."
         )
 
     case class UnstubbedMethod private[smockito] (method: Method, arguments: Array[Object])
         extends SmockitoException(
           s"${describeMethod(method)} is not stubbed " +
-            s"and was called with arguments: (${arguments.mkString(", ")}). " +
-            "Did you forget to stub the method, or was it called unexpectedly?"
+            s"and was called with arguments: (${arguments.mkString(", ")})."
         )
 
     case class UnexpectedType private[smockito] (value: Any, expected: Class[?])
         extends SmockitoException(
           s"Expected a ${expected.getName}, but got $value which is of type " +
-            s"${value.getClass.getName}. You may have defined a stub for a fixed " +
-            "type parameter, a fixed number of parameters, or be hitting a " +
-            "Smockito limitation."
+            s"${value.getClass.getName}."
         )
