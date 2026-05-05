@@ -413,28 +413,34 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     given User = mockUsers.head
     val _ = summon[User]
 
-    def assertHasRejection(errors: String, action: String) =
-      assert(errors.contains(s"received function $action"))
+    class Admin extends User("boss")
+    val _ = new Admin
+
+    def assertHasRejection(errors: String, error: String) = assert(errors.contains(error))
 
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on(it.greet)(_ => "hi!")"""),
-      "expects"
+      "Method greet in Repository[User] expects (Boolean, User) but received function expects (Boolean)"
     )
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on(it.getNames)(_ => "bdmendes")"""),
-      "expects"
+      "Method getNames in Repository[User] expects () but received function expects (Int)"
     )
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on((_: Int, _: Boolean) => it.get(true))"""),
-      "expects"
+      "Method get in Repository[User] expects (Boolean) but received function expects (Int, Boolean)"
     )
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on((_: Int) => it.get(true))"""),
-      "expects"
+      "Method get in Repository[User] expects (Boolean) but received function expects (Int)"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(it.contains(_: Admin))"""),
+      "Method contains in Repository[User] expects (User) but received function expects (Admin)"
     )
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on(() => println(it.get))(_ => ())"""),
-      "returns"
+      "Method get in Repository[User] returns List[User] but received function returns Unit"
     )
 
   test("dispatch a method to a real instance"):
