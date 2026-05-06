@@ -16,7 +16,7 @@ Description.
 
 ## 2.7.3 - 2026-05-06
 
-This is a bug fixing release. Oportunistically, given compile time checks have been hardened in recent versions, a whole class of bugs is impossible to happen at runtime, hence exception messages were simplified.
+This is a bug fixing release. Opportunistically, given compile time checks have been hardened in recent versions, a whole class of bugs is impossible to happen at runtime, hence exception messages were simplified.
 
 ### What's Changed
 * Fix times with targetNames by @bdmendes in https://github.com/bdmendes/smockito/pull/216
