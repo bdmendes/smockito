@@ -10,6 +10,10 @@ This is a [facade](https://en.m.wikipedia.org/wiki/Facade_pattern) for Mockito, 
 
 That is okay and is related to the way Mockito performs runtime bytecode manipulation. See [this issue](https://github.com/mockito/mockito/issues/3111) for further discussion.
 
+# Can I resort to underlying Mockito APIs directly?
+
+Yes; Mockito is in the classpath when one depends on Smockito. You may choose to do so to use some functionality Smockito does not provide, such as deep stubs. However, Smockito is designed to cover the most common and logical use cases – the `on`, `times` and `calls` trio available via the `Smockito` trait should be enough for most of your needs. Avoid importing `org.mockito` directly in your tests if not necessary, as the raw APIs may not account for Scala quirks such as by-name parameters and vararg expansions that Smockito handles for you.
+
 # I can't seem to stub a method/I found a bug.
 
 Are you performing eta-expansion correctly? Check out the main [SmockitoSpec](https://github.com/bdmendes/smockito/blob/master/src/test/scala/com/bdmendes/smockito/SmockitoSpec.scala) for more examples covering a variety of situations. If everything looks fine on your side, please file [an issue](https://github.com/bdmendes/smockito/issues) with a minimal reproducible example.
