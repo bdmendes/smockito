@@ -102,6 +102,22 @@ def setUpMockDatabase(): UsersDatabase =
 
 Another issue is related to the default behavior of mocks. In Mockito, if a method that has not been explicitly stubbed is called, it returns a default value (e.g., `null` for reference types, `0` for numeric types). This can lead to tests passing when they should fail, as the mock may return unexpected values that do not reflect the intended behavior, which might be for that code path not to be executed at all. If a method should return e.g. an empty collection for the tested scenario, I believe it is better to be explicit about that in the test setup.
 
+## Mockito Scala
+
+[Mockito Scala](https://github.com/mockito/mockito-scala) is the official Scala wrapper for Mockito, with decent support for Scala 3. It adds some compile time safety and adapts some Mockito APIs to Scala idioms:
+
+```scala
+// Regular Mockito
+doNothing().when(aMock).bar
+verifyZeroInteractions(aMock)
+
+// Equivalent usage via Mockito Scala
+aMock.bar.doesNothing()
+aMock wasNever called
+```
+
+The infix syntax reads like English, but arguably makes mock setups feel alien to regular Scala code, as most libraries with DSL-like APIs [tend to do](https://youtu.be/gtmr6pi1oS4?t=632). It also does not address the issue of default return values for unstubbed methods, which can lead to tests passing when they should fail.
+
 ## Scalamock
 
 Scalamock is a native solution, with a great API and very sane defaults. In the running example, one could set up the database like so:
