@@ -56,6 +56,13 @@ object meta:
         case expected =>
           normalize(expected) =:= actual
 
+    def targetsType(term: Term): Boolean =
+      term match
+        case Apply(_, args) =>
+          args.exists(targetsType)
+        case _ =>
+          term.tpe <:< targetType
+
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
     def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[String] =
@@ -75,9 +82,9 @@ object meta:
 
     def findAndCheck(term: Term): Option[String] =
       term match
-        case tapp @ TypeApply(s @ Select(prefix, _), _) if prefix.tpe <:< targetType =>
+        case tapp @ TypeApply(s @ Select(prefix, _), _) if targetsType(prefix) =>
           checkAndReturn(s.symbol, normalize(tapp.tpe))
-        case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
+        case s @ Select(prefix, _) if targetsType(prefix) =>
           checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
         case Lambda(_, body) =>
           findAndCheck(body)
