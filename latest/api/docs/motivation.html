@@ -98,6 +98,22 @@
  </div>
  <p>Another issue is related to the default behavior of mocks. In Mockito, if a method that has not been explicitly stubbed is called, it returns a default value (e.g., <code>null</code> for reference types, <code>0</code> for numeric types). This can lead to tests passing when they should fail, as the mock may return unexpected values that do not reflect the intended behavior, which might be for that code path not to be executed at all. If a method should return e.g. an empty collection for the tested scenario, I believe it is better to be explicit about that in the test setup.</p>
 </section>
+<section id="mockito-scala">
+ <h2 class="h500"><a href="#mockito-scala" class="anchor"></a>Mockito Scala</h2>
+ <p><a href="https://github.com/mockito/mockito-scala">Mockito Scala</a> is the official Scala wrapper for Mockito, with decent support for Scala 3. It adds some compile time safety and adapts some Mockito APIs to Scala idioms:</p>
+ <div class="snippet mono-small-block" scala-snippet="">
+  <pre><code class="language-scala"><span line-number="1" class=""><span class="tooltip-container"></span>// Regular Mockito
+</span><span line-number="2" class=""><span class="tooltip-container"></span>doNothing().when(aMock).bar
+</span><span line-number="3" class=""><span class="tooltip-container"></span>verifyZeroInteractions(aMock)
+</span><span line-number="4" class=""><span class="tooltip-container"></span>
+</span><span line-number="5" class=""><span class="tooltip-container"></span>// Equivalent usage via Mockito Scala
+</span><span line-number="6" class=""><span class="tooltip-container"></span>aMock.bar.doesNothing()
+</span><span line-number="7" class=""><span class="tooltip-container"></span>aMock wasNever called
+</span></code></pre>
+  <div class="buttons"></div>
+ </div>
+ <p>The infix syntax reads like English, but arguably makes mock setups feel alien to regular Scala code, as most libraries with DSL-like APIs <a href="https://youtu.be/gtmr6pi1oS4?t=632">tend to do</a>. It also does not address the issue of default return values for unstubbed methods, which can lead to tests passing when they should fail.</p>
+</section>
 <section id="scalamock">
  <h2 class="h500"><a href="#scalamock" class="anchor"></a>Scalamock</h2>
  <p>Scalamock is a native solution, with a great API and very sane defaults. In the running example, one could set up the database like so:</p>
@@ -115,4 +131,4 @@
  <h1 class="h500"><a href="#the-smockito-approach" class="anchor"></a>The Smockito Approach</h1>
  <p>Smockito desugars to Mockito calls in a way that leverages stronger type safety guarantees provided by Scala 3, while providing a more idiomatic and expressive API. It is also opinionated in that it configures mocks to throw an <code>UnexpectedArguments</code> exception when a method is called with arguments that have not been explicitly handled, and <code>UnstubbedMethod</code> when a method that has not been stubbed is called. This way, tests fail fast and loudly when the mock is used in unexpected ways.</p>
  <p>Smockito is a small, pragmatic library that tries to solve a real world problem using a powerful backend (Mockito) and taking inspiration from a great API (Scalamock). Check the <a href="getting-started.html">Getting Started</a> guide for a quick introduction, and then head to the <a href="guide.html">Guide</a> for a deeper dive into Smockito's capabilities.</p>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#testing-with-mocks">Testing with Mocks</a><ul><li><a href="#running-example">Running Example</a></li><li><a href="#the-case-for-mocks">The Case for Mocks</a></li><li><a href="#what-should-i-mock">What Should I Mock?</a></li></ul></li><li><a href="#alternative-mocking-frameworks">Alternative Mocking Frameworks</a><ul><li><a href="#mockito">Mockito</a></li><li><a href="#scalamock">Scalamock</a></li></ul></li><li><a href="#the-smockito-approach">The Smockito Approach</a></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#testing-with-mocks">Testing with Mocks</a><ul><li><a href="#running-example">Running Example</a></li><li><a href="#the-case-for-mocks">The Case for Mocks</a></li><li><a href="#what-should-i-mock">What Should I Mock?</a></li></ul></li><li><a href="#alternative-mocking-frameworks">Alternative Mocking Frameworks</a><ul><li><a href="#mockito">Mockito</a></li><li><a href="#mockito-scala">Mockito Scala</a></li><li><a href="#scalamock">Scalamock</a></li></ul></li><li><a href="#the-smockito-approach">The Smockito Approach</a></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><a href="https://github.com/bdmendes/smockito"><button class="icon-button gh"></button></a><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
