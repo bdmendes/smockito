@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.4 - 2026-06-14
+
+This release fixes an issue where methods defined in super classes were deemed as invalid for mocking by the type sanity check macro at compile time.
+
+### What's Changed
+* Augment docs with Mockito considerations by @bdmendes in https://github.com/bdmendes/smockito/pull/227
+* Update scala3-library to 3.3.8 by @scala-steward in https://github.com/bdmendes/smockito/pull/230
+* Verify selector type via instance argument type by @bdmendes in https://github.com/bdmendes/smockito/pull/231
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.3...v2.7.4
+
 ## 2.7.3 - 2026-05-06
 
 This is a bug fixing release. Opportunistically, given compile time checks have been hardened in recent versions, a whole class of bugs is impossible to happen at runtime, hence exception messages were simplified.
