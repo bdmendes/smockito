@@ -64,7 +64,9 @@ object meta:
       // if it is referenced in another fashion.
       term match
         case Apply(_, List(arg)) =>
-          targetsType(arg)
+          // In the case of super class methods such as `toString`, the type argument of `it`
+          // widens and so does the resulting expression, so check for an upper bound instead.
+          arg.tpe <:< targetType && targetType <:< term.tpe
         case _ =>
           term.tpe <:< targetType
 
