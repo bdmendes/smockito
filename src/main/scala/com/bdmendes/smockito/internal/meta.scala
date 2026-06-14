@@ -33,6 +33,8 @@ object meta:
           report.errorAndAbort("Could not determine received parameter types")
 
     def methodSignature(t: TypeRepr): (List[TypeRepr], TypeRepr) =
+      // Concatenate the parameter lists into a single one, as one needs to do
+      // in manual eta-expansion for curried methods.
       t match
         case MethodType(_, params, ret) =>
           val (retParams, result) = methodSignature(ret)
@@ -43,6 +45,7 @@ object meta:
           (Nil, t)
 
     def normalize(t: TypeRepr): TypeRepr =
+      // Desugar for varargs, compiled to a Seq.
       t.widenTermRefByName.widenByName.dealias match
         case AppliedType(tycon, arg :: Nil) if tycon.typeSymbol == defn.RepeatedParamClass =>
           TypeRepr.of[Seq].appliedTo(arg).dealias
@@ -56,9 +59,23 @@ object meta:
         case expected =>
           normalize(expected) =:= actual
 
+    def targetsType(term: Term): Boolean =
+      // Analyse the instance type via the `it` method argument, or directly
+      // if it is referenced in another fashion.
+      term match
+        case Apply(_, List(arg)) =>
+          // In the case of super class methods such as `toString`, the type argument of `it`
+          // widens and so does the resulting expression, so check for an upper bound instead.
+          arg.tpe <:< targetType && targetType <:< term.tpe
+        case _ =>
+          term.tpe <:< targetType
+
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
     def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[String] =
+      // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
+      // effectively returning a function whose shape does not exist in the class byte code.
+      // This hints the user to eta-expand manually at compile time.
       val (params, methodReturn) = methodSignature(methodType)
       val methodParamTypes = params.map(normalize)
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
@@ -75,10 +92,13 @@ object meta:
 
     def findAndCheck(term: Term): Option[String] =
       term match
-        case tapp @ TypeApply(s @ Select(prefix, _), _) if prefix.tpe <:< targetType =>
+        // Method selection.
+        case tapp @ TypeApply(s @ Select(prefix, _), _) if targetsType(prefix) =>
           checkAndReturn(s.symbol, normalize(tapp.tpe))
-        case s @ Select(prefix, _) if prefix.tpe <:< targetType =>
+        case s @ Select(prefix, _) if targetsType(prefix) =>
           checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
+        // Parent AST nodes. Particularly relevant is the implicit conversion step
+        // via the `Conversion` typeclass application to lift functions to `MockedMethod`.
         case Lambda(_, body) =>
           findAndCheck(body)
         case Apply(fn, args) =>

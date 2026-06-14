@@ -772,6 +772,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.exists), 2)
     assertEquals(repository.calls(it.exists), List("bdmendes", "bdmendes"))
 
+  test("accept a stub on methods defined in super classes"):
+    class Foo
+    val m = mock[Foo].on(() => it.toString)(_ => "mocked")
+    assertEquals(m.toString, "mocked")
+
+  test("accept a stub on final methods"):
+    class Foo:
+      final def bar = 0
+    val m = mock[Foo].on(() => it.bar)(_ => 1)
+    assertEquals(m.bar, 1)
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
