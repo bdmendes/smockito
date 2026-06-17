@@ -3,7 +3,7 @@ package com.bdmendes.smockito
 class MockedMethodSpec extends munit.FunSuite:
 
   test("spawn a MockedMethod for all arities until 22"):
-    // scalafmt: { maxColumn = 150 }
+    // scalafmt: { maxColumn = 180 }
     type D = Int
     val _: MockedMethod[EmptyTuple, D] = () => 1
     val _: MockedMethod[Tuple1[D], D] = (_: D) => 1
@@ -18,14 +18,10 @@ class MockedMethodSpec extends munit.FunSuite:
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
-    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
-    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
-    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
-    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
+    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
+    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
+    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
+    val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] = (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
       (_: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D, _: D) => 1
     val _: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
