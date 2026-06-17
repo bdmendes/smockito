@@ -21,16 +21,8 @@ object meta:
     given Printer[TypeRepr] = Printer.TypeReprShortCode
 
     val targetType = TypeRepr.of[T]
-    val returnType = TypeRepr.of[R]
-
-    lazy val receivedParamTypes: List[TypeRepr] =
-      TypeRepr.of[A].dealias match
-        case t if t =:= TypeRepr.of[EmptyTuple] =>
-          Nil
-        case AppliedType(_, args) =>
-          args
-        case _ =>
-          report.errorAndAbort("Could not determine received parameter types")
+    val receivedReturnType = TypeRepr.of[R]
+    val receivedParamTypes = TypeRepr.of[A].typeArgs
 
     def methodSignature(t: TypeRepr): (List[TypeRepr], TypeRepr) =
       // Concatenate the parameter lists into a single one, as one needs to do
@@ -39,16 +31,15 @@ object meta:
         case MethodType(_, params, ret) =>
           val (retParams, result) = methodSignature(ret)
           (params ++ retParams, result)
-        case PolyType(_, _, ret) =>
-          methodSignature(ret)
         case _ =>
+          // Values.
           (Nil, t)
 
     def normalize(t: TypeRepr): TypeRepr =
       // Desugar for varargs, compiled to a Seq.
-      t.widenTermRefByName.widenByName.dealias match
+      t.widenTermRefByName.widenByName match
         case AppliedType(tycon, arg :: Nil) if tycon.typeSymbol == defn.RepeatedParamClass =>
-          TypeRepr.of[Seq].appliedTo(arg).dealias
+          TypeRepr.of[Seq].appliedTo(arg)
         case t =>
           t
 
@@ -83,10 +74,10 @@ object meta:
           s"Method ${sym.name} in ${targetType.show} expects ${showTypes(methodParamTypes)} " +
             s"but received function expects ${showTypes(receivedParamTypes.map(normalize))}"
         )
-      if !(returnType <:< methodReturn) then
+      if !(receivedReturnType <:< methodReturn) then
         report.errorAndAbort(
           s"Method ${sym.name} in ${targetType.show} returns ${methodReturn.show} " +
-            s"but received function returns ${returnType.show}"
+            s"but received function returns ${receivedReturnType.show}"
         )
       Some(sym.name)
 
@@ -103,8 +94,6 @@ object meta:
           findAndCheck(body)
         case Apply(fn, args) =>
           (fn :: args).iterator.flatMap(findAndCheck).nextOption()
-        case TypeApply(fn, _) =>
-          findAndCheck(fn)
         case Block(_, e) =>
           findAndCheck(e)
         case Inlined(_, _, body) =>
