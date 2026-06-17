@@ -273,7 +273,6 @@ private object Mock:
   object mapper:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
     lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
-    lazy val ct = [X] => (x: ClassTag[X]) ?=> x
 
     class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R) extends PartialFunction[Pack[A], R]:
       override def apply(args: Pack[A]): R = f(args)
