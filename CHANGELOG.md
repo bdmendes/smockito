@@ -14,6 +14,15 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.5 - 2026-06-17
+
+This release fixes an edge case where spying on lambas with multiple parameters would throw at runtime.
+
+### What's Changed
+* Convert directly without tupled call by @bdmendes in https://github.com/bdmendes/smockito/pull/236
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.4...v2.7.5
+
 ## 2.7.4 - 2026-06-14
 
 This release fixes an issue where methods defined in super classes were deemed as invalid for mocking by the type sanity check macro at compile time.
