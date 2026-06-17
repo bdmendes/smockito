@@ -103,8 +103,6 @@ object meta:
           findAndCheck(body)
         case Apply(fn, args) =>
           (fn :: args).iterator.flatMap(findAndCheck).nextOption()
-        case TypeApply(fn, _) =>
-          findAndCheck(fn)
         case Block(_, e) =>
           findAndCheck(e)
         case Inlined(_, _, body) =>
