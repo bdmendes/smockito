@@ -722,11 +722,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.suffix), 1)
     assertEquals(repository.times(() => it.randomName), 2)
 
-  test("spy on a lambda"):
+  test("spy on a lambda with 1 parameter"):
     val f = spy((n: Int) => n * 2)
 
     assertEquals(f(2), 4)
+    assertEquals(f.times(it.apply), 1)
     assertEquals(f.calls(it.apply), List(2))
+
+  test("spy on a lambda with 2 parameters"):
+    val f = spy((_: String, _: String) => "dummy")
+
+    assertEquals(f("a", "b"), "dummy")
+    assertEquals(f.times(it.apply), 1)
+    assertEquals(f.calls(it.apply), List(("a", "b")))
 
   test("return self on a stub"):
     trait Counter:
