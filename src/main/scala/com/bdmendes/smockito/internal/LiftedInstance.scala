@@ -6,9 +6,9 @@ private[smockito] object LiftedInstance:
 
   // scalafmt: { maxColumn = 240 }
 
-  def apply[T](f: T)(using ct: ClassTag[T]): T =
+  def apply[T](obj: T)(using ct: ClassTag[T]): T =
     val proxy =
-      f match
+      obj match
         // Lambdas require special treatment as they are usually synthetic classes
         // that Mockito cannot copy.
         case f: Function0[?] =>
@@ -58,11 +58,11 @@ private[smockito] object LiftedInstance:
         case f: Function22[?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?] =>
           ForwardingFunction22(f)
         case _ =>
-          f
+          obj
     if ct.runtimeClass.isInstance(proxy) then
       proxy.asInstanceOf[T]
     else
-      f
+      obj
 
   class ForwardingFunction0[R](f: () => R) extends Function0[R]:
     override def apply(): R = f()
