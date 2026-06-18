@@ -1,10 +1,12 @@
 package com.bdmendes.smockito.internal
 
+import scala.reflect.ClassTag
+
 private[smockito] object LiftedInstance:
 
   // scalafmt: { maxColumn = 240 }
 
-  def apply[T](f: T): T =
+  def apply[T](f: T)(using ct: ClassTag[T]): T =
     val proxy =
       f match
         // Lambdas require special treatment as they are usually synthetic classes
@@ -57,11 +59,10 @@ private[smockito] object LiftedInstance:
           ForwardingFunction22(f)
         case _ =>
           f
-    try
+    if ct.runtimeClass.isInstance(proxy) then
       proxy.asInstanceOf[T]
-    catch
-      case _: ClassCastException =>
-        f
+    else
+      f
 
   class ForwardingFunction0[R](f: () => R) extends Function0[R]:
     override def apply(): R = f()

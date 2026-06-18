@@ -137,3 +137,12 @@ class LiftedInstanceSpec extends munit.FunSuite:
       )
     assertEquals(f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22), 253)
     assertEquals(f.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)), 253)
+
+  test("not corrupt the instance if it extends Function"):
+    class Wrapper extends Function0[String]:
+      def foo = "foo"
+      def apply(): String = "hello"
+
+    val wrapper = LiftedInstance[Wrapper](new Wrapper)
+    assertEquals(wrapper(), "hello")
+    assertEquals(wrapper.foo, "foo")
