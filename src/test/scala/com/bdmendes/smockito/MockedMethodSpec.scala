@@ -5,7 +5,7 @@ class MockedMethodSpec extends munit.FunSuite:
   // For conciseness.
   type D = Int
 
-  // scalafmt: { maxColumn = 180 }
+  // scalafmt: { maxColumn = 240 }
 
   test("invoke the real method for 0 arguments"):
     val method: MockedMethod[EmptyTuple, D] = () => 1
@@ -58,54 +58,46 @@ class MockedMethodSpec extends munit.FunSuite:
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9)), 45)
 
   test("invoke the real method for 10 arguments"):
-    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
+    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D), D] = (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10)), 55)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10)), 55)
 
   test("invoke the real method for 11 arguments"):
-    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11
+    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D), D] = (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)), 66)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)), 66)
 
   test("invoke the real method for 12 arguments"):
-    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12
+    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D), D] = (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)), 78)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)), 78)
 
   test("invoke the real method for 13 arguments"):
-    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13
+    val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D), D] = (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)), 91)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)), 91)
 
   test("invoke the real method for 14 arguments"):
     val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D) =>
-        x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14
+      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)), 105)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)), 105)
 
   test("invoke the real method for 15 arguments"):
     val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D) =>
-        x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15
+      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)), 120)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)), 120)
 
   test("invoke the real method for 16 arguments"):
     val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D, x16: D) =>
-        x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15 + x16
+      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D, x16: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15 + x16
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)), 136)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)), 136)
 
   test("invoke the real method for 17 arguments"):
     val method: MockedMethod[(D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D), D] =
-      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D, x16: D, x17: D) =>
-        x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15 + x16 + x17
+      (x1: D, x2: D, x3: D, x4: D, x5: D, x6: D, x7: D, x8: D, x9: D, x10: D, x11: D, x12: D, x13: D, x14: D, x15: D, x16: D, x17: D) => x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 + x10 + x11 + x12 + x13 + x14 + x15 + x16 + x17
     assertEquals(method.packed((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)), 153)
     assertEquals(method.tupled((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)), 153)
 

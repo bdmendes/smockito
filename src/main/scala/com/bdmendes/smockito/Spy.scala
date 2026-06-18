@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import com.bdmendes.smockito.internal.LiftedInstance
 import org.mockito.AdditionalAnswers
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
@@ -14,7 +15,7 @@ private object Spy:
 
   def apply[T](realInstance: T)(using ct: ClassTag[T]): Spy[T] =
     try
-      Mockito.spy(realInstance).asInstanceOf[Mock[T]]
+      Mockito.spy(LiftedInstance(realInstance)).asInstanceOf[Mock[T]]
     catch
       case _: MockitoException =>
         // A "delegating mock" is less powerful than a spy, since it cannot record internal

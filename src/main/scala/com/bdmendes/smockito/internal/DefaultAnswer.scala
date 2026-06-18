@@ -1,10 +1,10 @@
-package com.bdmendes.smockito
+package com.bdmendes.smockito.internal
 
 import com.bdmendes.smockito.Smockito.SmockitoException.UnstubbedMethod
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 
-private object DefaultAnswer extends Answer[Any]:
+private[smockito] object DefaultAnswer extends Answer[Any]:
 
   override def answer(invocation: InvocationOnMock): Any =
     val method = invocation.getMethod
