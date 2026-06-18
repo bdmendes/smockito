@@ -13,8 +13,6 @@ opaque type Spy[+T] <: Mock[T] = Mock[T]
 
 private object Spy:
 
-  // scalafmt: { maxColumn = 120 }
-
   def apply[T](realInstance: T)(using ct: ClassTag[T]): Spy[T] =
     try
       Mockito.spy(LiftedInstance(realInstance)).asInstanceOf[Mock[T]]
