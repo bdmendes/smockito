@@ -2,7 +2,8 @@ package com.bdmendes.smockito
 
 import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
-import com.bdmendes.smockito.internal.meta
+import com.bdmendes.smockito.internal.DefaultAnswer
+import com.bdmendes.smockito.internal.Meta
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
@@ -25,7 +26,7 @@ private trait MockSyntax:
         inline method: Mock[T] ?=> MockedMethod[A, R]
     ): Unit =
       ${
-        meta.matchedMethodName[T, Mock, A, R]('method)
+        Meta.matchedMethodName[T, Mock, A, R]('method)
       }
 
     private inline def unwrap[A](
@@ -96,7 +97,7 @@ private trait MockSyntax:
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
           )
       method(using Mockito.doAnswer(answer).when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+        Tuple.fromArray(Meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       )
       mock
 
@@ -116,7 +117,7 @@ private trait MockSyntax:
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
       validateMethod(method)
       method(using Mockito.doCallRealMethod().when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
+        Tuple.fromArray(Meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
       )
       mock
 
@@ -134,7 +135,7 @@ private trait MockSyntax:
           error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
           validateMethod(method)
-          val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
+          val argCaptors = Meta.mapTuple[A, ArgumentCaptor[?]](captor)
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
             Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
           )
@@ -178,9 +179,9 @@ private trait MockSyntax:
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
-          val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
+          val cap = Meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
           method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
-            Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
+            Tuple.fromArray(cap.capture() +: Meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
           )
           cap.getAllValues.size
 
@@ -247,10 +248,10 @@ private trait MockSyntax:
       val ordered = Mockito.inOrder(mock)
       verifies:
         a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
-          Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
+          Tuple.fromArray(Meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
         )
         b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
-          Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
+          Tuple.fromArray(Meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
         )
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,

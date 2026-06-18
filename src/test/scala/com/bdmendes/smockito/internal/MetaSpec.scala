@@ -1,7 +1,7 @@
 package com.bdmendes.smockito.internal
 
+import Meta.*
 import MetaSpec.*
-import meta.*
 import scala.reflect.ClassTag
 
 class MetaSpec extends munit.FunSuite:

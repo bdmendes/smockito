@@ -736,6 +736,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(f.times(it.apply), 1)
     assertEquals(f.calls(it.apply), List(("a", "b")))
 
+  test("spy on a lambda, even if used via transformer"):
+    val f = spy((_: String, _: String) => "dummy")
+
+    assertEquals(f.tupled("a", "b"), "dummy")
+    assertEquals(f.times(it.apply), 1)
+    assertEquals(f.calls(it.apply), List(("a", "b")))
+
   test("return self on a stub"):
     trait Counter:
       def increment(): Counter
