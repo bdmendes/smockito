@@ -74,7 +74,7 @@ private object Spy:
                 ForwardingFunction(f)
               case _ =>
                 realInstance
-          Mockito.spy(realInstanceProxy).asInstanceOf[Mock[T]]
+          Mockito.spy(realInstanceProxy.asInstanceOf[T]).asInstanceOf[Mock[T]]
         catch
           case _ =>
             // A "delegating mock" is less powerful than a spy, since it cannot record internal
