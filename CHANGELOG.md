@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.6 - 2026-06-18
+
+This release cleans up leftover code and lifts lambdas into concrete classes behind the scenes to make them available for spying in more scenarios.
+
+### What's Changed
+* Improve test coverage and remove needless macro dealiasing by @bdmendes in https://github.com/bdmendes/smockito/pull/238
+* Remove unused ct util by @bdmendes in https://github.com/bdmendes/smockito/pull/239
+* Lift lambdas into concrete classes available for spying by @bdmendes in https://github.com/bdmendes/smockito/pull/240
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.5...v2.7.6
+
 ## 2.7.5 - 2026-06-17
 
 This release fixes an edge case where spying on lambas with multiple parameters would throw at runtime.
