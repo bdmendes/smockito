@@ -5,6 +5,7 @@ import org.mockito.AdditionalAnswers
 import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /** A `Spy` is a mock whose default answer is to forward all method calls to a real instance, unless
   * stubbed otherwise.
@@ -76,7 +77,7 @@ private object Spy:
                 realInstance
           Mockito.spy(realInstanceProxy.asInstanceOf[T]).asInstanceOf[Mock[T]]
         catch
-          case _ =>
+          case NonFatal(_) =>
             // A "delegating mock" is less powerful than a spy, since it cannot record internal
             // interactions, but it can be used as a fallback when the type cannot be spied.
             Mockito
