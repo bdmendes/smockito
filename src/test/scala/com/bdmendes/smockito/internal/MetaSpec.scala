@@ -1,11 +1,10 @@
 package com.bdmendes.smockito.internal
 
-import Meta.*
 import MetaSpec.*
-import munit.FunSuite
+import meta.*
 import scala.reflect.ClassTag
 
-class MetaSpec extends FunSuite:
+class MetaSpec extends munit.FunSuite:
 
   test("map over tuples"):
     val f = [X] => (x: ClassTag[X]) ?=> x.runtimeClass.getSimpleName

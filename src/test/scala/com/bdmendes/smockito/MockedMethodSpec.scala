@@ -1,8 +1,6 @@
 package com.bdmendes.smockito
 
-import munit.FunSuite
-
-class MockedMethodSpec extends FunSuite:
+class MockedMethodSpec extends munit.FunSuite:
 
   // For conciseness.
   type D = Int

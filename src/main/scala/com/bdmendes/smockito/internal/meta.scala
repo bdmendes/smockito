@@ -4,7 +4,7 @@ import scala.compiletime.*
 import scala.quoted.*
 import scala.reflect.ClassTag
 
-object Meta:
+object meta:
 
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
