@@ -68,7 +68,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build documentation site
-        run: sbt doc
+        run: sbt generateSite
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
