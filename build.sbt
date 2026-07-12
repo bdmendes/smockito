@@ -59,13 +59,14 @@ lazy val root =
       Compile / doc / scalacOptions ++=
         Seq("-siteroot", "docs", "-social-links:github::https://github.com/bdmendes/smockito"),
       Compile / doc / target := baseDirectory.value / "target" / "site",
-      generateSite := {
-        (Compile / doc).value
-        IO.copyFile(
-          baseDirectory.value / "docs" / "_assets" / "smockito.ico",
-          (Compile / doc / target).value / "favicon.ico"
-        )
-      },
+      generateSite :=
+        Def.uncached {
+          (Compile / doc).value
+          IO.copyFile(
+            baseDirectory.value / "docs" / "_assets" / "smockito.ico",
+            (Compile / doc / target).value / "favicon.ico"
+          )
+        },
       autoAPIMappings := true,
       publishMavenStyle := true,
       Global / excludeLintKeys += (Compile / run / connectInput),
