@@ -18,6 +18,8 @@ ThisBuild / scmInfo :=
 ThisBuild / developers :=
   List(Developer("bdmendes", "Bruno Mendes", "bd_mendes@outlook.com", url("https://bdmendes.com")))
 
+lazy val generateSite = taskKey[Unit]("Generate the documentation site")
+
 lazy val root =
   project
     .in(file("."))
@@ -57,6 +59,13 @@ lazy val root =
       Compile / doc / scalacOptions ++=
         Seq("-siteroot", "docs", "-social-links:github::https://github.com/bdmendes/smockito"),
       Compile / doc / target := baseDirectory.value / "target" / "site",
+      generateSite := {
+        (Compile / doc).value
+        IO.copyFile(
+          baseDirectory.value / "docs" / "_assets" / "smockito.ico",
+          (Compile / doc / target).value / "favicon.ico"
+        )
+      },
       autoAPIMappings := true,
       publishMavenStyle := true,
       Test / publishArtifact := false,
