@@ -22,11 +22,8 @@ lazy val root =
   project
     .in(file("."))
     .enablePlugins(JavaAgent)
-    .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
     .settings(
       name := "smockito",
-      git.remoteRepo := "git@github.com:bdmendes/smockito.git",
-      ghpagesNoJekyll := true,
       scalaVersion := Dependencies.Versions.scala,
       javaAgents := Seq(mockito % Test),
       scalacOptions ++=
@@ -59,6 +56,7 @@ lazy val root =
       },
       Compile / doc / scalacOptions ++=
         Seq("-siteroot", "docs", "-social-links:github::https://github.com/bdmendes/smockito"),
+      Compile / doc / target := baseDirectory.value / "target" / "site",
       autoAPIMappings := true,
       publishMavenStyle := true,
       Test / publishArtifact := false,
@@ -79,7 +77,6 @@ releaseProcess :=
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    releaseStepCommandAndRemaining("ghpagesPushSite"),
     releaseStepCommandAndRemaining("publishSigned"),
     releaseStepCommand("sonaRelease"),
     setNextVersion,
