@@ -59,6 +59,8 @@ lazy val root =
       Compile / doc / target := baseDirectory.value / "target" / "site",
       autoAPIMappings := true,
       publishMavenStyle := true,
+      Global / excludeLintKeys += (Compile / run / connectInput),
+      Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Raw,
       Test / publishArtifact := false,
       Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "--log=debug"),
       pomIncludeRepository := (_ => false)
