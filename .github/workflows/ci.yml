@@ -28,19 +28,16 @@ jobs:
       - name: Check format
         run: sbt "scalafmtCheckAll; scalafmtSbtCheck"
 
-      - name: Compile API documentation
-        run: sbt doc
-
       - name: Run tests
-        run: sbt "coverage; testFull"
-
-      - name: Generate coverage report
-        run: sbt coverageReport
+        run: sbt "cleanFull; coverage; testFull; coverageReport"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Compile API documentation
+        run: sbt doc
 
   docs-build:
     name: Build Documentation Website
