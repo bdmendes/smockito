@@ -16,7 +16,7 @@ jobs:
 
       - name: Set up JDK
         id: setup-java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: adopt
           java-version: 17
@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: adopt
           java-version: 17
