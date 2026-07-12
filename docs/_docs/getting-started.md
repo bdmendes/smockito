@@ -5,7 +5,7 @@
 To use Smockito in an existing sbt project with Scala 3, add the following dependency to your
 `build.sbt`:
 
-```scala
+```sbt
 libraryDependencies += "com.bdmendes" %% "smockito" % "<version>" % Test
 ```
 
@@ -13,8 +13,14 @@ Do not depend on Mockito directly.
 
 If targeting Java 24+, you need to add the Smockito JAR as a Java agent to enable the runtime bytecode manipulation that Mockito depends on. If you use the [sbt-javaagent plugin](https://github.com/sbt/sbt-javaagent), you can simply add to your `build.sbt`:
 
-```scala
+```sbt
 javaAgents += "com.bdmendes" % "smockito_3" % "<version>" % Test
+```
+
+If using sbt 2+, depending on your test configuration, some runtime dependencies may not be available in the classpath. In that case, resort to the system loader:
+
+```sbt
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Raw
 ```
 
 # Quick Start
