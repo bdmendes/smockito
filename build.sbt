@@ -1,13 +1,13 @@
 import Dependencies.*
 import ReleaseTransformations.*
 
-ThisBuild / organization := "com.bdmendes"
-ThisBuild / homepage := Some(url("https://github.com/bdmendes/smockito"))
-ThisBuild / description := "Tiny Scala facade for Mockito."
-ThisBuild / licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
-ThisBuild / versionScheme := Some("semver-spec")
+organization := "com.bdmendes"
+homepage := Some(url("https://github.com/bdmendes/smockito"))
+description := "Tiny Scala facade for Mockito."
+licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+versionScheme := Some("semver-spec")
 
-ThisBuild / scmInfo :=
+scmInfo :=
   Some(
     ScmInfo(
       url("https://github.com/bdmendes/smockito"),
@@ -15,7 +15,7 @@ ThisBuild / scmInfo :=
     )
   )
 
-ThisBuild / developers :=
+developers :=
   List(Developer("bdmendes", "Bruno Mendes", "bd_mendes@outlook.com", url("https://bdmendes.com")))
 
 lazy val generateSite = taskKey[Unit]("Generate the documentation site")
@@ -68,14 +68,16 @@ lazy val root =
       },
       autoAPIMappings := true,
       publishMavenStyle := true,
+      Global / excludeLintKeys += (Compile / run / connectInput),
+      Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Raw,
       Test / publishArtifact := false,
       Test / testOptions += Tests.Argument(TestFrameworks.MUnit, "--log=debug"),
       pomIncludeRepository := (_ => false)
     )
 
-releaseTagComment := s"Release ${(ThisBuild / version).value}"
-releaseCommitMessage := s"Bump version to ${(ThisBuild / version).value}"
-releaseNextCommitMessage := s"Bump version to ${(ThisBuild / version).value}"
+releaseTagComment := s"Release ${version.value}"
+releaseCommitMessage := s"Bump version to ${version.value}"
+releaseNextCommitMessage := s"Bump version to ${version.value}"
 
 releaseProcess :=
   Seq[ReleaseStep](

@@ -26,13 +26,13 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Check format
-        run: sbt scalafmtCheckAll scalafmtSbtCheck
+        run: sbt "scalafmtCheckAll; scalafmtSbtCheck"
 
       - name: Compile API documentation
         run: sbt doc
 
       - name: Run tests
-        run: sbt coverage test
+        run: sbt "coverage; testFull"
 
       - name: Generate coverage report
         run: sbt coverageReport
