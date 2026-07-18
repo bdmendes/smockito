@@ -96,9 +96,8 @@ private trait MockSyntax:
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
           )
-      method(using Mockito.doAnswer(answer).when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
-      )
+      val target = method(using Mockito.doAnswer(answer).when(mock))
+      target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
@@ -116,9 +115,8 @@ private trait MockSyntax:
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
       validateMethod(method)
-      method(using Mockito.doCallRealMethod().when(mock)).tupled(
-        Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A]
-      )
+      val target = method(using Mockito.doCallRealMethod().when(mock))
+      target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
 
     /** Yields the captured arguments received by a stubbed method, in chronological order. If you
@@ -136,9 +134,8 @@ private trait MockSyntax:
         case _ =>
           validateMethod(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
-          method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
-            Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A]
-          )
+          val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
+          target.tupled(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
           argCaptors
             .map(_.getAllValues.toArray)
             .transpose
@@ -172,15 +169,15 @@ private trait MockSyntax:
               .size
           val validInvocations = (possiblyMatching to 1 by -1).find: count =>
             verifies:
-              method(using Mockito.verify(mock, Mockito.times(count))).tupled(
-                EmptyTuple.asInstanceOf[A]
-              )
+              val target = method(using Mockito.verify(mock, Mockito.times(count)))
+              target.tupled(EmptyTuple.asInstanceOf[A])
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
           val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
-          method(using Mockito.verify(mock, Mockito.atLeast(0))).tupled(
+          val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
+          target.tupled(
             Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
           )
           cap.getAllValues.size
@@ -247,12 +244,10 @@ private trait MockSyntax:
       validateMethod(b)
       val ordered = Mockito.inOrder(mock)
       verifies:
-        a(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
-          Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1]
-        )
-        b(using ordered.verify(mock, Mockito.atLeastOnce)).tupled(
-          Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2]
-        )
+        val targetA = a(using ordered.verify(mock, Mockito.atLeastOnce))
+        targetA.tupled(Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1])
+        val targetB = b(using ordered.verify(mock, Mockito.atLeastOnce))
+        targetB.tupled(Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2])
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
