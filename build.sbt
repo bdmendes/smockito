@@ -2,21 +2,21 @@ import Dependencies.*
 import ReleaseTransformations.*
 
 organization := "com.bdmendes"
-homepage := Some(url("https://github.com/bdmendes/smockito"))
+homepage := Some(uri("https://github.com/bdmendes/smockito"))
 description := "Tiny Scala facade for Mockito."
-licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+licenses := Seq("MIT" -> uri("https://opensource.org/licenses/MIT"))
 versionScheme := Some("semver-spec")
 
 scmInfo :=
   Some(
     ScmInfo(
-      url("https://github.com/bdmendes/smockito"),
+      uri("https://github.com/bdmendes/smockito"),
       "scm:git:ssh://git@github.com/bdmendes/smockito.git"
     )
   )
 
 developers :=
-  List(Developer("bdmendes", "Bruno Mendes", "bd_mendes@outlook.com", url("https://bdmendes.com")))
+  List(Developer("bdmendes", "Bruno Mendes", "bd_mendes@outlook.com", uri("https://bdmendes.com")))
 
 lazy val generateSite = taskKey[Unit]("Generate the documentation site")
 

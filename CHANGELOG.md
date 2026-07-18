@@ -14,6 +14,21 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.7 - 2026-07-18
+
+This releases fixes an issue with recent Scala compiler backends that order bytecode instructions in a different way, triggering Mockito's `InvalidUseOfMatchersException`. This is particularly relevant for unblocking projects that are planning to upgrade to the upcoming Scala 3.9 LTS, which is just around the corner.
+
+Behind the scenes, Smockito now uses sbt2 as its build tool and publishes its documentation website upon merge using a modern GitHub Actions flow. Users of sbt2 in downstream projects should be aware that the classpath under the new hermetic build semantics might require a specific configuration; see the README.
+
+### What's Changed
+* Publish site via GH Pages Action flow by @bdmendes in https://github.com/bdmendes/smockito/pull/248
+* Add custom favicon by @bdmendes in https://github.com/bdmendes/smockito/pull/249
+* Update sbt to 2.0 by @bdmendes in https://github.com/bdmendes/smockito/pull/234
+* Add note about sbt 2 classpath hashing regression by @bdmendes in https://github.com/bdmendes/smockito/pull/251
+* Calculate target beforehand by @bdmendes in https://github.com/bdmendes/smockito/pull/261
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.6...v2.7.7
+
 ## 2.7.6 - 2026-06-18
 
 This release cleans up leftover code and lifts lambdas into concrete classes behind the scenes to make them available for spying in more scenarios.
