@@ -33,14 +33,11 @@ lazy val root =
           "-encoding",
           "utf8",
           "-deprecation",
-          "-language:implicitConversions",
-          "-Xfatal-warnings",
+          "-Werror",
           "-Wunused:all",
           "-feature",
           "-release",
-          Dependencies.Versions.java,
-          // Workaround for https://github.com/scala/scala3/issues/23967.
-          "-Wconf:origin=scala.compiletime.testing.*:s"
+          Dependencies.Versions.java
         ),
       libraryDependencies ++= Seq(mockito, munit % Test),
       Compile / packageBin / packageOptions +=
