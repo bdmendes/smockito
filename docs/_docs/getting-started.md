@@ -93,10 +93,10 @@ class AsyncRepositorySpecification extends CatsEffectSuite with Smockito:
     .on(it.computeValue)(IO.pure(_ * 2))
 ```
 
-Then, use your test framework's capabilities to work with the effect types as needed. In the example below, we make use of `CatsEffectSuite`'s support for testing `IO` values via its custom [fixture](https://scalameta.org/munit/docs/fixtures.html).
+Then, use your test framework's capabilities to work with the effect types as needed. In the example below, we make use of `CatsEffectSuite`'s support for testing `IO` values via its custom [ValueTransform](https://scalameta.org/munit/docs/tests.html#declare-async-test).
 
 ```scala
   test("compute a value"):
-    asyncRepository.computeValue(21).flatMap: result =>
-      IO(assertEquals(result, 42))
+    asyncRepository.computeValue(21).map: result =>
+      assertEquals(result, 42)
 ```
