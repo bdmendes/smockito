@@ -391,7 +391,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("reject received unrelated expression"):
     def assertHasRejection(errors: String) =
-      assert(errors.contains("Expected selection of a mockable method"))
+      assert(errors.contains("Expected direct selection of a mockable method"))
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]
@@ -643,6 +643,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     intercept[UnexpectedCallNumber]:
       repository.exists("bdmendes")
+
+  test("reset call number count if stub is reconfigured"):
+    trait Counter:
+      def tap: Int
+
+    val counter = mock[Counter].onCall(() => it.tap)(times => _ => times)
+
+    assertEquals(counter.tap, 1)
+    assertEquals(counter.tap, 2)
+
+    counter.onCall(() => it.tap)(times => _ => times * 10)
+
+    assertEquals(counter.tap, 10)
+    assertEquals(counter.tap, 20)
+
+    assertEquals(counter.times(() => it.tap), 4)
 
   test("throw on incompatible received argument type"):
     trait Monitor:

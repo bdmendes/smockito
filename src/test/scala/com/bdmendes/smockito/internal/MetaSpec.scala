@@ -13,7 +13,7 @@ class MetaSpec extends munit.FunSuite:
 
   test("retrieve matched method name"):
     inline def hasRejection(expr: String): Boolean =
-      compileErrors(expr).contains("Expected selection of a mockable method")
+      compileErrors(expr).contains("Expected direct selection of a mockable method")
 
     assertEquals(matchedMethodEntry[String, Id](target.charAt), "charAt")
     assertEquals(matchedMethodEntry[String, Id](target.charAt(_: Int)), "charAt")
