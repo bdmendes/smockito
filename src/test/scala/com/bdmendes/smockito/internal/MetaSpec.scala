@@ -20,6 +20,7 @@ class MetaSpec extends munit.FunSuite:
     assertEquals(matchedMethodEntry[String, Id]((pos: Int) => target.charAt(pos)), "charAt")
 
     assert(hasRejection("matchedMethodEntry[String, Id](0)"))
+    assert(hasRejection("matchedMethodEntry[Int, Id](unrelatedTarget.charAt)"))
     assert(hasRejection("matchedMethodEntry[Int, Id](target.charAt)"))
     assert(hasRejection("matchedMethodEntry[String, Id](() => true)"))
     assert(hasRejection("matchedMethodEntry[String, Id]((_: String) => true)"))
@@ -28,6 +29,7 @@ private object MetaSpec:
   opaque type Id[+T] <: T = T
 
   val target: Id[String] = "Some string"
+  val unrelatedTarget = "Some other string"
 
   private inline def matchedMethodEntry[T, F[_]](inline expr: Any): String =
     ${
