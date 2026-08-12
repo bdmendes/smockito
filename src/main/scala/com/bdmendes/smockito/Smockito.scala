@@ -41,7 +41,7 @@ trait Smockito extends MockSyntax:
     * @return
     *   the mock in scope.
     */
-  def it[T](using mock: Mock[T]): T = mock
+  def it[T](using mock: Mock[T]): Mock[T] = mock
 
 object Smockito:
 
