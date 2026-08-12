@@ -1,6 +1,5 @@
 package com.bdmendes.smockito.internal
 
-import com.bdmendes.smockito.Mock
 import scala.compiletime.*
 import scala.quoted.*
 import scala.reflect.ClassTag
@@ -14,14 +13,14 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def matchedMethodName[T: Type, F[_], A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(using
-      q: Quotes
+  def matchedMethodName[T: Type, F[_]: Type, A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(
+      using q: Quotes
   ): Expr[String] =
     import q.reflect.*
 
     given Printer[TypeRepr] = Printer.TypeReprShortCode
 
-    val fTargetType = TypeRepr.of[Mock[T]]
+    val fTargetType = TypeRepr.of[F[T]]
     val rawTargetType = TypeRepr.of[T]
     val receivedReturnType = TypeRepr.of[R]
     val receivedParamTypes = TypeRepr.of[A].typeArgs
