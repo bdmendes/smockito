@@ -84,6 +84,8 @@ private trait MockSyntax:
       *   the stub implementation, based on the received arguments.
       * @return
       *   the mocked type.
+      * @see
+      *   [[onCall]] for the version that also takes the call number into account.
       */
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
@@ -119,13 +121,14 @@ private trait MockSyntax:
       target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
 
-    /** Yields the captured arguments received by a stubbed method, in chronological order. If you
-      * only need to reason about the number of interactions, [[times]] is more efficient.
+    /** Yields the arguments received by a method, per invocation, in chronological order.
       *
       * @param method
       *   the mocked method.
       * @return
       *   the received arguments.
+      * @see
+      *   [[times]] for the version that only counts the number of calls, for efficiency.
       */
     inline def calls[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): List[Pack[A]] =
       inline erasedValue[A] match
@@ -142,13 +145,14 @@ private trait MockSyntax:
             .toList
             .map(args => pack(Tuple.fromArray(unwrap[A](args)).asInstanceOf[A]))
 
-    /** Yields the number of times a stub was called. If you need the exact arguments, see
-      * [[calls]].
+    /** Yields the number of times a method was called.
       *
       * @param method
       *   the mocked method.
       * @return
-      *   the number of calls to the stub.
+      *   the number of calls to the method.
+      * @see
+      *   [[calls]] if you need the exact received arguments per invocation.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
       validateMethod(method)
@@ -206,15 +210,19 @@ private trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-    /** Sets up a stub for a method that behaves differently based on the call number. For the
-      * version operating only on the expected set of inputs, see [[on]].
+    /** Sets up a stub for a method that behaves differently based on the call number.
+      *
+      * The call number is local to this stub. If the method is restubbed between calls, it may
+      * differ from the total invocation count reported by [[times]].
       *
       * @param method
       *   the method to mock.
       * @param stub
-      *   the stub implementation, based on the call number of the respective method, starting at 1.
+      *   the stub implementation, based on its call number, starting at 1.
       * @return
       *   the mocked type.
+      * @see
+      *   [[on]] for the version that only considers the expected set of inputs.
       */
     inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Int, Pack[A] => R2]
