@@ -106,4 +106,6 @@ object meta:
       case Some(methodName) =>
         Expr(methodName)
       case None =>
-        report.errorAndAbort(s"Expected selection of a mockable method of ${rawTargetType.show}")
+        report.errorAndAbort(
+          s"Expected direct selection of a mockable method of ${rawTargetType.show}"
+        )
