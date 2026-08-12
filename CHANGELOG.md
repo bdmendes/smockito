@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.7.8 - 2026-08-12
+
+This release makes `it` correctly return `Mock[T]` instead of `T`, meaning you can now use mock methods on stubs, such as `calls` or `times`, without having to isolate the mock instance in a separate variable. Refer to the documentation and use with care. Happy mocking!
+
+### What's Changed
+* Return Mock[T] in `it` by @bdmendes in https://github.com/bdmendes/smockito/pull/275
+* Add regression for extension match by @bdmendes in https://github.com/bdmendes/smockito/pull/276
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.7...v2.7.8
+
 ## 2.7.7 - 2026-07-18
 
 This releases fixes an issue with recent Scala compiler backends that order bytecode instructions in a different way, triggering Mockito's `InvalidUseOfMatchersException`. This is particularly relevant for unblocking projects that are planning to upgrade to the upcoming Scala 3.9 LTS, which is just around the corner.
