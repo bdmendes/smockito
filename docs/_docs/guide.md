@@ -262,7 +262,13 @@ A reference to the mocked instance itself is available in the stubbing context o
 ```scala
   trait Counter:
     def increment(): Counter
+    def value: Int
 
-  val counter = mock[Counter].on(() => it.increment())(_ => it)
+  val counter =
+    mock[Counter]
+      .on(() => it.increment())(_ => it)
+      .on(() => it.value)(_ => it.times(() => it.increment()))
+
   assert(counter.increment().increment() == counter)
+  assert(counter.value == 2)
 ```
