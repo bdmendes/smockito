@@ -13,14 +13,15 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def matchedMethodName[T: Type, F[_], A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(using
-      q: Quotes
+  def matchedMethodName[T: Type, F[_]: Type, A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(
+      using q: Quotes
   ): Expr[String] =
     import q.reflect.*
 
     given Printer[TypeRepr] = Printer.TypeReprShortCode
 
-    val targetType = TypeRepr.of[T]
+    val fTargetType = TypeRepr.of[F[T]]
+    val rawTargetType = TypeRepr.of[T]
     val receivedReturnType = TypeRepr.of[R]
     val receivedParamTypes = TypeRepr.of[A].typeArgs
 
@@ -57,9 +58,9 @@ object meta:
         case Apply(_, List(arg)) =>
           // In the case of super class methods such as `toString`, the type argument of `it`
           // widens and so does the resulting expression, so check for an upper bound instead.
-          arg.tpe <:< targetType && targetType <:< term.tpe
+          arg.tpe <:< fTargetType && fTargetType <:< term.tpe
         case _ =>
-          term.tpe <:< targetType
+          term.tpe <:< fTargetType
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
@@ -71,12 +72,12 @@ object meta:
       val methodParamTypes = params.map(normalize)
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
         report.errorAndAbort(
-          s"Method ${sym.name} in ${targetType.show} expects ${showTypes(methodParamTypes)} " +
+          s"Method ${sym.name} in ${rawTargetType.show} expects ${showTypes(methodParamTypes)} " +
             s"but received function expects ${showTypes(receivedParamTypes.map(normalize))}"
         )
       if !(receivedReturnType <:< methodReturn) then
         report.errorAndAbort(
-          s"Method ${sym.name} in ${targetType.show} returns ${methodReturn.show} " +
+          s"Method ${sym.name} in ${rawTargetType.show} returns ${methodReturn.show} " +
             s"but received function returns ${receivedReturnType.show}"
         )
       Some(sym.name)
@@ -105,4 +106,4 @@ object meta:
       case Some(methodName) =>
         Expr(methodName)
       case None =>
-        report.errorAndAbort(s"Expected selection of a mockable method of ${targetType.show}")
+        report.errorAndAbort(s"Expected selection of a mockable method of ${rawTargetType.show}")
