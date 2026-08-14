@@ -14,6 +14,16 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.8.0 - 2026-08-14
+
+This release makes `onCall` accept a `PartialFunction` per invocation, throwing automatically on unwanted function arguments. This aligns it with `on`. Existing callers that did not resort to a function literal might have to adapt the code to the new signature.
+
+### What's Changed
+* Pin call number reset behavior and document it by @bdmendes in https://github.com/bdmendes/smockito/pull/278
+* Invert onCall/on relationship for partiality by @bdmendes in https://github.com/bdmendes/smockito/pull/279
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.7.8...v2.8.0
+
 ## 2.7.8 - 2026-08-12
 
 This release makes `it` correctly return `Mock[T]` instead of `T`, meaning you can now use mock methods on stubs, such as `calls` or `times`, without having to isolate the mock instance in a separate variable. Refer to the documentation and use with care. Happy mocking!
