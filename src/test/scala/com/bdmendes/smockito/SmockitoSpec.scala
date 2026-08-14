@@ -618,7 +618,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           case 1 | 2 =>
             _ == "bdmendes"
           case _ =>
-            _ => false
+            case s if s.nonEmpty =>
+              false
 
     assert(typeChecks("repository.onCall(() => it.get)(_ => _ => List.empty)"))
     assert(!typeChecks("repository.onCall(() => it.get)(_ => _ => 1)"))
@@ -632,6 +633,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("johndoe"), false)
     assertEquals(repository.exists("bdmendes"), false)
     assertEquals(repository.times(it.exists), 3)
+
+    intercept[UnexpectedArguments]:
+      repository.exists("")
 
   test("throw on unexpected call number"):
     val repository =
