@@ -45,12 +45,12 @@ def it[T](using mock: Mock[T]): Mock[T] = mock
 
 ## Method accessor sanity check
 
-Smockito asserts at compile time that received methods are expressions that select a method on the mock type via `it`. This is achieved with a macro that analyzes the abstract syntax tree of the method reference passed to `on`, `calls`, `times` and friends to ensure it conforms to the expected shape. If it doesn't, a compilation error is raised with a helpful message.
+Smockito asserts at compile time that received methods are expressions that directly select a method on the mock type via `it`. This is achieved with a macro that analyzes the abstract syntax tree of the method reference passed to `on`, `calls`, `times` and friends to ensure it conforms to the expected shape. If it doesn't, a compilation error is raised with a helpful message.
 
 ```scala
 |    val repository = mock[Repository[User]].on(unrelated.contains)(_ => true)
 |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|Expected selection of a mockable method of Repository[User]
+|Expected direct selection of a mockable method of Repository[User]
 ```
 
 Eta-expansion in Scala has its quirks: for instance, it captures any context parameters in scope, rendering a method that effectively does not exist in the JVM bytecode and that Mockito cannot directly mock. Smockito guards against this by rejecting method references whose shape does not match the referenced method in the mocked type, directing the user to eta-expand manually.
@@ -257,12 +257,18 @@ When doing so, consider whether this behavior is a hard requirement of your syst
 
 ## Referencing the Mocked Instance in a Stub
 
-A reference to the mocked instance itself is available in the stubbing context of the `on` and `onCall` methods via `it`.
+A reference to the mocked instance itself is available in the stubbing context of the `on` and `onCall` methods via `it`. Think of `it` as `this` inside a regular class, but for the mock instance.
 
 ```scala
   trait Counter:
     def increment(): Counter
+    def value: Int
 
-  val counter = mock[Counter].on(() => it.increment())(_ => it)
+  val counter =
+    mock[Counter]
+      .on(() => it.increment())(_ => it)
+      .on(() => it.value)(_ => it.times(() => it.increment()))
+
   assert(counter.increment().increment() == counter)
+  assert(counter.value == 2)
 ```

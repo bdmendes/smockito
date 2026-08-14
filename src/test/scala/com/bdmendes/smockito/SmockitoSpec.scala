@@ -391,12 +391,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("reject received unrelated expression"):
     def assertHasRejection(errors: String) =
-      assert(errors.contains("Expected selection of a mockable method"))
+      assert(errors.contains("Expected direct selection of a mockable method"))
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]
     val _ = repository
 
+    assertHasRejection(compileErrors("""repository.on(it.calls)(_ => List.empty)"""))
     assertHasRejection(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
     assertHasRejection(compileErrors("""repository.times((_: String) => true)"""))
     assertHasRejection(compileErrors("""repository.calls((_: String) => true)"""))
@@ -617,7 +618,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
           case 1 | 2 =>
             _ == "bdmendes"
           case _ =>
-            _ => false
+            case s if s.nonEmpty =>
+              false
 
     assert(typeChecks("repository.onCall(() => it.get)(_ => _ => List.empty)"))
     assert(!typeChecks("repository.onCall(() => it.get)(_ => _ => 1)"))
@@ -632,6 +634,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.exists("bdmendes"), false)
     assertEquals(repository.times(it.exists), 3)
 
+    intercept[UnexpectedArguments]:
+      repository.exists("")
+
   test("throw on unexpected call number"):
     val repository =
       mock[Repository[User]].onCall(it.exists):
@@ -642,6 +647,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     intercept[UnexpectedCallNumber]:
       repository.exists("bdmendes")
+
+  test("reset call number count if stub is reconfigured"):
+    trait Counter:
+      def tap: Int
+
+    val counter = mock[Counter].onCall(() => it.tap)(times => _ => times)
+
+    assertEquals(counter.tap, 1)
+    assertEquals(counter.tap, 2)
+
+    counter.onCall(() => it.tap)(times => _ => times * 10)
+
+    assertEquals(counter.tap, 10)
+    assertEquals(counter.tap, 20)
+
+    assertEquals(counter.times(() => it.tap), 4)
 
   test("throw on incompatible received argument type"):
     trait Monitor:
@@ -746,22 +767,30 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("return self on a stub"):
     trait Counter:
       def increment(): Counter
+      def value: Int
 
-    val counter = mock[Counter].on(() => it.increment())(_ => it)
+    val counter =
+      mock[Counter]
+        .on(() => it.increment())(_ => it)
+        .on(() => it.value)(_ => it.times(() => it.increment()))
 
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
+    assertEquals(counter.value, 2)
 
   test("return self on an onCall stub"):
     trait Counter:
       def increment(): Counter
+      def value: Int
 
     val counter =
-      mock[Counter].onCall(() => it.increment()): _ =>
-        _ => it
+      mock[Counter]
+        .onCall(() => it.increment())(_ => _ => it)
+        .onCall(() => it.value)(_ => _ => it.times(() => it.increment()))
 
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
+    assertEquals(counter.value, 2)
 
   test("be resilient to different target names"):
     trait Foo:
