@@ -75,6 +75,39 @@ private trait MockSyntax:
         case _: MockitoAssertionError =>
           false
 
+    /** Sets up a stub for a method that behaves differently based on the call number and the
+      * received tupled arguments. This will override any previous stubs for the same method.
+      *
+      * The call number is local to this stub. If the method is restubbed between calls, it may
+      * differ from the total invocation count reported by [[times]].
+      *
+      * @param method
+      *   the method to mock.
+      * @param stub
+      *   the stub implementation, based on its call number, starting at 1.
+      * @return
+      *   the mocked type.
+      * @see
+      *   [[on]] for the version that only considers the expected set of inputs.
+      */
+    inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
+        stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Pack[A], R2]]
+    ): Mock[T] =
+      validateMethod(method)
+      val callCount = AtomicInteger(0)
+      val answer: Answer[R2] =
+        invocation =>
+          val call = callCount.incrementAndGet()
+          val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
+          val arguments = unwrap[A](invocation.getRawArguments)
+          f.applyOrElse(
+            pack(Tuple.fromArray(arguments).asInstanceOf[A]),
+            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+          )
+      val target = method(using Mockito.doAnswer(answer).when(mock))
+      target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+      mock
+
     /** Sets up a stub for a method, based on the received tupled arguments. This will override any
       * previous stubs for the same method.
       *
@@ -89,18 +122,7 @@ private trait MockSyntax:
       */
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
-    ): Mock[T] =
-      validateMethod(method)
-      val answer: Answer[R2] =
-        invocation =>
-          val arguments = unwrap[A](invocation.getRawArguments)
-          stub(using mock).applyOrElse(
-            pack(Tuple.fromArray(arguments).asInstanceOf[A]),
-            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
-          )
-      val target = method(using Mockito.doAnswer(answer).when(mock))
-      target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
-      mock
+    ): Mock[T] = mock.onCall(method)(PartialFunctionProxy(_ => stub))
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
       * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
@@ -210,30 +232,6 @@ private trait MockSyntax:
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
       mock.on(method)(PartialFunctionProxy(realMethod))
 
-    /** Sets up a stub for a method that behaves differently based on the call number.
-      *
-      * The call number is local to this stub. If the method is restubbed between calls, it may
-      * differ from the total invocation count reported by [[times]].
-      *
-      * @param method
-      *   the method to mock.
-      * @param stub
-      *   the stub implementation, based on its call number, starting at 1.
-      * @return
-      *   the mocked type.
-      * @see
-      *   [[on]] for the version that only considers the expected set of inputs.
-      */
-    inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
-        stub: Mock[T] ?=> PartialFunction[Int, Pack[A] => R2]
-    ): Mock[T] =
-      val callCount = AtomicInteger(0)
-      val f =
-        (args: Pack[A]) =>
-          val call = callCount.incrementAndGet()
-          stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call)).apply(args)
-      mock.on(method)(PartialFunctionProxy(f))
-
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
       *
@@ -278,9 +276,9 @@ private object Mock:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
     lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
 
-    class PartialFunctionProxy[A <: Tuple, R](f: Pack[A] => R) extends PartialFunction[Pack[A], R]:
-      override def apply(args: Pack[A]): R = f(args)
-      override def isDefinedAt(x: Pack[A]): Boolean = true
+    class PartialFunctionProxy[A, R](f: A => R) extends PartialFunction[A, R]:
+      override def apply(args: A): R = f(args)
+      override def isDefinedAt(x: A): Boolean = true
 
   def apply[T](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
