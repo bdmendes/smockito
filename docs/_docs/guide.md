@@ -168,6 +168,28 @@ def mockExecutor(returnValue: Int): Mock[Executor] =
 
 That said, if you really need to override a stub, you may do so by calling `on` again for the same method. The last stub takes precedence.
 
+## Mocking Non-Reference Types
+
+A Smockito `Mock` has an upper bound of `AnyRef`, which means that Smockito cannot mock complex, erased Scala types as unions, intersections and opaque types, nor primitive types such as `Int`. The reason for this is the underlying desugaring to Mockito, which needs to modify methods on JVM types that are actual classes at runtime; in the same vein, extension methods, that are actually not a part of the type they extend, also cannot be mocked.
+
+A simple solution is to depend on some interface instead and have your complex type implement it for the production path. For instance, if you have
+
+```scala
+opaque type UserId = String
+```
+
+You could design the implementations with typeclasses instead of extension methods, and have your dependant require a `Name[UserId]` or even a `Name[T]` for any `T`.
+
+```scala
+trait Name[+A]:
+  def name(x: A): String
+
+given Name[UserId]:
+  def name(x: UserId): String = x
+```
+
+For unions, mocking one of the alternatives usually suffices.
+
 ## Mocking Objects
 
 A Scala `object` is a type with a singleton instance. If you explicitly require it as a dependency and program against it, you may mock it like any other class. For instance, if you have:
