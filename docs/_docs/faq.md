@@ -4,7 +4,7 @@ No. Smockito leverages a handful of powerful Scala 3 features, such as inlining,
 
 # How thread-safe is Smockito?
 
-The same as Mockito, which does some effort to synchronize access to its internal state, e.g. whilst tracking calls. However, the most reliable way to ensure consistency is to avoid sharing mocks across threads.
+The same as Mockito, which supports tracking concurrent calls to an already-configured shared mock, but not concurrent stubbing or verification.
 
 # Is this really a mocking framework?
 
