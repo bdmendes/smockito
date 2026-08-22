@@ -274,8 +274,10 @@ private trait MockSyntax:
 private object Mock:
 
   object mapper:
-    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
-    lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
+    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]().asInstanceOf[X]
+
+    lazy val captor =
+      [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]().asInstanceOf[ArgumentCaptor[X]]
 
   def apply[T <: AnyRef](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(

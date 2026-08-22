@@ -1,19 +1,20 @@
 package com.bdmendes.smockito.internal
 
 import java.lang.instrument.Instrumentation
+import java.lang.reflect.Method
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
 object MockitoAgent:
 
-  private[internal] def method =
+  private[internal] def method: Try[Method] =
     // Unfortunately, we cannot be sure that Mockito exists in the class path in
     // some complicated build configurations. It's best not to load this agent
     // in that case, but nevertheless we want to be flexible.
     Try:
       val mockito = Class.forName("org.mockito.internal.PremainAttach")
-      mockito.getMethod("premain", classOf[String], classOf[Instrumentation])
+      mockito.getMethod("premain", classOf[String], classOf[Instrumentation]).nn
 
   def premain(args: String, instrumentation: Instrumentation): Unit =
     method match
