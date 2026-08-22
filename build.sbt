@@ -35,13 +35,14 @@ lazy val root =
           "-deprecation",
           "-Werror",
           "-Wunused:all",
+          "-Yexplicit-nulls",
+          "-Wsafe-init",
           "-source",
           "future",
           "-feature",
           "-release",
           Dependencies.Versions.java
         ),
-      Test / scalacOptions ++= Seq("-Yexplicit-nulls"),
       libraryDependencies ++= Seq(mockito, munit % Test),
       Compile / packageBin / packageOptions +=
         Package.ManifestAttributes(
