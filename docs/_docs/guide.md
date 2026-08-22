@@ -181,7 +181,7 @@ opaque type UserId = String
 You could design the implementations with typeclasses instead of extension methods, and have your dependant require a `Name[UserId]` or even a `Name[T]` for any `T`.
 
 ```scala
-trait Name[+A]:
+trait Name[A]:
   def name(x: A): String
 
 given Name[UserId]:
