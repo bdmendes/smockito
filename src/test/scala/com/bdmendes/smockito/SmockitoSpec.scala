@@ -163,6 +163,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.hasCount(0))
     assert(!repository.hasCount(1))
 
+  test("set up method stubs on by-name parameters containing nullary functions"):
+    trait Foo:
+      def call(f: => () => Int): Int
+
+    val foo = mock[Foo].on(it.call(_: (() => Int)))(f => f())
+
+    assertEquals(foo.call(() => 1), 1)
+
   test("set up method stubs on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on(it.containsOneOf(_*)): names =>
@@ -826,6 +834,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       final def bar = 0
     val m = mock[Foo].on(() => it.bar)(_ => 1)
     assertEquals(m.bar, 1)
+
+  test("not call a thunk as a side effect of stubbing against a super type"):
+    trait Foo:
+      def bar(a: Any): Int
+
+    var counter = 0
+    val foo = mock[Foo].on(it.bar)(f => 0)
+    assertEquals(foo.bar(() => counter += 1), 0)
+    assertEquals(counter, 0)
 
 object SmockitoSpec:
 

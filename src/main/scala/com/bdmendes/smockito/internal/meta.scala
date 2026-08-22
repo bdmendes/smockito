@@ -6,6 +6,10 @@ import scala.reflect.ClassTag
 
 object meta:
 
+  enum MethodParameterType:
+    case ByName(tp: Class[?])
+    case Regular(tp: Class[?])
+
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
       case _: EmptyTuple =>
@@ -13,9 +17,9 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def matchedMethodName[T <: AnyRef: Type, F[_ <: AnyRef]: Type, A <: Tuple: Type, R: Type](
+  def matchedMethodInfo[T <: AnyRef: Type, F[_ <: AnyRef]: Type, A <: Tuple: Type, R: Type](
       expr: Expr[F[T] ?=> Any]
-  )(using q: Quotes): Expr[String] =
+  )(using q: Quotes): Expr[(String, Array[MethodParameterType])] =
     import q.reflect.*
 
     given Printer[TypeRepr] = Printer.TypeReprShortCode
@@ -64,7 +68,7 @@ object meta:
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
-    def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[String] =
+    def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[(String, List[TypeRepr])] =
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
@@ -80,9 +84,9 @@ object meta:
           s"Method ${sym.name} in ${rawTargetType.show} returns ${methodReturn.show} " +
             s"but received function returns ${receivedReturnType.show}"
         )
-      Some(sym.name)
+      Some((sym.name, params))
 
-    def findAndCheck(term: Term): Option[String] =
+    def findAndCheck(term: Term): Option[(String, List[TypeRepr])] =
       term match
         // Method selection.
         case tapp @ TypeApply(s @ Select(prefix, _), _) if targetsType(prefix) =>
@@ -103,8 +107,36 @@ object meta:
           None
 
     findAndCheck(expr.asTerm) match
-      case Some(methodName) =>
-        Expr(methodName)
+      case Some((methodName, parameterTypes)) =>
+        val parameterTypeExprs =
+          parameterTypes.map: parameterType =>
+            val runtimeClass =
+              normalize(parameterType).asType match
+                case '[parameterType] =>
+                  '{
+                    summonInline[ClassTag[parameterType]].runtimeClass
+                  }
+            parameterType match
+              case _: ByNameType =>
+                '{
+                  MethodParameterType.ByName($runtimeClass)
+                }
+              case _ =>
+                '{
+                  MethodParameterType.Regular($runtimeClass)
+                }
+        '{
+          (
+            ${
+              Expr(methodName)
+            },
+            Array[MethodParameterType](
+              ${
+                Varargs(parameterTypeExprs)
+              }*
+            )
+          )
+        }
       case None =>
         report.errorAndAbort(
           s"Expected direct selection of a mockable method of ${rawTargetType.show}"
