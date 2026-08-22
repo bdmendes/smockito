@@ -15,9 +15,9 @@ class MetaSpec extends munit.FunSuite:
     inline def hasRejection(expr: String): Boolean =
       compileErrors(expr).contains("Expected direct selection of a mockable method")
 
-    assertEquals(matchedMethodEntry[String, Id](target.charAt), "charAt")
-    assertEquals(matchedMethodEntry[String, Id](target.charAt(_: Int)), "charAt")
-    assertEquals(matchedMethodEntry[String, Id]((pos: Int) => target.charAt(pos)), "charAt")
+    assertEquals(matchedMethodEntry[String, Id](target.charAt)._1, "charAt")
+    assertEquals(matchedMethodEntry[String, Id](target.charAt(_: Int))._1, "charAt")
+    assertEquals(matchedMethodEntry[String, Id]((pos: Int) => target.charAt(pos))._1, "charAt")
 
     assert(hasRejection("matchedMethodEntry[String, Id](0)"))
     assert(hasRejection("matchedMethodEntry[Int, Id](unrelatedTarget.charAt)"))
@@ -31,7 +31,9 @@ private object MetaSpec:
   val target: Id[String] = "Some string"
   val unrelatedTarget = "Some other string"
 
-  private inline def matchedMethodEntry[T <: AnyRef, F[_ <: AnyRef]](inline expr: Any): String =
+  private inline def matchedMethodEntry[T <: AnyRef, F[_ <: AnyRef]](
+      inline expr: Any
+  ): (String, Array[?]) =
     ${
-      matchedMethodName[T, F, Tuple1[?], Char]('expr)
+      matchedMethodInfo[T, F, Tuple1[?], Char]('expr)
     }

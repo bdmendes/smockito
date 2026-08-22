@@ -4,6 +4,7 @@ import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.DefaultAnswer
 import com.bdmendes.smockito.internal.meta
+import com.bdmendes.smockito.internal.meta.MethodParameterType
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
@@ -22,21 +23,22 @@ private trait MockSyntax:
 
   extension [T <: AnyRef](mock: Mock[T])
 
-    private inline def validateMethod[A <: Tuple, R](
+    private inline def validateAndRetrieveMethodInfo[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
-    ): Unit =
+    ): (String, Array[meta.MethodParameterType]) =
       ${
-        meta.matchedMethodName[T, Mock, A, R]('method)
+        meta.matchedMethodInfo[T, Mock, A, R]('method)
       }
 
     private inline def unwrap[A <: Tuple](
         arguments: Array[Object],
+        parameterTypes: Array[meta.MethodParameterType],
         index: Int = 0,
         needsCloning: Boolean = true
     ): Array[Object] =
       // By-name parameters are compiled as nullary functions, hence the special treatment.
       if needsCloning then
-        unwrap[A](arguments.clone(), index, false)
+        unwrap[A](arguments.clone(), parameterTypes, index, false)
       else
         inline erasedValue[A] match
           case _: EmptyTuple =>
@@ -45,11 +47,11 @@ private trait MockSyntax:
             val unwrapped =
               arguments(index) match
                 case f: Function0[?] =>
-                  inline erasedValue[h & Matchable] match
-                    case _: Function0[?] =>
-                      f
-                    case _ =>
+                  parameterTypes(index) match
+                    case MethodParameterType.ByName(_) =>
                       f.apply()
+                    case MethodParameterType.Regular(_) =>
+                      f
                 case other =>
                   other
             val typeCheckedValue =
@@ -63,7 +65,7 @@ private trait MockSyntax:
               else
                 unwrapped
             arguments.update(index, typeCheckedValue.asInstanceOf[Object])
-            unwrap[t](arguments, index + 1, false)
+            unwrap[t](arguments, parameterTypes, index + 1, false)
 
     private inline def verifies(f: => Any): Boolean =
       // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
@@ -93,13 +95,13 @@ private trait MockSyntax:
     inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Pack[A], R2]]
     ): Mock[T] =
-      validateMethod(method)
+      val (_, parameterTypes) = validateAndRetrieveMethodInfo(method)
       val callCount = AtomicInteger(0)
       val answer: Answer[R2] =
         invocation =>
           val call = callCount.incrementAndGet()
           val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
-          val arguments = unwrap[A](invocation.getRawArguments)
+          val arguments = unwrap[A](invocation.getRawArguments, parameterTypes)
           f.applyOrElse(
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
@@ -138,7 +140,7 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
-      validateMethod(method)
+      val _ = validateAndRetrieveMethodInfo(method)
       val target = method(using Mockito.doCallRealMethod().when(mock))
       target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
@@ -157,7 +159,7 @@ private trait MockSyntax:
         case _: EmptyTuple =>
           error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
-          validateMethod(method)
+          val (_, parameterTypes) = validateAndRetrieveMethodInfo(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
           val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
           target.tupled(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
@@ -165,7 +167,7 @@ private trait MockSyntax:
             .map(_.getAllValues.toArray)
             .transpose
             .toList
-            .map(args => pack(Tuple.fromArray(unwrap[A](args)).asInstanceOf[A]))
+            .map(args => pack(Tuple.fromArray(unwrap[A](args, parameterTypes)).asInstanceOf[A]))
 
     /** Yields the number of times a method was called.
       *
@@ -177,7 +179,7 @@ private trait MockSyntax:
       *   [[calls]] if you need the exact received arguments per invocation.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      validateMethod(method)
+      val _ = validateAndRetrieveMethodInfo(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
           // Mockito has no reliable API for this use case, so we have to resort to inspecting the
@@ -246,8 +248,8 @@ private trait MockSyntax:
         inline a: Mock[T] ?=> MockedMethod[A1, R1],
         inline b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
-      validateMethod(a)
-      validateMethod(b)
+      val _ = validateAndRetrieveMethodInfo(a)
+      val _ = validateAndRetrieveMethodInfo(b)
       val ordered = Mockito.inOrder(mock)
       verifies:
         val targetA = a(using ordered.verify(mock, Mockito.atLeastOnce))
