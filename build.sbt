@@ -41,6 +41,7 @@ lazy val root =
           "-release",
           Dependencies.Versions.java
         ),
+      Test / scalacOptions ++= Seq("-Yexplicit-nulls"),
       libraryDependencies ++= Seq(mockito, munit % Test),
       Compile / packageBin / packageOptions +=
         Package.ManifestAttributes(

@@ -276,7 +276,9 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = repository.getWithDefaultsFree("bdmendes")
 
     // This default touched a class value, so we swallow the NPE.
-    assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", null)))
+    locally:
+      import scala.language.unsafeNulls
+      assertEquals(repository.calls(it.getWithDefaults), List(("bdmendes", null)))
 
     // This default is okay.
     assertEquals(repository.calls(it.getWithDefaultsFree), List(("bdmendes", None)))
@@ -391,7 +393,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("reject received unrelated expression"):
     def assertHasRejection(errors: String) =
-      assert(errors.contains("Expected direct selection of a mockable method"))
+      assert(errors.contains("Expected direct selection of a mockable method"), errors)
 
     // The compiler can't see that this is evaluated below, so silence the warning by forcing it.
     val repository = mock[Repository[User]]
@@ -401,11 +403,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertHasRejection(compileErrors("""repository.on((_: String) => true)(_ => true)"""))
     assertHasRejection(compileErrors("""repository.times((_: String) => true)"""))
     assertHasRejection(compileErrors("""repository.calls((_: String) => true)"""))
-    assertHasRejection(compileErrors("""repository.forward((_: String) => true, null)"""))
     assertHasRejection(compileErrors("""repository.real((_: String) => true)"""))
     assertHasRejection(compileErrors("""repository.onCall((_: String) => true)(_ => _ => true)"""))
     assertHasRejection(compileErrors("""repository.calledBefore(it.exists, (_: String) => true)"""))
     assertHasRejection(compileErrors("""repository.calledAfter(it.exists, (_: String) => true)"""))
+
+    locally:
+      import scala.language.unsafeNulls
+      assertHasRejection(compileErrors("""repository.forward((_: String) => true, null)"""))
 
   test("reject unknown received method"):
     given User = mockUsers.head
@@ -562,8 +567,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val _ = getter.real(it.unstubbed)
     assertEquals(tracker, 0)
 
-    val _ = getter.forward(it.unstubbed, null)
-    assertEquals(tracker, 0)
+    locally:
+      import scala.language.unsafeNulls
+      val _ = getter.forward(it.unstubbed, null)
+      assertEquals(tracker, 0)
 
     val _ = getter.onCall(it.unstubbed)
     assertEquals(tracker, 0)
