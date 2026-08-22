@@ -4,7 +4,6 @@ import Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.DefaultAnswer
 import com.bdmendes.smockito.internal.meta
-import com.bdmendes.smockito.internal.meta.MethodParameterType
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.*
@@ -48,9 +47,9 @@ private trait MockSyntax:
               arguments(index) match
                 case f: Function0[?] =>
                   parameterTypes(index) match
-                    case MethodParameterType.ByName(_) =>
+                    case meta.MethodParameterType.ByName(_) =>
                       f.apply()
-                    case MethodParameterType.Regular(_) =>
+                    case meta.MethodParameterType.Regular(_) =>
                       f
                 case other =>
                   other
