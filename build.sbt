@@ -35,6 +35,8 @@ lazy val root =
           "-deprecation",
           "-Werror",
           "-Wunused:all",
+          "-source",
+          "future",
           "-feature",
           "-release",
           Dependencies.Versions.java

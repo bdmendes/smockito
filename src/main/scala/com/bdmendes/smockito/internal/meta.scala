@@ -13,9 +13,9 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
-  def matchedMethodName[T: Type, F[_]: Type, A <: Tuple: Type, R: Type](expr: Expr[F[T] ?=> Any])(
-      using q: Quotes
-  ): Expr[String] =
+  def matchedMethodName[T <: AnyRef: Type, F[_ <: AnyRef]: Type, A <: Tuple: Type, R: Type](
+      expr: Expr[F[T] ?=> Any]
+  )(using q: Quotes): Expr[String] =
     import q.reflect.*
 
     given Printer[TypeRepr] = Printer.TypeReprShortCode
@@ -28,7 +28,7 @@ object meta:
     def methodSignature(t: TypeRepr): (List[TypeRepr], TypeRepr) =
       // Concatenate the parameter lists into a single one, as one needs to do
       // in manual eta-expansion for curried methods.
-      t match
+      t.asMatchable match
         case MethodType(_, params, ret) =>
           val (retParams, result) = methodSignature(ret)
           (params ++ retParams, result)
@@ -38,14 +38,14 @@ object meta:
 
     def normalize(t: TypeRepr): TypeRepr =
       // Desugar for varargs, compiled to a Seq.
-      t.widenTermRefByName.widenByName match
+      t.widenTermRefByName.widenByName.asMatchable match
         case AppliedType(tycon, arg :: Nil) if tycon.typeSymbol == defn.RepeatedParamClass =>
           TypeRepr.of[Seq].appliedTo(arg)
         case t =>
           t
 
     def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
-      expected.dealias match
+      expected.dealias.asMatchable match
         case TypeBounds(low, high) =>
           normalize(low) <:< actual && actual <:< normalize(high)
         case expected =>
