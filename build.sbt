@@ -36,6 +36,8 @@ lazy val root =
           "-language:implicitConversions",
           "-Werror",
           "-Wunused:all",
+          "-source",
+          "future",
           "-feature",
           "-release",
           Dependencies.Versions.java

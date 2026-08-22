@@ -6,7 +6,7 @@ private[smockito] object LiftedInstance:
 
   // scalafmt: { maxColumn = 240 }
 
-  def apply[T](obj: T)(using ct: ClassTag[T]): T =
+  def apply[T <: AnyRef](obj: T)(using ct: ClassTag[T]): T =
     val proxy =
       obj match
         // Lambdas require special treatment as they are usually synthetic classes

@@ -19,7 +19,7 @@ trait Smockito extends MockSyntax:
     * @return
     *   the mock instance.
     */
-  def mock[T: ClassTag]: Mock[T] = Mock.apply
+  def mock[T <: AnyRef: ClassTag]: Mock[T] = Mock.apply
 
   /** Creates a [[Spy]] instance of `T`. A `Spy[T]` is the compile time representation of a real
     * instance of `T` copied by Mockito for spying purposes, erased at runtime.
@@ -29,7 +29,7 @@ trait Smockito extends MockSyntax:
     * @return
     *   the spy instance.
     */
-  def spy[T: ClassTag](realInstance: T): Spy[T] = Spy.apply(realInstance)
+  def spy[T <: AnyRef: ClassTag](realInstance: T): Spy[T] = Spy.apply(realInstance)
 
   /** Retrieves the mock in scope. This is the recommended way to refer to a mock available in
     * context, as is the case when using methods of [[Mock]].
@@ -41,7 +41,7 @@ trait Smockito extends MockSyntax:
     * @return
     *   the mock in scope.
     */
-  def it[T](using mock: Mock[T]): Mock[T] = mock
+  def it[T <: AnyRef](using mock: Mock[T]): Mock[T] = mock
 
 object Smockito:
 
