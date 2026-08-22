@@ -844,6 +844,27 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(foo.bar(() => counter += 1), 0)
     assertEquals(counter, 0)
 
+  test("disallow mocking non reference types"):
+    object Outer:
+      opaque type SpookyUser = User
+      extension (u: SpookyUser)
+        def pretty = "yes"
+        def toUser: User = u
+
+    def assertDoesNotConform(errors: String) =
+      assert(errors.contains("does not conform to upper bound AnyRef"), errors)
+
+    assertDoesNotConform(compileErrors("""mock[Outer.SpookyUser]"""))
+    assertDoesNotConform(compileErrors("""mock[String | Outer.SpookyUser]"""))
+    assertDoesNotConform(compileErrors("""mock[Long]"""))
+    assertDoesNotConform(compileErrors("""mock[Int]"""))
+
+    // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
+    // This should be used as a last resort; depend on an interface instead.
+    val spooky = mock[User].on(() => it.username)(_ => "tampered").asInstanceOf[Outer.SpookyUser]
+    assertEquals(spooky.pretty, "yes")
+    assertEquals(spooky.toUser.username, "tampered")
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
