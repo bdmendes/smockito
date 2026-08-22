@@ -165,11 +165,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("set up method stubs on by-name parameters containing nullary functions"):
     trait Foo:
-      def call(f: => () => Int): Int
+      def bar(f: => () => Int): Int
 
-    val foo = mock[Foo].on(it.call(_: (() => Int)))(f => f())
+    val foo = mock[Foo].on(it.bar(_: (() => Int)))(f => f())
 
-    assertEquals(foo.call(() => 1), 1)
+    assertEquals(foo.bar(() => 1), 1)
 
   test("set up method stubs on methods with variable arguments"):
     val repository =
