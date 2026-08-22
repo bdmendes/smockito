@@ -14,6 +14,17 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 2.8.1 - 2026-08-22
+
+This release makes Smockito reject mocking non-reference types at compile time, with the most notable examples being primitives and opaque types, that would not work as intended at runtime due to Mockito limitations. In addition, it includes a fix for certain scenarios where mocking a method with by-name parameters would throw a cast exception.
+
+### What's Changed
+* Require reference types; compile under `-source=future` by @bdmendes in https://github.com/bdmendes/smockito/pull/282
+* Fix side effects of mismatched nullary function args by @bdmendes in https://github.com/bdmendes/smockito/pull/285
+* Test and document disallowed primitive mocking by @bdmendes in https://github.com/bdmendes/smockito/pull/286
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.8.0...v2.8.1
+
 ## 2.8.0 - 2026-08-14
 
 This release makes `onCall` accept a `PartialFunction` per invocation, throwing automatically on unwanted function arguments. This aligns it with `on`. Existing callers that did not resort to a function literal might have to adapt the code to the new signature.
