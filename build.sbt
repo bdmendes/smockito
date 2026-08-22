@@ -35,6 +35,8 @@ lazy val root =
           "-deprecation",
           "-Werror",
           "-Wunused:all",
+          "-Yexplicit-nulls",
+          "-Wsafe-init",
           "-source",
           "future",
           "-feature",
