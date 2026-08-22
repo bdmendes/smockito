@@ -40,7 +40,7 @@ Should we have used a regular function type and required `.on(_.compute(_: Int))
 This idea was shamelessly borrowed from Kotlin's [implicit name of a single parameter in lambdas](https://kotlinlang.org/docs/lambdas.html#it-implicit-name-of-a-single-parameter). In the `Smockito` trait, the `it` method is simply defined as:
 
 ```scala
-def it[T](using mock: Mock[T]): Mock[T] = mock
+def it[T <: AnyRef](using mock: Mock[T]): Mock[T] = mock
 ```
 
 ## Method accessor sanity check

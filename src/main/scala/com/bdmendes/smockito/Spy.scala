@@ -9,11 +9,11 @@ import scala.reflect.ClassTag
 /** A `Spy` is a mock whose default answer is to forward all method calls to a real instance, unless
   * stubbed otherwise.
   */
-opaque type Spy[+T] <: Mock[T] = Mock[T]
+opaque type Spy[+T <: AnyRef] <: Mock[T] = Mock[T]
 
 private object Spy:
 
-  def apply[T](realInstance: T)(using ct: ClassTag[T]): Spy[T] =
+  def apply[T <: AnyRef](realInstance: T)(using ct: ClassTag[T]): Spy[T] =
     try
       Mockito.spy(LiftedInstance(realInstance)).asInstanceOf[Mock[T]]
     catch

@@ -16,11 +16,11 @@ import scala.reflect.ClassTag
 /** A `Mock` represents a type mocked by Mockito, with a default answer strategy of throwing on
   * unstubbed methods.
   */
-opaque type Mock[+T] <: T = T
+opaque type Mock[+T <: AnyRef] <: T = T
 
 private trait MockSyntax:
 
-  extension [T](mock: Mock[T])
+  extension [T <: AnyRef](mock: Mock[T])
 
     private inline def validateMethod[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
@@ -29,7 +29,7 @@ private trait MockSyntax:
         meta.matchedMethodName[T, Mock, A, R]('method)
       }
 
-    private inline def unwrap[A](
+    private inline def unwrap[A <: Tuple](
         arguments: Array[Object],
         index: Int = 0,
         needsCloning: Boolean = true
@@ -45,7 +45,7 @@ private trait MockSyntax:
             val unwrapped =
               arguments(index) match
                 case f: Function0[?] =>
-                  inline erasedValue[h] match
+                  inline erasedValue[h & Matchable] match
                     case _: Function0[?] =>
                       f
                     case _ =>
@@ -280,7 +280,7 @@ private object Mock:
       override def apply(args: A): R = f(args)
       override def isDefinedAt(x: A): Boolean = true
 
-  def apply[T](using ct: ClassTag[T]): Mock[T] =
+  def apply[T <: AnyRef](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
       ct.runtimeClass.asInstanceOf[Class[T]],
       Mockito.withSettings().defaultAnswer(DefaultAnswer)

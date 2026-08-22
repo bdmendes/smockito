@@ -31,7 +31,7 @@ private object MetaSpec:
   val target: Id[String] = "Some string"
   val unrelatedTarget = "Some other string"
 
-  private inline def matchedMethodEntry[T, F[_]](inline expr: Any): String =
+  private inline def matchedMethodEntry[T <: AnyRef, F[_ <: AnyRef]](inline expr: Any): String =
     ${
       matchedMethodName[T, F, Tuple1[?], Char]('expr)
     }
