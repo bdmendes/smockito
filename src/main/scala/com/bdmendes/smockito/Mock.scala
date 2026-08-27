@@ -123,7 +123,7 @@ private trait MockSyntax:
       */
     inline def on[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Pack[A], R2]
-    ): Mock[T] = mock.onCall(method)(PartialFunctionProxy(_ => stub))
+    ): Mock[T] = mock.onCall(method)(PartialFunction.fromFunction(_ => stub))
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
       * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
@@ -231,7 +231,7 @@ private trait MockSyntax:
         realInstance: T
     ): Mock[T] =
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).packed
-      mock.on(method)(PartialFunctionProxy(realMethod))
+      mock.on(method)(PartialFunction.fromFunction(realMethod))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
@@ -276,10 +276,6 @@ private object Mock:
   object mapper:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]
     lazy val captor = [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]()
-
-    class PartialFunctionProxy[A, R](f: A => R) extends PartialFunction[A, R]:
-      override def apply(args: A): R = f(args)
-      override def isDefinedAt(x: A): Boolean = true
 
   def apply[T <: AnyRef](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
