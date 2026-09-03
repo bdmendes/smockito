@@ -33,7 +33,6 @@ lazy val root =
           "-encoding",
           "utf8",
           "-deprecation",
-          "-language:implicitConversions",
           "-Werror",
           "-Wunused:all",
           "-source",
