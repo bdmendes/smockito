@@ -92,9 +92,10 @@ object meta:
     def findAndCheck(term: Term): Option[(name: String, paramTypes: List[TypeRepr])] =
       term match
         // Method selection.
-        case tapp @ TypeApply(s @ Select(prefix, _), _) if targetsType(prefix) =>
+        case tapp @ TypeApply(s @ Select(prefix, _), _)
+            if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
           checkAndReturn(s.symbol, normalize(tapp.tpe))
-        case s @ Select(prefix, _) if targetsType(prefix) =>
+        case s @ Select(prefix, _) if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
           checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
         // Parent AST nodes. Particularly relevant is the implicit conversion step
         // via the `Conversion` typeclass application to lift functions to `MockedMethod`.
