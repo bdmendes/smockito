@@ -29,7 +29,7 @@ object meta:
     val receivedReturnType = TypeRepr.of[R]
     val receivedParamTypes = TypeRepr.of[A].typeArgs
 
-    def methodSignature(t: TypeRepr): (List[TypeRepr], TypeRepr) =
+    def methodSignature(t: TypeRepr): (paramTypes: List[TypeRepr], returnType: TypeRepr) =
       // Concatenate the parameter lists into a single one, as one needs to do
       // in manual eta-expansion for curried methods.
       t.asMatchable match
@@ -68,30 +68,34 @@ object meta:
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
-    def checkAndReturn(sym: Symbol, methodType: TypeRepr): Option[(String, List[TypeRepr])] =
+    def checkAndReturn(
+        sym: Symbol,
+        methodType: TypeRepr
+    ): Option[(name: String, paramTypes: List[TypeRepr])] =
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
-      val (params, methodReturn) = methodSignature(methodType)
-      val methodParamTypes = params.map(normalize)
+      val signature = methodSignature(methodType)
+      val methodParamTypes = signature.paramTypes.map(normalize)
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
         report.errorAndAbort(
           s"Method ${sym.name} in ${rawTargetType.show} expects ${showTypes(methodParamTypes)} " +
             s"but received function expects ${showTypes(receivedParamTypes.map(normalize))}"
         )
-      if !(receivedReturnType <:< methodReturn) then
+      if !(receivedReturnType <:< signature.returnType) then
         report.errorAndAbort(
-          s"Method ${sym.name} in ${rawTargetType.show} returns ${methodReturn.show} " +
+          s"Method ${sym.name} in ${rawTargetType.show} returns ${signature.returnType.show} " +
             s"but received function returns ${receivedReturnType.show}"
         )
-      Some((sym.name, params))
+      Some((sym.name, signature.paramTypes))
 
-    def findAndCheck(term: Term): Option[(String, List[TypeRepr])] =
+    def findAndCheck(term: Term): Option[(name: String, paramTypes: List[TypeRepr])] =
       term match
         // Method selection.
-        case tapp @ TypeApply(s @ Select(prefix, _), _) if targetsType(prefix) =>
+        case tapp @ TypeApply(s @ Select(prefix, _), _)
+            if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
           checkAndReturn(s.symbol, normalize(tapp.tpe))
-        case s @ Select(prefix, _) if targetsType(prefix) =>
+        case s @ Select(prefix, _) if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
           checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
         // Parent AST nodes. Particularly relevant is the implicit conversion step
         // via the `Conversion` typeclass application to lift functions to `MockedMethod`.
