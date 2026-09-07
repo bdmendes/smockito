@@ -115,22 +115,21 @@ object meta:
     findAndCheck(expr.asTerm) match
       case Some((methodName, parameterTypes)) =>
         val parameterTypeExprs =
-          parameterTypes.map: parameterType =>
-            parameterType match
-              case _: ByNameType =>
-                '{
-                  MethodParameterType.ByName
-                }
-              case _ =>
-                '{
-                  MethodParameterType.Regular
-                }
+          parameterTypes.map:
+            case _: ByNameType =>
+              '{
+                MethodParameterType.ByName
+              }
+            case _ =>
+              '{
+                MethodParameterType.Regular
+              }
         '{
           (
             ${
               Expr(methodName)
             },
-            IndexedSeq[MethodParameterType](
+            IndexedSeq(
               ${
                 Varargs(parameterTypeExprs)
               }*
