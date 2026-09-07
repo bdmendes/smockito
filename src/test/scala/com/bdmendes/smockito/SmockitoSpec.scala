@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-class SmockitoSpec extends munit.FunSuite with Smockito:
+class SmockitoSpec extends munit.FunSuite:
 
   inline def isSubtypeOf[A, B] =
     summonFrom:

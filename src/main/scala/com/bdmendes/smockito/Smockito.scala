@@ -3,13 +3,7 @@ package com.bdmendes.smockito
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
-/** The trait to mix in for using Smockito facilities in a specification. It includes the [[mock]]
-  * and [[spy]] methods for creating mocks, and the various syntax extensions on them, such as
-  * [[on]], [[calls]] and [[times]]. Those extensions expect method references via
-  * [[https://docs.scala-lang.org/scala3/reference/contextual/context-functions.html context functions]]
-  * with a [[Mock]] context parameter, retrievable via the [[it]] method.
-  */
-trait Smockito extends MockSyntax:
+private object SmockitoSyntax extends MockSyntax:
 
   /** Creates a [[Mock]] instance of `T`. A `Mock[T]` is the compile time representation of an
     * instance of `T` mocked by Mockito, erased at runtime, whose default answer is to throw.
@@ -74,3 +68,5 @@ object Smockito:
           s"Expected a ${expected.getName}, but got $value which is of type " +
             s"${value.getClass.getName}."
         )
+
+export SmockitoSyntax.*
