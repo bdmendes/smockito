@@ -7,8 +7,10 @@ import scala.reflect.ClassTag
 object meta:
 
   enum MethodParameterType:
-    case ByName(tp: Class[?])
-    case Regular(tp: Class[?])
+    case ByName
+    case Regular
+
+  type MatchedMethodInfo = (name: String, parameterTypes: IndexedSeq[MethodParameterType])
 
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
@@ -19,7 +21,7 @@ object meta:
 
   def matchedMethodInfo[T <: AnyRef: Type, F[_ <: AnyRef]: Type, A <: Tuple: Type, R: Type](
       expr: Expr[F[T] ?=> Any]
-  )(using q: Quotes): Expr[(String, Array[MethodParameterType])] =
+  )(using q: Quotes): Expr[MatchedMethodInfo] =
     import q.reflect.*
 
     given Printer[TypeRepr] = Printer.TypeReprShortCode
@@ -113,28 +115,21 @@ object meta:
     findAndCheck(expr.asTerm) match
       case Some((methodName, parameterTypes)) =>
         val parameterTypeExprs =
-          parameterTypes.map: parameterType =>
-            val runtimeClass =
-              normalize(parameterType).asType match
-                case '[parameterType] =>
-                  '{
-                    summonInline[ClassTag[parameterType]].runtimeClass
-                  }
-            parameterType match
-              case _: ByNameType =>
-                '{
-                  MethodParameterType.ByName($runtimeClass)
-                }
-              case _ =>
-                '{
-                  MethodParameterType.Regular($runtimeClass)
-                }
+          parameterTypes.map:
+            case _: ByNameType =>
+              '{
+                MethodParameterType.ByName
+              }
+            case _ =>
+              '{
+                MethodParameterType.Regular
+              }
         '{
           (
             ${
               Expr(methodName)
             },
-            Array[MethodParameterType](
+            IndexedSeq(
               ${
                 Varargs(parameterTypeExprs)
               }*

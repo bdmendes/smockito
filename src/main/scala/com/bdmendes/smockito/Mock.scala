@@ -24,14 +24,14 @@ private trait MockSyntax:
 
     private inline def validateAndRetrieveMethodInfo[A <: Tuple, R](
         inline method: Mock[T] ?=> MockedMethod[A, R]
-    ): (String, Array[meta.MethodParameterType]) =
+    ): meta.MatchedMethodInfo =
       ${
         meta.matchedMethodInfo[T, Mock, A, R]('method)
       }
 
     private inline def unwrap[A <: Tuple](
         arguments: Array[Object],
-        parameterTypes: Array[meta.MethodParameterType],
+        parameterTypes: IndexedSeq[meta.MethodParameterType],
         index: Int = 0,
         needsCloning: Boolean = true
     ): Array[Object] =
@@ -47,9 +47,9 @@ private trait MockSyntax:
               arguments(index) match
                 case f: Function0[?] =>
                   parameterTypes(index) match
-                    case meta.MethodParameterType.ByName(_) =>
+                    case meta.MethodParameterType.ByName =>
                       f.apply()
-                    case meta.MethodParameterType.Regular(_) =>
+                    case meta.MethodParameterType.Regular =>
                       f
                 case other =>
                   other
@@ -94,13 +94,13 @@ private trait MockSyntax:
     inline def onCall[A <: Tuple, R1, R2 <: R1](inline method: Mock[T] ?=> MockedMethod[A, R1])(
         stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Pack[A], R2]]
     ): Mock[T] =
-      val (_, parameterTypes) = validateAndRetrieveMethodInfo(method)
+      val info = validateAndRetrieveMethodInfo(method)
       val callCount = AtomicInteger(0)
       val answer: Answer[R2] =
         invocation =>
           val call = callCount.incrementAndGet()
           val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
-          val arguments = unwrap[A](invocation.getRawArguments, parameterTypes)
+          val arguments = unwrap[A](invocation.getRawArguments, info.parameterTypes)
           f.applyOrElse(
             pack(Tuple.fromArray(arguments).asInstanceOf[A]),
             _ => throw UnexpectedArguments(invocation.getMethod, arguments)
@@ -158,7 +158,7 @@ private trait MockSyntax:
         case _: EmptyTuple =>
           error("`calls` is not available for nullary methods; use `times` instead")
         case _ =>
-          val (_, parameterTypes) = validateAndRetrieveMethodInfo(method)
+          val info = validateAndRetrieveMethodInfo(method)
           val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
           val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
           target.tupled(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
@@ -166,7 +166,9 @@ private trait MockSyntax:
             .map(_.getAllValues.toArray)
             .transpose
             .toList
-            .map(args => pack(Tuple.fromArray(unwrap[A](args, parameterTypes)).asInstanceOf[A]))
+            .map(args =>
+              pack(Tuple.fromArray(unwrap[A](args, info.parameterTypes)).asInstanceOf[A])
+            )
 
     /** Yields the number of times a method was called.
       *
