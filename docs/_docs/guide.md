@@ -1,6 +1,6 @@
 # Referencing Methods with Eta-Expansion
 
-Most user-facing APIs in Smockito operate with method references, of the type `Mock[T] ?=> MockedMethod[A, R]`. Let's analyze this by parts. `MockedMethod[A, R]` is a type that represents a method that takes arguments of type `A` and returns a value of type `R`; it is automatically synthesized from a regular function via implicit conversions provided by the `Smockito` trait. The `Mock[T] ?=>` part indicates that this method reference is contextually dependent on a `Mock[T]` instance, which is the mock object being configured.
+Most user-facing APIs in Smockito operate with method references, of the type `Mock[T] ?=> MockedMethod[A, R]`. Let's analyze this by parts. `MockedMethod[A, R]` is a type that represents a method that takes arguments of type `A` and returns a value of type `R`; it is automatically synthesized from a regular function or a value via implicit conversions provided by the `Smockito` trait. The `Mock[T] ?=>` part indicates that this method reference is contextually dependent on a `Mock[T]` instance, which is the mock object being configured.
 
 When one does:
 
