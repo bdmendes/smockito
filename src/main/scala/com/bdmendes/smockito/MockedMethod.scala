@@ -1,5 +1,7 @@
 package com.bdmendes.smockito
 
+import scala.util.NotGiven
+
 /** The internal representation of a method to mock. The compiler synthesizes conversions from
   * regular function types to this type, for up to 22 parameters, via implicit conversions.
   */
@@ -14,6 +16,8 @@ object MockedMethod:
   // https://docs.scala-lang.org/scala3/reference/experimental/tupled-function.html
 
   // scalafmt: { maxColumn = 240 }
+
+  given convVal: [R] => NotGiven[R <:< Function0[?]] => Conversion[R, MockedMethod[EmptyTuple, R]] = v => (_: Unit) => v
 
   given conv00: [R] => Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (_: Unit) => f()
 

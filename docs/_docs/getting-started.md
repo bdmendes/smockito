@@ -40,7 +40,7 @@ case class User(username: String)
 
 class RepositorySpecification extends Smockito:
   val repository = mock[Repository[User]]
-    .on(() => it.name)(_ => "xpto")
+    .on(it.name)(_ => "xpto")
     .on(() => it.get)(_ => List(User("johndoe")))
     .on(it.exists)(_ == "johndoe")
     .on(it.greet()(using _: User))(user => s"Hello, ${user.username}!")
