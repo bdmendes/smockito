@@ -3,7 +3,7 @@ package com.bdmendes.smockito
 import scala.util.NotGiven
 
 /** The internal representation of a method to mock. The compiler synthesizes conversions from
-  * regular function types to this type, for up to 22 parameters, via implicit conversions.
+  * functions and values to this type, for up to 22 parameters, via implicit conversions.
   */
 into opaque type MockedMethod[A <: Tuple, R] = Pack[A] => R
 
