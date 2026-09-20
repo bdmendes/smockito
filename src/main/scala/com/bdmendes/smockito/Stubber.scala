@@ -7,8 +7,9 @@ import com.bdmendes.smockito.internal.meta
 import java.util.concurrent.atomic.AtomicInteger
 import org.mockito.Mockito
 import org.mockito.stubbing.Answer
+import scala.annotation.publicInBinary
 
-class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
+class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[smockito] (
     private val mock: Mock[T],
     private val method: Mock[T] ?=> MockedMethod[A, R],
     private val info: meta.MatchedMethodInfo
