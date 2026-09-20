@@ -11,7 +11,7 @@ object meta:
     case Regular
 
   trait MatchedMethodInfo:
-    type N <: Tuple
+    type ParameterNames <: Tuple
     val name: String
     val parameterTypes: IndexedSeq[MethodParameterType]
 
@@ -139,7 +139,7 @@ object meta:
           case '[n] =>
             '{
               new MatchedMethodInfo:
-                type N = n & Tuple
+                type ParameterNames = n & Tuple
                 val name =
                   ${
                     Expr(methodName)
@@ -151,7 +151,7 @@ object meta:
                     }*
                   )
               : MatchedMethodInfo {
-                type N = n & Tuple
+                type ParameterNames = n & Tuple
               }
             }
       case None =>

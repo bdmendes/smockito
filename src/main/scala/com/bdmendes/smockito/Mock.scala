@@ -17,8 +17,6 @@ opaque type Mock[+T <: AnyRef] <: T = T
 
 private trait MockSyntax:
 
-  export Stubber.apply
-
   extension [T <: AnyRef](mock: Mock[T])
 
     private[smockito] transparent inline def validateAndRetrieveMethodInfo[A <: Tuple, R](
@@ -54,7 +52,7 @@ private trait MockSyntax:
     transparent inline def onCall[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]) =
       inline validateAndRetrieveMethodInfo(method) match
         case info: meta.MatchedMethodInfo =>
-          new Stubber[T, info.N, A, R](mock, method, info)
+          new Stubber[T, info.ParameterNames, A, R](mock, method, info)
 
     /** Sets up a stub for a method, based on the received arguments. This will override any
       * previous stubs for the same method.
@@ -69,8 +67,8 @@ private trait MockSyntax:
     transparent inline def on[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]) =
       inline validateAndRetrieveMethodInfo(method) match
         case info: meta.MatchedMethodInfo =>
-          new Stubber.SimpleStubber[T, info.N, A, R](
-            new Stubber[T, info.N, A, R](mock, method, info)
+          new Stubber.SimpleStubber[T, info.ParameterNames, A, R](
+            new Stubber[T, info.ParameterNames, A, R](mock, method, info)
           )
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
@@ -115,8 +113,8 @@ private trait MockSyntax:
                 .map(_.getAllValues.toArray)
                 .transpose
                 .toList
-                .map[Arguments[info.N, A]](args =>
-                  Arguments[info.N, A](
+                .map[Arguments[info.ParameterNames, A]](args =>
+                  Arguments[info.ParameterNames, A](
                     Tuple.fromArray(Mock.unwrap[A](args, info.parameterTypes)).asInstanceOf[A]
                   )
                 )
