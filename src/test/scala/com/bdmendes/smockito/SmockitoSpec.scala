@@ -145,6 +145,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
+  test("set up method stubs on methods with 2 parameters, via parameter names"):
+    val repository =
+      mock[Repository[User]].on(it.getWith): args =>
+        mockUsers.filter(u =>
+          u.username.startsWith(args.startsWith) && u.username.endsWith(args.endsWith)
+        )
+
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+    assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
+
   test("set up method stubs on curried methods"):
     val repository =
       mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)): (start, end) =>
@@ -250,6 +260,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assert(typeChecks("repository.calls(it.getWith).map[String](_._2)"))
     assert(!typeChecks("repository.calls(it.getWith).map[String](_._3)"))
+
+  test("inspect calls on methods with 2 parameters, extracting by parameter names"):
+    val repository =
+      mock[Repository[User]].on(it.getWith): args =>
+        mockUsers.filter(u => u.username.startsWith(args._1) && u.username.endsWith(args._2))
+
+    assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+
+    assertEquals(repository.calls(it.getWith).map(_.startsWith), List("bd", "bd"))
 
   test("inspect calls on methods with contextual parameters"):
     val repository =
