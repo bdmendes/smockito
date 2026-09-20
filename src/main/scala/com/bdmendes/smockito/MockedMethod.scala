@@ -5,11 +5,13 @@ import scala.util.NotGiven
 /** The internal representation of a method to mock. The compiler synthesizes conversions from
   * functions and values to this type, for up to 22 parameters, via implicit conversions.
   */
-into opaque type MockedMethod[A <: Tuple, R] = Pack[A] => R
+into opaque type MockedMethod[A <: Tuple, R] = A => R
 
 extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])
-  private inline def tupled: A => R = (args: A) => mockedMethod(pack(args))
-  private inline def packed: Pack[A] => R = mockedMethod
+  private inline def tupled: A => R = mockedMethod
+
+  private inline def packed[N <: Tuple]: Pack[N, A] => R =
+    args => mockedMethod(Pack.toTuple[N, A](args))
 
 object MockedMethod:
   // We may use `TupledFunction` from the standard library once it goes stable. See
@@ -17,11 +19,11 @@ object MockedMethod:
 
   // scalafmt: { maxColumn = 240 }
 
-  given convVal: [R] => NotGiven[R <:< Function0[?]] => Conversion[R, MockedMethod[EmptyTuple, R]] = v => (_: Unit) => v
+  given convVal: [R] => NotGiven[R <:< Function0[?]] => Conversion[R, MockedMethod[EmptyTuple, R]] = v => (_: EmptyTuple) => v
 
-  given conv00: [R] => Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (_: Unit) => f()
+  given conv00: [R] => Conversion[() => R, MockedMethod[EmptyTuple, R]] = f => (_: EmptyTuple) => f()
 
-  given conv01: [A, R] => Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => t => f(t)
+  given conv01: [A, R] => Conversion[A => R, MockedMethod[Tuple1[A], R]] = f => t => f(t._1)
 
   given conv02: [A1, A2, R] => Conversion[(A1, A2) => R, MockedMethod[(A1, A2), R]] = f => t => f(t._1, t._2)
 
