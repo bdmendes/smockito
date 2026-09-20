@@ -57,9 +57,7 @@ private trait MockSyntax:
     transparent inline def on[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]) =
       inline validateAndRetrieveMethodInfo(method) match
         case info: meta.MatchedMethodInfo =>
-          new Stubber.SimpleStubber[T, info.ParameterNames, A, R](
-            new Stubber[T, info.ParameterNames, A, R](mock, method, info)
-          )
+          new Stubber.SimpleStubber(new Stubber[T, info.ParameterNames, A, R](mock, method, info))
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
       * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
