@@ -145,6 +145,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
     assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
 
+  test("set up method stubs on methods with 2 parameters, via parameter names"):
+    val repository =
+      mock[Repository[User]].on(it.getWith): args =>
+        mockUsers.filter(u =>
+          u.username.startsWith(args.startsWith) && u.username.endsWith(args.endsWith)
+        )
+
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+    assertEquals(repository.getWith("", "mendes"), List(User("bdmendes"), User("apmendes")))
+
   test("set up method stubs on curried methods"):
     val repository =
       mock[Repository[User]].on(it.getWithCurried(_: String)(_: String)): (start, end) =>
@@ -247,6 +257,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
 
     assertEquals(repository.calls(it.getWith).map(_._1), List("bd", "bd"))
+
+    assert(typeChecks("repository.calls(it.getWith).map[String](_._2)"))
+    assert(!typeChecks("repository.calls(it.getWith).map[String](_._3)"))
+
+  test("inspect calls on methods with 2 parameters, extracting by parameter names"):
+    val repository =
+      mock[Repository[User]].on(it.getWith): args =>
+        mockUsers.filter(u => u.username.startsWith(args._1) && u.username.endsWith(args._2))
+
+    assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+
+    assertEquals(repository.calls(it.getWith).map(_.startsWith), List("bd", "bd"))
 
   test("inspect calls on methods with contextual parameters"):
     val repository =
@@ -467,7 +490,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       "Method get in Repository[User] returns List[User] but received function returns Unit"
     )
 
-  test("dispatch a method to a real instance"):
+  test("dispatch a method with 0 parameters to a real instance"):
+    val mockRepository = mock[Repository[User]].forward(() => it.get, realRepository)
+
+    assertEquals(mockRepository.get, mockUsers)
+    assertEquals(mockRepository.get, mockUsers)
+
+    assertEquals(realRepository.get, mockUsers)
+
+    // Invocations of the real instance are not intercepted.
+    assertEquals(mockRepository.times(() => it.get), 2)
+
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[UnstubbedMethod]:
+      val _ = mockRepository.exists("bdmendes")
+
+  test("dispatch a method with 1 parameter to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
     assert(mockRepository.exists("bdmendes"))
@@ -480,6 +518,24 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Invocations of the real instance are not intercepted.
     assertEquals(mockRepository.times(it.exists), 2)
+
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[UnstubbedMethod]:
+      val _ = mockRepository.get
+
+  test("dispatch a method with 2 parameters to a real instance"):
+    val mockRepository = mock[Repository[User]].forward(it.getWith, realRepository)
+
+    assertEquals(mockRepository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(mockRepository.getWith("missing", "mendes"), List.empty)
+
+    assertEquals(mockRepository.calls(it.getWith), List(("bd", "mendes"), ("missing", "mendes")))
+
+    assertEquals(realRepository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(realRepository.getWith("missing", "mendes"), List.empty)
+
+    // Invocations of the real instance are not intercepted.
+    assertEquals(mockRepository.times(it.getWith), 2)
 
     // This method was not forwarded, so expect a real method call failure.
     intercept[UnstubbedMethod]:

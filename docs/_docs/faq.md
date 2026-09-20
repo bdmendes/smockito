@@ -2,6 +2,10 @@
 
 No. Smockito leverages a handful of powerful Scala 3 features, such as inlining, opaque types, context functions and match types. If you are on the process of migrating a Scala 2 codebase, it might be a good opportunity to replace the likes of [specs2-mock](https://mvnrepository.com/artifact/org.specs2/specs2-mock) or [mockito-scala](https://github.com/mockito/mockito-scala) as you migrate your modules.
 
+# Does Smockito support old Scala 3 LTS versions?
+
+No. Smockito will upgrade to the latest LTS version of Scala 3 once released, making sure the library is compatible with the latest language features and improvements. You may resort to old Smockito versions, but no further bug fixes or new features will be provided for them.
+
 # How thread-safe is Smockito?
 
 The same as Mockito, which supports tracking concurrent calls to an already-configured shared mock, but not concurrent stubbing or verification.

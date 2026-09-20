@@ -61,6 +61,14 @@ You may reason about method interactions with `calls` and `times`. If arguments 
   assert(repository.times(it.getWith) == 1)
 ```
 
+Arguments, as required by stubs and yielded by verifications, are of the most convenient shape to the caller:
+a scalar for single argument methods and a special named tuple of arguments for multi-argument methods,
+which also retains positional access.
+
+```scala
+  assert(repository.calls(it.getWith).map(_.startsWith) == List("john"))
+```
+
 # Integrating with Test Frameworks and Coding Styles
 
 There is no special syntax required to use Smockito with different testing frameworks or coding styles. Simply extend `Smockito` in your test classes or traits, and you can use the mocking capabilities provided by Smockito seamlessly within your existing test setup. For example, with `munit`, one would do:

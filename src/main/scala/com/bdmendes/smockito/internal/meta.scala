@@ -10,7 +10,10 @@ object meta:
     case ByName
     case Regular
 
-  type MatchedMethodInfo = (name: String, parameterTypes: IndexedSeq[MethodParameterType])
+  trait MatchedMethodInfo:
+    type ParameterNames <: Tuple
+    val name: String
+    val parameterTypes: IndexedSeq[MethodParameterType]
 
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
@@ -31,16 +34,18 @@ object meta:
     val receivedReturnType = TypeRepr.of[R]
     val receivedParamTypes = TypeRepr.of[A].typeArgs
 
-    def methodSignature(t: TypeRepr): (paramTypes: List[TypeRepr], returnType: TypeRepr) =
+    def methodSignature(
+        t: TypeRepr
+    ): (paramNames: List[String], paramTypes: List[TypeRepr], returnType: TypeRepr) =
       // Concatenate the parameter lists into a single one, as one needs to do
       // in manual eta-expansion for curried methods.
       t.asMatchable match
-        case MethodType(_, params, ret) =>
-          val (retParams, result) = methodSignature(ret)
-          (params ++ retParams, result)
+        case MethodType(names, params, ret) =>
+          val (retNames, retParams, result) = methodSignature(ret)
+          (names ++ retNames, params ++ retParams, result)
         case _ =>
           // Values.
-          (Nil, t)
+          (Nil, Nil, t)
 
     def normalize(t: TypeRepr): TypeRepr =
       // Desugar for varargs, compiled to a Seq.
@@ -73,7 +78,7 @@ object meta:
     def checkAndReturn(
         sym: Symbol,
         methodType: TypeRepr
-    ): Option[(name: String, paramTypes: List[TypeRepr])] =
+    ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
@@ -89,9 +94,11 @@ object meta:
           s"Method ${sym.name} in ${rawTargetType.show} returns ${signature.returnType.show} " +
             s"but received function returns ${receivedReturnType.show}"
         )
-      Some((sym.name, signature.paramTypes))
+      Some((sym.name, signature.paramNames, signature.paramTypes))
 
-    def findAndCheck(term: Term): Option[(name: String, paramTypes: List[TypeRepr])] =
+    def findAndCheck(
+        term: Term
+    ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
       term match
         // Method selection.
         case tapp @ TypeApply(s @ Select(prefix, _), _)
@@ -113,7 +120,7 @@ object meta:
           None
 
     findAndCheck(expr.asTerm) match
-      case Some((methodName, parameterTypes)) =>
+      case Some((methodName, methodParameterNames, parameterTypes)) =>
         val parameterTypeExprs =
           parameterTypes.map:
             case _: ByNameType =>
@@ -124,18 +131,26 @@ object meta:
               '{
                 MethodParameterType.Regular
               }
-        '{
-          (
-            ${
-              Expr(methodName)
-            },
-            IndexedSeq(
-              ${
-                Varargs(parameterTypeExprs)
-              }*
-            )
-          )
-        }
+        // Singleton string types retain field names through the transparent inline API.
+        val namesType =
+          methodParameterNames.foldRight(TypeRepr.of[EmptyTuple]): (name, tail) =>
+            TypeRepr.of[*:].appliedTo(List(ConstantType(StringConstant(name)), tail))
+        namesType.asType match
+          case '[n] =>
+            '{
+              new MatchedMethodInfo:
+                type ParameterNames = n & Tuple
+                val name =
+                  ${
+                    Expr(methodName)
+                  }
+                val parameterTypes =
+                  IndexedSeq(
+                    ${
+                      Varargs(parameterTypeExprs)
+                    }*
+                  )
+            }
       case None =>
         report.errorAndAbort(
           s"Expected direct selection of a mockable method of ${rawTargetType.show}"
