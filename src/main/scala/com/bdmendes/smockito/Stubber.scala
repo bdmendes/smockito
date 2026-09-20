@@ -1,7 +1,7 @@
 package com.bdmendes.smockito
 
-import Mock.mapper.anyMatcher
-import Mock.unwrap
+import com.bdmendes.smockito.Mock.mapper.anyMatcher
+import com.bdmendes.smockito.Mock.unwrap
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta
 import java.util.concurrent.atomic.AtomicInteger

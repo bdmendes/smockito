@@ -1,6 +1,6 @@
 package com.bdmendes.smockito
 
-import Mock.mapper.*
+import com.bdmendes.smockito.Mock.mapper.*
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.DefaultAnswer
 import com.bdmendes.smockito.internal.meta
