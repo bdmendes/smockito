@@ -150,9 +150,6 @@ object meta:
                       Varargs(parameterTypeExprs)
                     }*
                   )
-              : MatchedMethodInfo {
-                type ParameterNames = n & Tuple
-              }
             }
       case None =>
         report.errorAndAbort(

@@ -34,7 +34,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
 object Stubber:
 
   class SimpleStubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
-      private[smockito] val stubber: Stubber[T, N, A, R]
+      private val stubber: Stubber[T, N, A, R]
   ):
 
     inline def apply(inline stub: Mock[T] ?=> PartialFunction[Arguments[N, A], R]): Mock[T] =
