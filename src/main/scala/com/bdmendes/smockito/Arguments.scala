@@ -17,7 +17,7 @@ type Arguments[N <: Tuple, A <: Tuple] =
 
 object Arguments:
 
-  opaque type NamedArguments[N <: Tuple, A <: Tuple] >: A <: NamedTuple.NamedTuple[N, A] =
+  opaque type NamedArguments[N <: Tuple, +A <: Tuple] >: A <: NamedTuple.NamedTuple[N, A] =
     NamedTuple.NamedTuple[N, A]
 
   // Named arguments retain positional access.
