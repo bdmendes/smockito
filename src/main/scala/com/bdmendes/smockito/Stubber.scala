@@ -9,6 +9,9 @@ import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import scala.annotation.publicInBinary
 
+/** Configures a mocked method's response based on its one-based call number and arguments. Calls
+  * with an unmatched call number or arguments throw an exception.
+  */
 class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[smockito] (
     private val mock: Mock[T],
     private val method: Mock[T] ?=> MockedMethod[A, R],
