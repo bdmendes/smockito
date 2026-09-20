@@ -101,7 +101,7 @@ private trait MockSyntax:
                 .map(_.getAllValues.toArray)
                 .transpose
                 .toList
-                .map[Arguments[info.ParameterNames, A]](args =>
+                .map(args =>
                   Arguments[info.ParameterNames, A](
                     Tuple.fromArray(Mock.unwrap[A](args, info.parameterTypes)).asInstanceOf[A]
                   )
