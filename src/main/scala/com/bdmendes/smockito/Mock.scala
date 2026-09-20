@@ -39,7 +39,7 @@ private trait MockSyntax:
           false
 
     /** Sets up a stub for a method that behaves differently based on the call number and the
-      * received tupled arguments. This will override any previous stubs for the same method.
+      * received arguments. This will override any previous stubs for the same method.
       *
       * The call number is local to this stub. If the method is restubbed between calls, it may
       * differ from the total invocation count reported by [[times]].
@@ -47,7 +47,7 @@ private trait MockSyntax:
       * @param method
       *   the method to mock.
       * @return
-      *   a setup accepting a stub based on its call number, starting at 1, and named arguments.
+      *   a setup accepting a stub based on its call number, starting at 1.
       * @see
       *   [[on]] for the version that only considers the expected set of inputs.
       */
@@ -56,20 +56,22 @@ private trait MockSyntax:
         case info: meta.MatchedMethodInfo =>
           new Stubber[T, info.N, A, R](mock, method, info)
 
-    /** Sets up a stub for a method, based on the received tupled arguments. This will override any
+    /** Sets up a stub for a method, based on the received arguments. This will override any
       * previous stubs for the same method.
       *
       * @param method
       *   the method to mock.
       * @return
-      *   a setup accepting a stub based on the received named arguments.
+      *   a setup accepting a stub based on the received arguments.
       * @see
       *   [[onCall]] for the version that also takes the call number into account.
       */
     transparent inline def on[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]) =
       inline validateAndRetrieveMethodInfo(method) match
         case info: meta.MatchedMethodInfo =>
-          new Stubber.On[T, info.N, A, R](new Stubber[T, info.N, A, R](mock, method, info))
+          new Stubber.SimpleStubber[T, info.N, A, R](
+            new Stubber[T, info.N, A, R](mock, method, info)
+          )
 
     /** Sets up a stub that delegates to the real implementation of this method. Useful when you
       * want to preserve an adapter method’s behavior while stubbing a method lower in the hierarchy
@@ -113,8 +115,8 @@ private trait MockSyntax:
                 .map(_.getAllValues.toArray)
                 .transpose
                 .toList
-                .map[Pack[info.N, A]](args =>
-                  Pack[info.N, A](
+                .map[Arguments[info.N, A]](args =>
+                  Arguments[info.N, A](
                     Tuple.fromArray(Mock.unwrap[A](args, info.parameterTypes)).asInstanceOf[A]
                   )
                 )

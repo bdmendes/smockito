@@ -15,7 +15,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
 ):
 
   inline def apply(
-      inline stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Pack[N, A], R]]
+      inline stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Arguments[N, A], R]]
   ): Mock[T] =
     val callCount = AtomicInteger(0)
     val answer: Answer[R] =
@@ -24,7 +24,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
         val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
         val arguments = unwrap[A](invocation.getRawArguments, info.parameterTypes)
         f.applyOrElse(
-          Pack[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
+          Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
           _ => throw UnexpectedArguments(invocation.getMethod, arguments)
         )
     val target = method(using Mockito.doAnswer(answer).when(mock))
@@ -33,21 +33,22 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
 
 object Stubber:
 
-  // Extension fallbacks keep contextual lambda inference unambiguous.
-  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](configure: Stubber[T, N, A, R])
+  class SimpleStubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
+      private[smockito] val stubber: Stubber[T, N, A, R]
+  ):
+
+    inline def apply(inline stub: Mock[T] ?=> PartialFunction[Arguments[N, A], R]): Mock[T] =
+      stubber(PartialFunction.fromFunction(_ => stub))
+
+  // Support arguments as raw tuples as a fallback.
+  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](stubber: Stubber[T, N, A, R])
 
     inline def apply(
         inline stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[A, R]]
-    ): Mock[T] = configure(stub.andThen(_.compose[Pack[N, A]](args => Pack.toTuple[N, A](args))))
+    ): Mock[T] =
+      stubber(stub.andThen(_.compose[Arguments[N, A]](args => Arguments.toTuple[N, A](args))))
 
-  class On[T <: AnyRef, N <: Tuple, A <: Tuple, R](
-      private[smockito] val configure: Stubber[T, N, A, R]
-  ):
-
-    inline def apply(inline stub: Mock[T] ?=> PartialFunction[Pack[N, A], R]): Mock[T] =
-      configure(PartialFunction.fromFunction(_ => stub))
-
-  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](configure: On[T, N, A, R])
+  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](stubber: SimpleStubber[T, N, A, R])
 
     inline def apply(inline stub: Mock[T] ?=> PartialFunction[A, R]): Mock[T] =
-      configure(stub.compose[Pack[N, A]](args => Pack.toTuple[N, A](args)))
+      stubber(stub.compose[Arguments[N, A]](args => Arguments.toTuple[N, A](args)))

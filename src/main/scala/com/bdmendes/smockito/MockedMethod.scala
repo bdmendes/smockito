@@ -10,8 +10,8 @@ into opaque type MockedMethod[A <: Tuple, R] = A => R
 extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])
   private inline def tupled: A => R = mockedMethod
 
-  private inline def packed[N <: Tuple]: Pack[N, A] => R =
-    args => mockedMethod(Pack.toTuple[N, A](args))
+  private inline def packed[N <: Tuple]: Arguments[N, A] => R =
+    args => mockedMethod(Arguments.toTuple[N, A](args))
 
 object MockedMethod:
   // We may use `TupledFunction` from the standard library once it goes stable. See

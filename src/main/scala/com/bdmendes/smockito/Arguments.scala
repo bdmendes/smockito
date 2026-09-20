@@ -2,24 +2,25 @@ package com.bdmendes.smockito
 
 import scala.compiletime.erasedValue
 
-/** Named method arguments, with nullary and unary methods represented as `Unit` and a scalar. */
-type Pack[N <: Tuple, A <: Tuple] =
+/** Arguments, as required by stubs and yield by verifications, are of the most convenient shape to
+  * the caller: a scalar for single argument methods and a special named tuple of arguments for
+  * multi-argument methods, which also retains positional access.
+  */
+type Arguments[N <: Tuple, A <: Tuple] =
   A match
     case EmptyTuple =>
       Unit
     case Tuple1[h] =>
       h
     case Tuple =>
-      Pack.Arguments[N, A]
+      Arguments.NamedArguments[N, A]
 
-object Pack:
+object Arguments:
 
-  // Keep unnamed tuples compatible without accepting unrelated named tuples as packs.
-  opaque type Arguments[N <: Tuple, A <: Tuple] >: A <: NamedTuple.NamedTuple[N, A] =
-    NamedTuple.NamedTuple[N, A]
+  opaque type NamedArguments[N <: Tuple, A <: Tuple] >: A = NamedTuple.NamedTuple[N, A]
 
-  // Positional access is scoped to packs; unrelated named tuples do not have these extensions.
-  extension [N <: Tuple, A <: Tuple](args: Arguments[N, A])
+  // Named arguments retain positional access.
+  extension [N <: Tuple, A <: Tuple](args: NamedArguments[N, A])
     inline def _1: Tuple.Elem[A, 0] = args.toTuple(0)
     inline def _2: Tuple.Elem[A, 1] = args.toTuple(1)
     inline def _3: Tuple.Elem[A, 2] = args.toTuple(2)
@@ -43,7 +44,7 @@ object Pack:
     inline def _21: Tuple.Elem[A, 20] = args.toTuple(20)
     inline def _22: Tuple.Elem[A, 21] = args.toTuple(21)
 
-  private[smockito] inline def toTuple[N <: Tuple, A <: Tuple](x: Pack[N, A]): A =
+  private[smockito] inline def toTuple[N <: Tuple, A <: Tuple](x: Arguments[N, A]): A =
     inline erasedValue[A] match
       case _: EmptyTuple =>
         EmptyTuple.asInstanceOf[A]
@@ -52,7 +53,7 @@ object Pack:
       case _: Tuple =>
         x.asInstanceOf[A]
 
-  private[smockito] def apply[N <: Tuple, A <: Tuple](x: A): Pack[N, A] =
+  private[smockito] def apply[N <: Tuple, A <: Tuple](x: A): Arguments[N, A] =
     x match
       case x: EmptyTuple =>
         ()
