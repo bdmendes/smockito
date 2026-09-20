@@ -7,13 +7,11 @@ import scala.util.NotGiven
   */
 into opaque type MockedMethod[A <: Tuple, R] = A => R
 
-extension [A <: Tuple, R](mockedMethod: MockedMethod[A, R])
-  private inline def tupled: A => R = mockedMethod
-
-  private inline def packed[N <: Tuple]: Arguments[N, A] => R =
-    args => mockedMethod(Arguments.toTuple[N, A](args))
-
 object MockedMethod:
+
+  extension [A <: Tuple, R](method: MockedMethod[A, R])
+    inline private[smockito] def apply(args: A): R = method(args)
+
   // We may use `TupledFunction` from the standard library once it goes stable. See
   // https://docs.scala-lang.org/scala3/reference/experimental/tupled-function.html
 

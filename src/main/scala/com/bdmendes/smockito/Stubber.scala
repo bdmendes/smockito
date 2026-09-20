@@ -28,7 +28,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
           _ => throw UnexpectedArguments(invocation.getMethod, arguments)
         )
     val target = method(using Mockito.doAnswer(answer).when(mock))
-    target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+    target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
     mock
 
 object Stubber:

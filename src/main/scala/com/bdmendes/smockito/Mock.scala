@@ -77,7 +77,7 @@ private trait MockSyntax:
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
       val _ = validateAndRetrieveMethodInfo(method)
       val target = method(using Mockito.doCallRealMethod().when(mock))
-      target.tupled(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+      target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
 
     /** Yields the arguments received by a method, per invocation, in chronological order.
@@ -98,7 +98,7 @@ private trait MockSyntax:
             case info: meta.MatchedMethodInfo =>
               val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
               val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-              target.tupled(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
+              target(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
               argCaptors
                 .map(_.getAllValues.toArray)
                 .transpose
@@ -138,14 +138,14 @@ private trait MockSyntax:
           val validInvocations = (possiblyMatching to 1 by -1).find: count =>
             Mock.verifies:
               val target = method(using Mockito.verify(mock, Mockito.times(count)))
-              target.tupled(EmptyTuple.asInstanceOf[A])
+              target(EmptyTuple.asInstanceOf[A])
           validInvocations.getOrElse(0)
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
           val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
           val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-          target.tupled(
+          target(
             Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
           )
           cap.getAllValues.size
@@ -171,8 +171,8 @@ private trait MockSyntax:
         inline method: Mock[T] ?=> MockedMethod[A, R],
         realInstance: T
     ): Mock[T] =
-      val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).tupled
-      Stubber(mock.on(method))(PartialFunction.fromFunction(realMethod))
+      val realMethod = method(using realInstance.asInstanceOf[Mock[T]])
+      Stubber(mock.on(method))(PartialFunction.fromFunction((args: A) => realMethod(args)))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
@@ -193,9 +193,9 @@ private trait MockSyntax:
       val ordered = Mockito.inOrder(mock)
       Mock.verifies:
         val targetA = a(using ordered.verify(mock, Mockito.atLeastOnce))
-        targetA.tupled(Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1])
+        targetA(Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1])
         val targetB = b(using ordered.verify(mock, Mockito.atLeastOnce))
-        targetB.tupled(Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2])
+        targetB(Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2])
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
