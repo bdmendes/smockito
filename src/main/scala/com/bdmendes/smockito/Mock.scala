@@ -26,16 +26,6 @@ private trait MockSyntax:
         meta.matchedMethodInfo[T, Mock, A, R]('method)
       }
 
-    private inline def verifies(f: => Any): Boolean =
-      // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
-      // In those cases, we must be careful not to swallow all exceptions.
-      try
-        f
-        true
-      catch
-        case _: MockitoAssertionError =>
-          false
-
     /** Sets up a stub for a method that behaves differently based on the call number and the
       * received arguments. This will override any previous stubs for the same method.
       *
@@ -146,7 +136,7 @@ private trait MockSyntax:
               )
               .size
           val validInvocations = (possiblyMatching to 1 by -1).find: count =>
-            verifies:
+            Mock.verifies:
               val target = method(using Mockito.verify(mock, Mockito.times(count)))
               target.tupled(EmptyTuple.asInstanceOf[A])
           validInvocations.getOrElse(0)
@@ -182,7 +172,7 @@ private trait MockSyntax:
         realInstance: T
     ): Mock[T] =
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]]).tupled
-      Stubber.apply(mock.on(method))(PartialFunction.fromFunction(realMethod))
+      Stubber(mock.on(method))(PartialFunction.fromFunction(realMethod))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
@@ -201,7 +191,7 @@ private trait MockSyntax:
       val _ = validateAndRetrieveMethodInfo(a)
       val _ = validateAndRetrieveMethodInfo(b)
       val ordered = Mockito.inOrder(mock)
-      verifies:
+      Mock.verifies:
         val targetA = a(using ordered.verify(mock, Mockito.atLeastOnce))
         targetA.tupled(Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1])
         val targetB = b(using ordered.verify(mock, Mockito.atLeastOnce))
@@ -223,6 +213,16 @@ private trait MockSyntax:
     ): Boolean = calledBefore(b, a)
 
 private object Mock:
+
+  inline def verifies(f: => Any): Boolean =
+    // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
+    // In those cases, we must be careful not to swallow all exceptions.
+    try
+      f
+      true
+    catch
+      case _: MockitoAssertionError =>
+        false
 
   inline def unwrap[A <: Tuple](
       arguments: Array[Object],

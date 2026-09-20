@@ -9,9 +9,9 @@ import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 
 class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
-    private[smockito] val mock: Mock[T],
-    private[smockito] val method: Mock[T] ?=> MockedMethod[A, R],
-    private[smockito] val info: meta.MatchedMethodInfo
+    private val mock: Mock[T],
+    private val method: Mock[T] ?=> MockedMethod[A, R],
+    private val info: meta.MatchedMethodInfo
 ):
 
   inline def apply(
