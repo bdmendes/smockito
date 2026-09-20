@@ -39,16 +39,3 @@ object Stubber:
 
     inline def apply(inline stub: Mock[T] ?=> PartialFunction[Arguments[N, A], R]): Mock[T] =
       stubber(PartialFunction.fromFunction(_ => stub))
-
-  // Support arguments as raw tuples as a fallback.
-  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](stubber: Stubber[T, N, A, R])
-
-    inline def apply(
-        inline stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[A, R]]
-    ): Mock[T] =
-      stubber(stub.andThen(_.compose[Arguments[N, A]](args => Arguments.toTuple[N, A](args))))
-
-  extension [T <: AnyRef, N <: Tuple, A <: Tuple, R](stubber: SimpleStubber[T, N, A, R])
-
-    inline def apply(inline stub: Mock[T] ?=> PartialFunction[A, R]): Mock[T] =
-      stubber(stub.compose[Arguments[N, A]](args => Arguments.toTuple[N, A](args)))

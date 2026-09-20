@@ -170,7 +170,7 @@ private trait MockSyntax:
         realInstance: T
     ): Mock[T] =
       val realMethod = method(using realInstance.asInstanceOf[Mock[T]])
-      Stubber(mock.on(method))(PartialFunction.fromFunction((args: A) => realMethod(args)))
+      mock.on(method)(args => realMethod(Arguments.toTuple(args)))
 
     /** Whether the last invocation of method `a` happened before the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledAfter(b, a)`.
