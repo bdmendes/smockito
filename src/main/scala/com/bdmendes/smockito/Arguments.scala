@@ -2,8 +2,8 @@ package com.bdmendes.smockito
 
 import scala.compiletime.erasedValue
 
-/** Arguments, as required by stubs and yield by verifications, are of the most convenient shape to
-  * the caller: a scalar for single argument methods and a special named tuple of arguments for
+/** Arguments, as required by stubs and yielded by verifications, are of the most convenient shape
+  * to the caller: a scalar for single argument methods and a special named tuple of arguments for
   * multi-argument methods, which also retains positional access.
   */
 type Arguments[N <: Tuple, A <: Tuple] =

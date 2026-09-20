@@ -61,7 +61,7 @@ You may reason about method interactions with `calls` and `times`. If arguments 
   assert(repository.times(it.getWith) == 1)
 ```
 
-Arguments, as required by stubs and yield by verifications, are of the most convenient shape to the caller:
+Arguments, as required by stubs and yielded by verifications, are of the most convenient shape to the caller:
 a scalar for single argument methods and a special named tuple of arguments for multi-argument methods,
 which also retains positional access.
 
