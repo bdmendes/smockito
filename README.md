@@ -67,5 +67,5 @@ a scalar for single argument methods and a special named tuple of arguments for 
 which also retains positional access.
 
 ```scala
-  assert(repository.calls(it.getWith).map(_.startsWith) == List("john")
+  assert(repository.calls(it.getWith).map(_.startsWith) == List("john"))
 ```
