@@ -72,7 +72,7 @@ Eta-expansion in Scala has its quirks: for instance, it captures any context par
 
 With the eta-expansion and context parameters in place, setting up mocks becomes straightforward.
 
-In Smockito, mocks are usually created with the `mock` method, which requires a type parameter representing the class to be mocked. For example:
+In Smockito, mocks are created with the `mock` method, which requires a type parameter representing the class to be mocked. For example:
 
 ```scala
 val filter = mock[Filter]
