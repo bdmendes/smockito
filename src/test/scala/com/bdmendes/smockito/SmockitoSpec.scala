@@ -490,7 +490,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       "Method get in Repository[User] returns List[User] but received function returns Unit"
     )
 
-  test("dispatch a method to a real instance"):
+  test("dispatch a method with 0 parameters to a real instance"):
+    val mockRepository = mock[Repository[User]].forward(() => it.get, realRepository)
+
+    assertEquals(mockRepository.get, mockUsers)
+    assertEquals(mockRepository.get, mockUsers)
+
+    assertEquals(realRepository.get, mockUsers)
+
+    // Invocations of the real instance are not intercepted.
+    assertEquals(mockRepository.times(() => it.get), 2)
+
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[UnstubbedMethod]:
+      val _ = mockRepository.exists("bdmendes")
+
+  test("dispatch a method with 1 parameter to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
     assert(mockRepository.exists("bdmendes"))
@@ -503,6 +518,24 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Invocations of the real instance are not intercepted.
     assertEquals(mockRepository.times(it.exists), 2)
+
+    // This method was not forwarded, so expect a real method call failure.
+    intercept[UnstubbedMethod]:
+      val _ = mockRepository.get
+
+  test("dispatch a method with 2 parameters to a real instance"):
+    val mockRepository = mock[Repository[User]].forward(it.getWith, realRepository)
+
+    assertEquals(mockRepository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(mockRepository.getWith("missing", "mendes"), List.empty)
+
+    assertEquals(mockRepository.calls(it.getWith), List(("bd", "mendes"), ("missing", "mendes")))
+
+    assertEquals(realRepository.getWith("bd", "mendes"), List(User("bdmendes")))
+    assertEquals(realRepository.getWith("missing", "mendes"), List.empty)
+
+    // Invocations of the real instance are not intercepted.
+    assertEquals(mockRepository.times(it.getWith), 2)
 
     // This method was not forwarded, so expect a real method call failure.
     intercept[UnstubbedMethod]:
