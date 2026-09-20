@@ -170,6 +170,22 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.greet(false)(using User("bdmendes")), "Hello, bdmendes!")
 
+  test("set up method stubs on methods with context bounds"):
+    trait Encoder[A]:
+      def encode(value: A): String
+
+    trait Service:
+      def encode[A: Encoder](value: A): String
+
+    given Encoder[Int]:
+      def encode(value: Int): String = value.toString
+
+    val service =
+      mock[Service].on(it.encode[Int](_: Int)(using _: Encoder[Int])): (value, encoder) =>
+        encoder.encode(value)
+
+    assertEquals(service.encode(42), "42")
+
   test("set up method stubs on methods with by-name parameters"):
     val repository = mock[Repository[User]].on(it.hasCount(_: Int))(_ % 2 == 0)
 
@@ -281,6 +297,26 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(
       repository.calls(it.greet(_: Boolean)(using _: User)),
       List(false -> User("bdmendes"))
+    )
+
+  test("inspect calls on methods with context bounds"):
+    trait Encoder[A]:
+      def encode(value: A): String
+
+    trait Service:
+      def encode[A: Encoder](value: A): String
+
+    given Encoder[Int]:
+      def encode(value: Int): String = value.toString
+
+    val service =
+      mock[Service].on(it.encode[Int](_: Int)(using _: Encoder[Int])): (value, encoder) =>
+        encoder.encode(value)
+
+    assertEquals(service.encode(42), "42")
+    assertEquals(
+      service.calls(it.encode[Int](_: Int)(using _: Encoder[Int])).map(_.value),
+      List(42)
     )
 
   test("inspect calls on methods with by-name parameters"):
