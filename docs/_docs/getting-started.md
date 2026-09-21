@@ -78,10 +78,10 @@ import munit.FunSuite
 class MyTestSuite extends FunSuite with Smockito:
   test("example test"):
     val repository = mock[Repository[User]]
-      .on(() => it.name)(_ => "xpto")
+      .on(it.name)(_ => "xpto")
 
     assertEquals(repository.name, "xpto")
-    assertEquals(repository.times(() => it.name), 1)
+    assertEquals(repository.times(it.name), 1)
 ```
 
 There is also no special syntax involved for dealing with effect types such as `Future`, `IO`, etc. Simply stub methods returning effect types as you would with any other return type:

@@ -82,11 +82,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
   test("set up method stubs on values"):
     var counter = 0
     val repository =
-      mock[Repository[User]].on(() => it.longName): _ =>
+      mock[Repository[User]].on(it.longName): _ =>
         counter += 1
         "database"
 
-    assert(!typeChecks("repository.on(() => it.longName)(_ => 2)"))
+    assert(!typeChecks("repository.on(it.longName)(_ => 2)"))
 
     assertEquals(repository.longName, "database")
     assertEquals(counter, 1)
@@ -231,11 +231,11 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       repository.tag(List("a", "b", "c"))
 
   test("disallow inspecting calls on values"):
-    val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
+    val repository = mock[Repository[String]].on(it.longName)(_ => "database")
 
-    val _ = repository.times(() => it.longName)
+    val _ = repository.times(it.longName)
 
-    assert(!typeChecks("repository.calls(() => it.longName)"))
+    assert(!typeChecks("repository.calls(it.longName)"))
 
   test("disallow inspecting calls on methods with 0 parameters"):
     val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
@@ -358,16 +358,16 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.calls(it.getWithDefaultsFree), List(("bdmendes", None)))
 
   test("count calls on values"):
-    val repository = mock[Repository[String]].on(() => it.longName)(_ => "database")
+    val repository = mock[Repository[String]].on(it.longName)(_ => "database")
 
     assertEquals(repository.longName, "database")
 
-    assertEquals(repository.times(() => it.longName), 1)
+    assertEquals(repository.times(it.longName), 1)
 
     assertEquals(repository.longName, "database")
     assertEquals(repository.longName, "database")
 
-    assertEquals(repository.times(() => it.longName), 3)
+    assertEquals(repository.times(it.longName), 3)
 
   test("count calls on methods with 0 parameters"):
     val repository = mock[Repository[String]].on(() => it.get)(_ => List.empty)
@@ -640,7 +640,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(getter.times(() => it.getNames), 2)
 
     intercept[MockitoException]:
-      val _ = getter.real(() => it.blank)
+      val _ = getter.real(it.blank)
 
   test("not call the real method as a side effect of stubbing"):
     var tracker = 0
@@ -844,9 +844,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("mock an object type"):
     val repository =
-      mock[Repository.type]
-        .on(() => it.suffix)(_ => "RepoMock")
-        .on(() => it.randomName)(_ => "fixed-uuid")
+      mock[Repository.type].on(it.suffix)(_ => "RepoMock").on(it.randomName)(_ => "fixed-uuid")
 
     val service = Service(realRepository, repository)
 
@@ -854,8 +852,8 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(service.randomName, "fixed-uuid")
     assertEquals(service.randomName, "fixed-uuid")
 
-    assertEquals(repository.times(() => it.suffix), 1)
-    assertEquals(repository.times(() => it.randomName), 2)
+    assertEquals(repository.times(it.suffix), 1)
+    assertEquals(repository.times(it.randomName), 2)
 
   test("spy on a lambda with 1 parameter"):
     val f = spy((n: Int) => n * 2)
@@ -886,7 +884,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val counter =
       mock[Counter]
         .on(() => it.increment())(_ => it)
-        .on(() => it.value)(_ => it.times(() => it.increment()))
+        .on(it.value)(_ => it.times(() => it.increment()))
 
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
@@ -900,7 +898,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     val counter =
       mock[Counter]
         .onCall(() => it.increment())(_ => _ => it)
-        .onCall(() => it.value)(_ => _ => it.times(() => it.increment()))
+        .onCall(it.value)(_ => _ => it.times(() => it.increment()))
 
     assertEquals(counter.increment().increment(), counter)
     assertEquals(counter.times(() => it.increment()), 2)
@@ -967,7 +965,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
     // This should be used as a last resort; depend on an interface instead.
-    val spooky = mock[User].on(() => it.username)(_ => "tampered").asInstanceOf[Outer.SpookyUser]
+    val spooky = mock[User].on(it.username)(_ => "tampered").asInstanceOf[Outer.SpookyUser]
     assertEquals(spooky.pretty, "yes")
     assertEquals(spooky.toUser.username, "tampered")
 
