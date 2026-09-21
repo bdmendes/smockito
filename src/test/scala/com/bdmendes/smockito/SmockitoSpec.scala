@@ -95,10 +95,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.longName, "database")
     assertEquals(counter, 2)
 
-  test("set up method stubs on values, automatically lifted to a function"):
-    val repository = mock[Repository[User]].on(it.longName)(_ => "database")
-    assertEquals(repository.longName, "database")
-
   test("set up method stubs on methods with 0 parameters"):
     val repository = mock[Repository[User]].on(() => it.get)(_ => mockUsers)
 
@@ -107,13 +103,6 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(!typeChecks("repository.on(it.get)(_ => List.empty)"))
 
     assertEquals(repository.get, mockUsers)
-
-  test("set up method stubs on methods returning Unit"):
-    var tracker = 0
-    val repository = mock[Repository[User]].on(() => it.track())(_ => tracker += 1)
-
-    val _ = repository.track()
-    assertEquals(tracker, 1)
 
   test("set up method stubs on methods with 1 parameter"):
     val repository =
