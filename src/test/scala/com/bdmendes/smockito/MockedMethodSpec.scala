@@ -7,6 +7,10 @@ class MockedMethodSpec extends munit.FunSuite:
 
   // scalafmt: { maxColumn = 240 }
 
+  test("invoke the real method for values"):
+    val method: MockedMethod[EmptyTuple, D] = 1
+    assertEquals(method(EmptyTuple), 1)
+
   test("invoke the real method for 0 arguments"):
     val method: MockedMethod[EmptyTuple, D] = () => 1
     assertEquals(method(EmptyTuple), 1)
