@@ -11,10 +11,10 @@ class Filter:
 val filter = mock[Filter].on(it.filterBy)(_ => List(1, 2, 3))
 ```
 
-`it.filterBy` is the function value resulted from the [eta-expansion](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) of the `filterBy` method of the mocked `Filter` instance. Behind the scenes, Smockito will desugar this to something like:
+`it.filterBy` is the function value resulting from the [eta-expansion](https://docs.scala-lang.org/scala3/book/fun-eta-expansion.html) of the `filterBy` method of the mocked `Filter` instance. Behind the scenes, Smockito will desugar this to something like:
 
 ```scala
-val filter = Mockito.mock(classOf[Filter], DefaultThrowAnswer)
+val filter = Mockito.mock(classOf[Filter], DefaultAnswer)
 val answer =
   (invocation: InvocationOnMock) =>
     val args = invocation.getRawArguments.asInstanceOf[Int => Boolean]
@@ -145,7 +145,7 @@ val _ = filter.compute(2)
 assert(filter.calls(it.compute(_: Int)) == List(1, 2))
 ```
 
-For methods with multiple parameters, `calls` returns a tuple of arguments for each invocation.
+For methods with multiple parameters, `calls` returns a named tuple of arguments for each invocation, where the names are the same as the parameter names in the method signature. Arguments of methods with multiple parameter lists are concatenated into a single tuple.
 
 # Other Use Cases
 
@@ -159,7 +159,7 @@ As such, Smockito provides no built-in mechanism for resetting mocks. Instead, i
 
 ## Overriding Stubs
 
-In the same spirit of avoiding shared state between tests, you should avoid overriding stubs on the same mock instance. If you need different behavior for the same method in different test cases, create separate mock instances with the desired stubs for each test. That is as simple as creating an helper method:
+In the same spirit of avoiding shared state between tests, you should avoid overriding stubs on the same mock instance. If you need different behavior for the same method in different test cases, create separate mock instances with the desired stubs for each test. That is as simple as creating a helper method:
 
 ```scala
 def mockExecutor(returnValue: Int): Mock[Executor] =
@@ -289,7 +289,7 @@ A reference to the mocked instance itself is available in the stubbing context o
   val counter =
     mock[Counter]
       .on(() => it.increment())(_ => it)
-      .on(() => it.value)(_ => it.times(() => it.increment()))
+      .on(it.value)(_ => it.times(() => it.increment()))
 
   assert(counter.increment().increment() == counter)
   assert(counter.value == 2)
