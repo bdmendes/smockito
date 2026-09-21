@@ -37,7 +37,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
 
 object Stubber:
 
-  class SimpleStubber[T <: AnyRef, N <: Tuple, A <: Tuple, R](
+  class SimpleStubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[smockito] (
       private val stubber: Stubber[T, N, A, R]
   ):
 
