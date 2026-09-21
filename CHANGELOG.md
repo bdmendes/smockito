@@ -14,6 +14,27 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 3.0.0 - TBD
+
+Smockito 3 aims to make mocking even more straightforward.
+
+While the base API is retained, method references can now be built from values, if they can unambiguously resolve to a method. This means that parameterless methods and values referenced as in `() => it.value` can now simply be referenced as `it.value`. The method accessor sanity check macro makes sure the conversion is safe.
+
+The new release supports only Scala 3.9 LTS and later. Starting from now, arguments, as required by `on`/`onCall` and yielded by `calls`, for methods with multiple arguments, are named tuples, with the names extracted from the method signature. This breaks direct positional access such as `mock.calls(it.method).map(_._1)`; one can drop to a regular tuple via `toTuple`. The recommended new style is to refer to the parameter names: `mock.calls(it.method).map(_.paramName)`. Comparisons with regular tuples continue to work as per language semantics.
+
+Internally, types have changed, so explicit type annotations may no longer compile. Existing idiomatic usages should mostly be unaffected.
+
+Behind the scenes, the library has also prepared for the future, compiling with null safety and under `-source=future`. End users are unaffected by this decision.
+
+### What's Changed
+* Update Scala to 3.9 LTS by @bdmendes in https://github.com/bdmendes/smockito/pull/247
+* Compile under `-Yexplicit-nulls` and `-Wsafe-init` by @bdmendes in https://github.com/bdmendes/smockito/pull/283
+* Use named tuples in meta internally by @bdmendes in https://github.com/bdmendes/smockito/pull/294
+* Lift non function values to mocked methods by @bdmendes in https://github.com/bdmendes/smockito/pull/299
+* Lift `Stubber` and introduce named `Arguments` facility by @bdmendes in https://github.com/bdmendes/smockito/pull/301
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v2.8.1...v3.0.0
+
 ## 2.8.1 - 2026-08-22
 
 This release makes Smockito reject mocking non-reference types at compile time, with the most notable examples being primitives and opaque types, that would not work as intended at runtime due to Mockito limitations. In addition, it includes a fix for certain scenarios where mocking a method with by-name parameters would throw a cast exception.
