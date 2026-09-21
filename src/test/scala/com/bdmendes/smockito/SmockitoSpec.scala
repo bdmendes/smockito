@@ -256,34 +256,28 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("inspect calls on methods with 2 parameters"):
     val repository =
-      mock[Repository[User]].on(it.getWith): (start, end) =>
-        mockUsers.filter(u => u.username.startsWith(start) && u.username.endsWith(end))
+      mock[Repository[User]].on(it.getWith):
+        case ("bd", end) =>
+          mockUsers.filter(u => u.username.startsWith("bd") && u.username.endsWith(end))
 
     assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
 
     assertEquals(repository.calls(it.getWith), List(("bd", "mendes"), ("bd", "")))
 
-  test("inspect calls on methods with 2 parameters, extracting by tuple position"):
-    val repository =
-      mock[Repository[User]].on(it.getWith): args =>
-        mockUsers.filter(u => u.username.startsWith(args._1) && u.username.endsWith(args._2))
-
-    assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
-    assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
-
-    assertEquals(repository.calls(it.getWith).map(_._1), List("bd", "bd"))
-
-    assert(typeChecks("repository.calls(it.getWith).map[String](_._2)"))
-    assert(!typeChecks("repository.calls(it.getWith).map[String](_._3)"))
+    intercept[UnexpectedArguments]:
+      val _ = repository.getWith("jose", "mendes")
 
   test("inspect calls on methods with 2 parameters, extracting by parameter names"):
     val repository =
-      mock[Repository[User]].on(it.getWith): args =>
-        mockUsers.filter(u => u.username.startsWith(args._1) && u.username.endsWith(args._2))
+      mock[Repository[User]].on(it.getWith):
+        case (startsWith = "bd", endsWith = "") =>
+          mockUsers.filter(u => u.username.startsWith("bd"))
 
-    assertEquals(repository.getWith("bd", "mendes"), List(User("bdmendes")))
     assertEquals(repository.getWith("bd", ""), List(User("bdmendes")))
+
+    intercept[UnexpectedArguments]:
+      val _ = repository.getWith("bd", "mendes")
 
     assertEquals(repository.calls(it.getWith).map(_.startsWith), List("bd", "bd"))
 
