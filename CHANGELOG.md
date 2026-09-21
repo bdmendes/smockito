@@ -14,7 +14,7 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
-## 3.0.0 - TBD
+## 3.0.0 - 2026-09-22
 
 Smockito 3 aims to make mocking even more straightforward.
 
