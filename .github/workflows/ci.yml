@@ -79,6 +79,9 @@ jobs:
 
   docs-deploy:
     name: Deploy Documentation Website
+    concurrency:
+      group: website-deploy
+      cancel-in-progress: true
     needs: docs-build
     runs-on: ubuntu-latest
     permissions:
