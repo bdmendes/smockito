@@ -6,8 +6,7 @@ import org.mockito.Mockito
 import org.mockito.exceptions.base.MockitoException
 import scala.reflect.ClassTag
 
-/** A `Spy` is a mock whose default answer is to forward all method calls to a real instance, unless
-  * stubbed otherwise.
+/** A `Spy` is a mock whose answer is to forward method calls to a real instance.
   */
 opaque type Spy[+T <: AnyRef] <: Mock[T] = Mock[T]
 

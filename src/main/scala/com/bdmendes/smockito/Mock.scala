@@ -10,8 +10,7 @@ import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
-/** A `Mock` represents a type mocked by Mockito, with a default answer strategy of throwing on
-  * unstubbed methods.
+/** A `Mock` represents a type mocked by Mockito.
   */
 opaque type Mock[+T <: AnyRef] <: T = T
 
