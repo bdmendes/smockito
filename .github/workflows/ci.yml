@@ -72,6 +72,11 @@ jobs:
       - name: Build documentation site
         run: sbt generateSite
 
+      - name: Patch scaladoc jQuery navigation bug (to be fixed in Scala 3.9.1)
+        run: |
+          sed -i 's/\$\.get(href, function (data) {/fetch(href).then((r) => r.text()).then(function (data) {/' \
+            target/site/scripts/ux.js
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
