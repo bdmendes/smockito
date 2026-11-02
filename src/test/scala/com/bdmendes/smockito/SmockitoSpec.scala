@@ -917,6 +917,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(it.exists), 2)
     assertEquals(repository.calls(it.exists), List("bdmendes", "bdmendes"))
 
+  test("preserve the real instance semantics in a spy"):
+    class Getter:
+      def get: Int = 0
+
+    val getter = Getter()
+    val getterSpy = spy(getter).on(it.get)(_ => getter.get + 1)
+
+    assertEquals(getterSpy.get, 1)
+    assertEquals(getterSpy.times(it.get), 1)
+
+    assertEquals(getter.get, 0)
+    assertEquals(getterSpy.times(it.get), 1)
+
   test("accept a stub on methods defined in super classes"):
     class Foo
     val m = mock[Foo].on(() => it.toString)(_ => "mocked")
