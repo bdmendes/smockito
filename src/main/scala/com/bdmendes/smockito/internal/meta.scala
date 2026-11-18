@@ -22,6 +22,25 @@ object meta:
       case _: (h *: t) =>
         f[h](using summonInline[ClassTag[h]]) +: mapTuple[t, R](f)
 
+  inline def requireSingleType[T]: Unit =
+    ${
+      requireSingleTypeImpl[T]
+    }
+
+  def requireSingleTypeImpl[T: Type](using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    // The class tag erases these to a single class, the only one Mockito would mock.
+    TypeRepr.of[T].dealias match
+      case t @ (_: AndType | _: OrType) =>
+        report.errorAndAbort(
+          s"Cannot mock ${t.show(using Printer.TypeReprShortCode)}; " +
+            "Mockito does not support union or intersection types"
+        )
+      case _ =>
+        '{
+          ()
+        }
+
   def matchedMethodInfo[T <: AnyRef: Type, F[_ <: AnyRef]: Type, A <: Tuple: Type, R: Type](
       expr: Expr[F[T] ?=> Any]
   )(using q: Quotes): Expr[MatchedMethodInfo] =
