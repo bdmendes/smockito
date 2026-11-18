@@ -75,10 +75,21 @@ object meta:
 
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
+    val unmockableMethods =
+      List(defn.AnyClass, defn.ObjectClass).flatMap(cls =>
+        cls.methodMember("equals") ++ cls.methodMember("hashCode")
+      )
+
     def checkAndReturn(
         sym: Symbol,
         methodType: TypeRepr
     ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
+      // Avoid runtime errors by flagging unmockable methods at compile time.
+      if (sym :: sym.allOverriddenSymbols.toList).exists(unmockableMethods.contains) then
+        report.errorAndAbort(
+          s"Method ${sym.name} in ${rawTargetType.show} is not intercepted by Mockito, " +
+            "so it cannot be stubbed or verified"
+        )
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.

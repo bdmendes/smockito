@@ -522,6 +522,70 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       "Method get in Repository[User] returns List[User] but received function returns Unit"
     )
 
+  test("reject methods Mockito does not intercept"):
+    def assertHasRejection(errors: String, method: String) =
+      assert(
+        errors.contains(
+          s"Method $method in Repository[User] is not intercepted by Mockito, " +
+            "so it cannot be stubbed or verified"
+        ),
+        errors
+      )
+
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(() => it.hashCode())(_ => 1)"""),
+      "hashCode"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on((x: Any) => it.equals(x))(_ => true)"""),
+      "equals"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].onCall(() => it.hashCode())(_ => _ => 1)"""),
+      "hashCode"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].real(() => it.hashCode())"""),
+      "hashCode"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].times(() => it.hashCode())"""),
+      "hashCode"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].times((x: Any) => it.equals(x))"""),
+      "equals"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].calls((x: Any) => it.equals(x))"""),
+      "equals"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].calledBefore(() => it.hashCode(), it.exists)"""),
+      "hashCode"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].calledAfter((x: Any) => it.equals(x), it.exists)"""),
+      "equals"
+    )
+
+    locally:
+      import scala.language.unsafeNulls
+      assertHasRejection(
+        compileErrors("""mock[Repository[User]].forward(() => it.hashCode(), null)"""),
+        "hashCode"
+      )
+
+    // Overloads are regular methods.
+    trait Foo:
+      def equals(other: Foo): Boolean
+
+    val foo = mock[Foo]
+    val _ = foo.on(foo.equals(_: Foo))(_ => true)
+
+    assert(foo.equals(foo))
+    assertEquals(foo.times(foo.equals(_: Foo)), 1)
+
   test("dispatch a method with 0 parameters to a real instance"):
     val mockRepository = mock[Repository[User]].forward(() => it.get, realRepository)
 
