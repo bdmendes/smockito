@@ -10,6 +10,7 @@ import org.mockito.verification.VerificationMode
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /** A `Mock` represents a type mocked by Mockito.
   */
@@ -74,8 +75,9 @@ private trait MockSyntax:
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
       val _ = validateAndRetrieveMethodInfo(method)
-      val target = method(using Mockito.doCallRealMethod().when(mock))
-      target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+      Mock.withCleanup:
+        val target = method(using Mockito.doCallRealMethod().when(mock))
+        target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
       mock
 
     /** Yields the arguments received by a method, per invocation, in chronological order.
@@ -95,8 +97,9 @@ private trait MockSyntax:
           inline validateAndRetrieveMethodInfo(method) match
             case info: meta.MatchedMethodInfo =>
               val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
-              val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-              target(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
+              Mock.withCleanup:
+                val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
+                target(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
               argCaptors
                 .map(_.getAllValues.toArray)
                 .transpose
@@ -128,17 +131,19 @@ private trait MockSyntax:
               // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
               matching.foreach(_.markVerified())
               count = matching.size
-          val target = method(using Mockito.verify(mock, counting))
-          target(EmptyTuple.asInstanceOf[A])
+          Mock.withCleanup:
+            val target = method(using Mockito.verify(mock, counting))
+            target(EmptyTuple.asInstanceOf[A])
           count
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
           val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
-          val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-          target(
-            Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
-          )
+          Mock.withCleanup:
+            val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
+            target(
+              Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
+            )
           cap.getAllValues.size
 
     /** Sets up a stub for a method that calls the respective method of a real instance.
@@ -209,11 +214,22 @@ private object Mock:
     // Sometimes we need to resort to Mockito verifications with mode different than `atLeast(0)`.
     // In those cases, we must be careful not to swallow all exceptions.
     try
-      f
+      withCleanup(f)
       true
     catch
       case _: MockitoAssertionError =>
         false
+
+  inline def withCleanup[T](f: => T): T =
+    // A failure halfway through stubbing or verifying leaves Mockito's thread-local state dirty,
+    // which would fail the next Mockito interaction on this thread, possibly in another test.
+    try
+      f
+    catch
+      case e: Throwable =>
+        // Each validation clears the problem it reports, so repeat until none is left.
+        val _ = Iterator.continually(Try(Mockito.validateMockitoUsage())).take(32).find(_.isSuccess)
+        throw e
 
   inline def unwrap[A <: Tuple](
       arguments: Array[Object],
