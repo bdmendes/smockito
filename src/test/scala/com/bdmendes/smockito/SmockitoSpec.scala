@@ -79,6 +79,13 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = repository.getWith("dummy1", "dummy2")
 
+    // Except `toString`, so that mocks can be described, such as in other mocks' errors.
+    val user = mock[User]
+    assertEquals(user.toString, "Mock[User]")
+
+    val error = intercept[UnstubbedMethod](repository.contains(user))
+    assert(error.getMessage.endsWith("was called with arguments: (Mock[User])."))
+
   test("set up method stubs on values"):
     var counter = 0
     val repository =
