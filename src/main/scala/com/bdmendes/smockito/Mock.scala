@@ -6,6 +6,7 @@ import com.bdmendes.smockito.internal.DefaultAnswer
 import com.bdmendes.smockito.internal.meta
 import org.mockito.*
 import org.mockito.exceptions.base.MockitoAssertionError
+import org.mockito.verification.VerificationMode
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
@@ -119,24 +120,17 @@ private trait MockSyntax:
       val _ = validateAndRetrieveMethodInfo(method)
       inline erasedValue[A] match
         case _: EmptyTuple =>
-          // Mockito has no reliable API for this use case, so we have to resort to inspecting the
-          // mock's invocations and considering all possible matches.
-          val returnClass = summonInline[ClassTag[R]].runtimeClass
-          val possiblyMatching =
-            Mockito
-              .mockingDetails(mock)
-              .getInvocations
-              .asScala
-              .filter(invocation =>
-                invocation.getMethod.getParameters.isEmpty &&
-                  invocation.getMethod.getReturnType.isAssignableFrom(returnClass)
-              )
-              .size
-          val validInvocations = (possiblyMatching to 1 by -1).find: count =>
-            Mock.verifies:
-              val target = method(using Mockito.verify(mock, Mockito.times(count)))
-              target(EmptyTuple.asInstanceOf[A])
-          validInvocations.getOrElse(0)
+          // Mockito has no verification mode that yields the number of calls, so we roll our own.
+          var count = 0
+          val counting: VerificationMode =
+            data =>
+              val matching = data.getAllInvocations.asScala.filter(data.getTarget.matches)
+              // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
+              matching.foreach(_.markVerified())
+              count = matching.size
+          val target = method(using Mockito.verify(mock, counting))
+          target(EmptyTuple.asInstanceOf[A])
+          count
         case _: (h *: t) =>
           // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
           // the first argument only, which is enough for counting the number of calls.
