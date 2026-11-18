@@ -1063,13 +1063,28 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         def pretty = "yes"
         def toUser: User = u
 
-    def assertDoesNotConform(errors: String) =
+    def assertNotAnyRef(errors: String) =
       assert(errors.contains("does not conform to upper bound AnyRef"), errors)
 
-    assertDoesNotConform(compileErrors("""mock[Outer.SpookyUser]"""))
-    assertDoesNotConform(compileErrors("""mock[String | Outer.SpookyUser]"""))
-    assertDoesNotConform(compileErrors("""mock[Long]"""))
-    assertDoesNotConform(compileErrors("""mock[Int]"""))
+    def assertNotSingleType(errors: String, tpe: String) =
+      assert(
+        errors.contains(s"Cannot mock $tpe; Mockito does not support union or intersection types"),
+        errors
+      )
+
+    assertNotAnyRef(compileErrors("""mock[Outer.SpookyUser]"""))
+    assertNotAnyRef(compileErrors("""mock[String | Outer.SpookyUser]"""))
+    assertNotAnyRef(compileErrors("""mock[Long]"""))
+    assertNotAnyRef(compileErrors("""mock[Int]"""))
+
+    assertNotSingleType(
+      compileErrors("""mock[User & Repository[User]]"""),
+      "User & Repository[User]"
+    )
+    assertNotSingleType(
+      compileErrors("""mock[User | Repository[User]]"""),
+      "User | Repository[User]"
+    )
 
     // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
     // This should be used as a last resort; depend on an interface instead.

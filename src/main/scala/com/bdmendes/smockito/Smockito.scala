@@ -1,5 +1,6 @@
 package com.bdmendes.smockito
 
+import com.bdmendes.smockito.internal.meta
 import java.lang.reflect.Method
 import scala.reflect.ClassTag
 
@@ -19,7 +20,9 @@ trait Smockito extends MockSyntax:
     * @return
     *   the mock instance.
     */
-  def mock[T <: AnyRef: ClassTag]: Mock[T] = Mock.apply
+  inline def mock[T <: AnyRef: ClassTag]: Mock[T] =
+    meta.requireSingleType[T]
+    Mock.apply
 
   /** Creates a [[Spy]] instance of `T`. A `Spy[T]` is the compile time representation of a real
     * instance of `T` copied by Mockito for spying purposes, erased at runtime.
