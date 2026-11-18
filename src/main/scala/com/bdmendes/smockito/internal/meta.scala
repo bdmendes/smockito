@@ -74,6 +74,14 @@ object meta:
         case t =>
           t
 
+    def isRepeated(t: TypeRepr): Boolean =
+      t match
+        // Java members under explicit nulls.
+        case FlexibleType(t) =>
+          isRepeated(t)
+        case t =>
+          t.typeSymbol == defn.RepeatedParamClass
+
     def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
       expected.dealias.asMatchable match
         case TypeBounds(low, high) =>
@@ -109,10 +117,19 @@ object meta:
           s"Method ${sym.name} in ${rawTargetType.show} is not intercepted by Mockito, " +
             "so it cannot be stubbed or verified"
         )
+
+      val signature = methodSignature(methodType)
+
+      // Java compiles varargs to an array, which Mockito only matches with a dedicated matcher.
+      if sym.flags.is(Flags.JavaDefined) && signature.paramTypes.exists(isRepeated) then
+        report.errorAndAbort(
+          s"Method ${sym.name} in ${rawTargetType.show} takes Java varargs, " +
+            "which Smockito does not support; wrap in a Scala trait"
+        )
+
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
-      val signature = methodSignature(methodType)
       val methodParamTypes = signature.paramTypes.map(normalize)
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
         report.errorAndAbort(
