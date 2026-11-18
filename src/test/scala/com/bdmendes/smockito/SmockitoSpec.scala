@@ -601,6 +601,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     intercept[UnstubbedMethod]:
       val _ = mockRepository.exists("bdmendes")
 
+    // Methods referenced as values reach the real instance on every call.
+    val pool = mock[Repository.type].forward(it.randomName, Repository)
+    assertNotEquals(pool.randomName, pool.randomName)
+
   test("dispatch a method with 1 parameter to a real instance"):
     val mockRepository = mock[Repository[User]].forward(it.exists, realRepository)
 
