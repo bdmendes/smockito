@@ -1092,6 +1092,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         errors
       )
 
+    def assertValueClass(errors: String, method: String, tpe: String) =
+      assert(
+        errors.contains(
+          s"Method $method in $tpe uses value class UserId, " +
+            "which Smockito does not support; use a regular class"
+        ),
+        errors
+      )
+
     assertNotAnyRef(compileErrors("""mock[Outer.SpookyUser]"""))
     assertNotAnyRef(compileErrors("""mock[String | Outer.SpookyUser]"""))
     assertNotAnyRef(compileErrors("""mock[Long]"""))
@@ -1104,6 +1113,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertNotSingleType(
       compileErrors("""mock[User | Repository[User]]"""),
       "User | Repository[User]"
+    )
+
+    assertValueClass(
+      compileErrors("""mock[Registry[UserId]].on(it.find)(_ => 1)"""),
+      "find",
+      "Registry[UserId]"
+    )
+    assertValueClass(
+      compileErrors("""mock[Registry[UserId]].times(it.idOf)"""),
+      "idOf",
+      "Registry[UserId]"
     )
 
     // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
@@ -1144,6 +1164,12 @@ object SmockitoSpec:
     def randomName = pool.randomName
 
   case class User(username: String)
+
+  case class UserId(value: String) extends AnyVal
+
+  trait Registry[T]:
+    def find(id: UserId): Int
+    def idOf(username: String): UserId
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))
