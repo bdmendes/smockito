@@ -2,6 +2,7 @@ package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Mock.mapper.anyMatcher
 import com.bdmendes.smockito.Mock.unwrap
+import com.bdmendes.smockito.Mock.withCleanup
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta
 import java.util.concurrent.atomic.AtomicInteger
@@ -31,8 +32,9 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
           Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
           _ => throw UnexpectedArguments(invocation.getMethod, arguments)
         )
-    val target = method(using Mockito.doAnswer(answer).when(mock))
-    target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+    withCleanup:
+      val target = method(using Mockito.doAnswer(answer).when(mock))
+      target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
     mock
 
 object Stubber:

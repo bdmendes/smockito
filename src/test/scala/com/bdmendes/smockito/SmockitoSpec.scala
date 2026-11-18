@@ -867,6 +867,24 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     // `times` does not touch captured values.
     assertEquals(monitor.times(it.register(_: List[Int])), 2)
 
+  test("recover from a failure while stubbing"):
+    intercept[NullPointerException]:
+      // An invalid eta-expansion not caught by the macro sanity check.
+      mock[Repository[User]].on((s: String) => it.exists(s.trim))(_ => true)
+
+    val repository = mock[Repository[User]].on(it.exists)(_ => true)
+
+    assert(repository.exists("bdmendes"))
+
+  test("recover from a failure while verifying"):
+    val repository = mock[Repository[User]].on(it.exists)(_ => true)
+
+    intercept[NullPointerException]:
+      // An invalid eta-expansion not caught by the macro sanity check.
+      repository.times((s: String) => it.exists(s.trim))
+
+    assertEquals(repository.times(it.exists), 0)
+
   test("reason about invocation orders"):
     val repository =
       mock[Repository[User]].on(it.exists)(_ => true).on(() => it.getNames)(_ => List.empty)
