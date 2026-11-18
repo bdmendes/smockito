@@ -386,6 +386,19 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(repository.times(() => it.get), 1)
     assertEquals(repository.times(() => it.getNames), 2)
 
+  test("count calls on methods with 0 parameters, minding primitive erasure"):
+    trait Box[T]:
+      def get: T
+
+    val box = mock[Box[Int]].on(it.get)(_ => 1)
+
+    assertEquals(box.times(it.get), 0)
+
+    assertEquals(box.get, 1)
+    assertEquals(box.get, 1)
+
+    assertEquals(box.times(it.get), 2)
+
   test("count calls on methods with 1 parameter"):
     val repository = mock[Repository[String]].on(it.exists)(_ == "bdmendes")
 
