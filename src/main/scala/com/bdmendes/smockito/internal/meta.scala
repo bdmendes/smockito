@@ -62,6 +62,8 @@ object meta:
         case MethodType(names, params, ret) =>
           val (retNames, retParams, result) = methodSignature(ret)
           (names ++ retNames, params ++ retParams, result)
+        case PolyType(_, _, ret) =>
+          methodSignature(ret)
         case _ =>
           // Values.
           (Nil, Nil, t)
@@ -81,6 +83,18 @@ object meta:
           isRepeated(t)
         case t =>
           t.typeSymbol == defn.RepeatedParamClass
+
+    def isValueClass(t: TypeRepr): Boolean =
+      t match
+        // By-name parameters compile to functions, which box their result.
+        case _: ByNameType =>
+          false
+        case _ =>
+          t.classSymbol
+            .exists(cls =>
+              cls.typeRef.baseClasses.contains(defn.AnyValClass) &&
+                !(defn.AnyValClass :: defn.ScalaPrimitiveValueClasses).contains(cls)
+            )
 
     def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
       expected.dealias.asMatchable match
@@ -108,9 +122,11 @@ object meta:
       )
 
     def checkAndReturn(
-        sym: Symbol,
-        methodType: TypeRepr
+        method: Term
     ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
+      // As declared in the type.
+      val sym = method.symbol
+
       // Avoid runtime errors by flagging unmockable methods at compile time.
       if (sym :: sym.allOverriddenSymbols.toList).exists(unmockableMethods.contains) then
         report.errorAndAbort(
@@ -118,7 +134,8 @@ object meta:
             "so it cannot be stubbed or verified"
         )
 
-      val signature = methodSignature(methodType)
+      // As seen from the mock type, with the method's type arguments applied.
+      val signature = methodSignature(normalize(method.tpe))
 
       // Java compiles varargs to an array, which Mockito only matches with a dedicated matcher.
       if sym.flags.is(Flags.JavaDefined) && signature.paramTypes.exists(isRepeated) then
@@ -126,6 +143,17 @@ object meta:
           s"Method ${sym.name} in ${rawTargetType.show} takes Java varargs, " +
             "which Smockito does not support; wrap in a Scala trait"
         )
+
+      // The JVM signature has the underlying type of value classes, unlike the instances stubs
+      // handle. Type parameters erase to boxed instances, so check the declared signature.
+      val declared = methodSignature(sym.termRef.widen)
+      (declared.returnType.widenByName :: declared.paramTypes)
+        .find(isValueClass)
+        .foreach: t =>
+          report.errorAndAbort(
+            s"Method ${sym.name} in ${rawTargetType.show} uses value class ${t.show}, " +
+              "which Smockito does not support; use a regular class"
+          )
 
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
@@ -150,9 +178,9 @@ object meta:
         // Method selection.
         case tapp @ TypeApply(s @ Select(prefix, _), _)
             if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
-          checkAndReturn(s.symbol, normalize(tapp.tpe))
+          checkAndReturn(tapp)
         case s @ Select(prefix, _) if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
-          checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
+          checkAndReturn(s)
         // Parent AST nodes. Particularly relevant is the implicit conversion step
         // via the `Conversion` typeclass application to lift functions to `MockedMethod`.
         case Lambda(_, body) =>
