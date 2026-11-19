@@ -557,13 +557,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
   test("reject methods Mockito does not intercept"):
     def assertHasRejection(errors: String, method: String) =
-      assert(
-        errors.contains(
-          s"Method $method in Repository[User] is not intercepted by Mockito, " +
-            "so it cannot be stubbed or verified"
-        ),
-        errors
-      )
+      assert(errors.contains(s"Method $method in Repository[User] is not mockable"), errors)
 
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on(() => it.hashCode())(_ => 1)"""),
@@ -572,6 +566,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertHasRejection(
       compileErrors("""mock[Repository[User]].on((x: Any) => it.equals(x))(_ => true)"""),
       "equals"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(() => it.getClass())"""),
+      "getClass"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on(() => it.synchronized(42))"""),
+      "synchronized"
+    )
+    assertHasRejection(
+      compileErrors("""mock[Repository[User]].on((millis: Long) => it.wait(millis))"""),
+      "wait"
     )
     assertHasRejection(
       compileErrors("""mock[Repository[User]].onCall(() => it.hashCode())(_ => _ => 1)"""),

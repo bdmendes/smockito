@@ -117,9 +117,9 @@ object meta:
     def showTypes(ts: List[TypeRepr]): String = ts.map(_.show).mkString("(", ", ", ")")
 
     val unmockableMethods =
-      List(defn.AnyClass, defn.ObjectClass).flatMap(cls =>
-        cls.methodMember("equals") ++ cls.methodMember("hashCode")
-      )
+      List(defn.AnyClass, defn.ObjectClass)
+        .flatMap(_.declaredMethods)
+        .filterNot(_.name == "toString")
 
     def checkAndReturn(
         method: Term
@@ -129,10 +129,7 @@ object meta:
 
       // Avoid runtime errors by flagging unmockable methods at compile time.
       if (sym :: sym.allOverriddenSymbols.toList).exists(unmockableMethods.contains) then
-        report.errorAndAbort(
-          s"Method ${sym.name} in ${rawTargetType.show} is not intercepted by Mockito, " +
-            "so it cannot be stubbed or verified"
-        )
+        report.errorAndAbort(s"Method ${sym.name} in ${rawTargetType.show} is not mockable")
 
       // As seen from the mock type, with the method's type arguments applied.
       val signature = methodSignature(normalize(method.tpe))
