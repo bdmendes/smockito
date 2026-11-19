@@ -11,6 +11,8 @@ private[smockito] object LiftedInstance:
       obj match
         // Lambdas require special treatment as they are usually synthetic classes
         // that Mockito cannot copy.
+        case o if !o.getClass.isHidden =>
+          o
         case f: Function0[?] =>
           ForwardingFunction0(f)
         case f: Function1[?, ?] =>
