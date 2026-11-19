@@ -593,6 +593,26 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(foo.equals(foo))
     assertEquals(foo.times(foo.equals(_: Foo)), 1)
 
+  test("reject Java varargs methods"):
+    def assertHasRejection(errors: String) =
+      assert(
+        errors.contains(
+          "Method printf in PrintStream takes Java varargs, which Smockito does not support"
+        ),
+        errors
+      )
+
+    assertHasRejection(
+      compileErrors(
+        """mock[java.io.PrintStream].on((f: String, as: Seq[AnyRef]) => it.printf(f, as*))(_ => it)"""
+      )
+    )
+    assertHasRejection(
+      compileErrors(
+        """mock[java.io.PrintStream].times((f: String, as: Seq[AnyRef]) => it.printf(f, as*))"""
+      )
+    )
+
   test("dispatch a method with 0 parameters to a real instance"):
     val mockRepository = mock[Repository[User]].forward(() => it.get, realRepository)
 
