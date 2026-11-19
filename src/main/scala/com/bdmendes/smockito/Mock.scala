@@ -232,37 +232,45 @@ private object Mock:
         throw e
 
   inline def unwrap[A <: Tuple](
-      arguments: Array[Object],
+      originalArguments: Array[Object],
       parameterTypes: IndexedSeq[meta.MethodParameterType],
-      index: Int = 0
+      index: Int = 0,
+      arguments: Array[Object] = Array.empty,
+      needsCloning: Boolean = true
   ): Array[Object] =
     // By-name parameters are compiled as nullary functions, hence the special treatment.
-    inline erasedValue[A] match
-      case _: EmptyTuple =>
-        arguments
-      case _: (h *: t) =>
-        val unwrapped =
-          arguments(index) match
-            case f: Function0[?] =>
-              parameterTypes(index) match
-                case meta.MethodParameterType.ByName =>
-                  f.apply()
-                case meta.MethodParameterType.Regular =>
-                  f
-            case other =>
-              other
-        val typeCheckedValue =
-          if unwrapped != null then
-            try
-              unwrapped.asInstanceOf[h]
-            catch
-              case _: ClassCastException =>
-                val expected = summonInline[ClassTag[h]].runtimeClass
-                throw UnexpectedType(unwrapped, expected)
-          else
-            unwrapped
-        arguments.update(index, typeCheckedValue.asInstanceOf[Object])
-        unwrap[t](arguments, parameterTypes, index + 1)
+    if needsCloning then
+      unwrap[A](originalArguments, parameterTypes, index, originalArguments.clone(), false)
+    else
+      inline erasedValue[A] match
+        case _: EmptyTuple =>
+          arguments
+        case _: (h *: t) =>
+          val unwrapped =
+            arguments(index) match
+              case f: Function0[?] =>
+                parameterTypes(index) match
+                  case meta.MethodParameterType.ByName =>
+                    val v = f.apply()
+                    val cachedF = () => v
+                    originalArguments.update(index, cachedF)
+                    v
+                  case meta.MethodParameterType.Regular =>
+                    f
+              case other =>
+                other
+          val typeCheckedValue =
+            if unwrapped != null then
+              try
+                unwrapped.asInstanceOf[h]
+              catch
+                case _: ClassCastException =>
+                  val expected = summonInline[ClassTag[h]].runtimeClass
+                  throw UnexpectedType(unwrapped, expected)
+            else
+              unwrapped
+          arguments.update(index, typeCheckedValue.asInstanceOf[Object])
+          unwrap[t](originalArguments, parameterTypes, index + 1, arguments, false)
 
   object mapper:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]().asInstanceOf[X]

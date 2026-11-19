@@ -317,6 +317,15 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.hasCount(_: Int)), List(0, 2))
 
+  test("inspect calls on by-name parameters containing nullary functions"):
+    trait Foo:
+      def bar(f: => () => Int): Int
+
+    val foo = mock[Foo].on(it.bar(_: (() => Int)))(f => f())
+
+    assertEquals(foo.bar(() => 1), 1)
+    assertEquals(foo.calls(it.bar(_: (() => Int))).map(_.apply()), List(1))
+
   test("inspect calls on methods with by-name parameters, caching the arguments"):
     var counter = 0
 
