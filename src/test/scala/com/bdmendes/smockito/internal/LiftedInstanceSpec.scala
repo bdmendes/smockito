@@ -146,3 +146,11 @@ class LiftedInstanceSpec extends munit.FunSuite:
     val wrapper = LiftedInstance[Wrapper](new Wrapper)
     assertEquals(wrapper(), "hello")
     assertEquals(wrapper.foo, "foo")
+
+  test("preserve overrides when a concrete function is typed as Function0"):
+    class NamedFunction extends Function0[String]:
+      def apply(): String = "hello"
+      override def toString(): String = "named function"
+
+    val f = LiftedInstance[() => String](new NamedFunction)
+    assertEquals(f.toString, "named function")
