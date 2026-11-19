@@ -122,9 +122,11 @@ object meta:
       )
 
     def checkAndReturn(
-        sym: Symbol,
-        methodType: TypeRepr
+        method: Term
     ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
+      // As declared in the type.
+      val sym = method.symbol
+
       // Avoid runtime errors by flagging unmockable methods at compile time.
       if (sym :: sym.allOverriddenSymbols.toList).exists(unmockableMethods.contains) then
         report.errorAndAbort(
@@ -132,7 +134,8 @@ object meta:
             "so it cannot be stubbed or verified"
         )
 
-      val signature = methodSignature(methodType)
+      // As seen from the mock type, with the method's type arguments applied.
+      val signature = methodSignature(normalize(method.tpe))
 
       // Java compiles varargs to an array, which Mockito only matches with a dedicated matcher.
       if sym.flags.is(Flags.JavaDefined) && signature.paramTypes.exists(isRepeated) then
@@ -175,9 +178,9 @@ object meta:
         // Method selection.
         case tapp @ TypeApply(s @ Select(prefix, _), _)
             if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
-          checkAndReturn(s.symbol, normalize(tapp.tpe))
+          checkAndReturn(tapp)
         case s @ Select(prefix, _) if targetsType(prefix) && s.symbol != Symbol.noSymbol =>
-          checkAndReturn(s.symbol, normalize(prefix.tpe.memberType(s.symbol)))
+          checkAndReturn(s)
         // Parent AST nodes. Particularly relevant is the implicit conversion step
         // via the `Conversion` typeclass application to lift functions to `MockedMethod`.
         case Lambda(_, body) =>

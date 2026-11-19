@@ -1083,6 +1083,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         def pretty = "yes"
         def toUser: User = u
 
+    trait Registry[T]:
+      def find(id: UserId): Int
+      def idOf(username: String): UserId
+
     def assertNotAnyRef(errors: String) =
       assert(errors.contains("does not conform to upper bound AnyRef"), errors)
 
@@ -1165,11 +1169,7 @@ object SmockitoSpec:
 
   case class User(username: String)
 
-  case class UserId(value: String) extends AnyVal
-
-  trait Registry[T]:
-    def find(id: UserId): Int
-    def idOf(username: String): UserId
+  case class UserId(id: String) extends AnyVal
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))
