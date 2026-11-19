@@ -188,7 +188,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.hasCount(0))
     assert(!repository.hasCount(1))
 
-  test("set up method stubs on by-name parameters containing nullary functions"):
+  test("set up method stubs on methods with by-name parameters containing nullary functions"):
     trait Foo:
       def bar(f: => () => Int): Int
 
@@ -316,6 +316,32 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.hasCount(2))
 
     assertEquals(repository.calls(it.hasCount(_: Int)), List(0, 2))
+
+  test("inspect calls on methods with by-name parameters containing nullary functions"):
+    trait Foo:
+      def bar(f: => () => Int): Int
+
+    val foo = mock[Foo].on(it.bar(_: (() => Int)))(f => f())
+
+    assertEquals(foo.bar(() => 1), 1)
+    assertEquals(foo.calls(it.bar(_: (() => Int))).map(_.apply()), List(1))
+
+  test("inspect calls on methods with by-name parameters, caching the arguments"):
+    var counter = 0
+
+    def touch =
+      counter += 1
+      counter
+
+    trait Getter:
+      def tell(c: => Int): Int
+
+    val getter = mock[Getter].on(it.tell(_: Int))(c => c)
+
+    getter.tell(touch)
+
+    assertEquals(getter.calls(it.tell(_: Int)), List(1))
+    assertEquals(getter.calls(it.tell(_: Int)), List(1))
 
   test("inspect calls on methods with variable arguments"):
     val repository =

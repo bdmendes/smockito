@@ -232,14 +232,15 @@ private object Mock:
         throw e
 
   inline def unwrap[A <: Tuple](
-      arguments: Array[Object],
+      originalArguments: Array[Object],
       parameterTypes: IndexedSeq[meta.MethodParameterType],
       index: Int = 0,
+      arguments: Array[Object] = Array.empty,
       needsCloning: Boolean = true
   ): Array[Object] =
     // By-name parameters are compiled as nullary functions, hence the special treatment.
     if needsCloning then
-      unwrap[A](arguments.clone(), parameterTypes, index, false)
+      unwrap[A](originalArguments, parameterTypes, index, originalArguments.clone(), false)
     else
       inline erasedValue[A] match
         case _: EmptyTuple =>
@@ -250,7 +251,10 @@ private object Mock:
               case f: Function0[?] =>
                 parameterTypes(index) match
                   case meta.MethodParameterType.ByName =>
-                    f.apply()
+                    val v = f.apply()
+                    val cachedF = () => v
+                    originalArguments.update(index, cachedF)
+                    v
                   case meta.MethodParameterType.Regular =>
                     f
               case other =>
@@ -266,7 +270,7 @@ private object Mock:
             else
               unwrapped
           arguments.update(index, typeCheckedValue.asInstanceOf[Object])
-          unwrap[t](arguments, parameterTypes, index + 1, false)
+          unwrap[t](originalArguments, parameterTypes, index + 1, arguments, false)
 
   object mapper:
     lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]().asInstanceOf[X]
