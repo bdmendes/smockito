@@ -188,7 +188,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.hasCount(0))
     assert(!repository.hasCount(1))
 
-  test("set up method stubs on by-name parameters containing nullary functions"):
+  test("set up method stubs on methods with by-name parameters containing nullary functions"):
     trait Foo:
       def bar(f: => () => Int): Int
 
@@ -317,7 +317,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.hasCount(_: Int)), List(0, 2))
 
-  test("inspect calls on by-name parameters containing nullary functions"):
+  test("inspect calls on methods with by-name parameters containing nullary functions"):
     trait Foo:
       def bar(f: => () => Int): Int
 
