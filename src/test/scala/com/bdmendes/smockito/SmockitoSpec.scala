@@ -317,6 +317,23 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(repository.calls(it.hasCount(_: Int)), List(0, 2))
 
+  test("inspect calls on methods with by-name parameters, caching the arguments"):
+    var counter = 0
+
+    def touch =
+      counter += 1
+      counter
+
+    trait Getter:
+      def tell(c: => Int): Int
+
+    val getter = mock[Getter].on(it.tell(_: Int))(c => c)
+
+    getter.tell(touch)
+
+    assertEquals(getter.calls(it.tell(_: Int)), List(1))
+    assertEquals(getter.calls(it.tell(_: Int)), List(1))
+
   test("inspect calls on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on(it.containsOneOf(_*)): names =>
