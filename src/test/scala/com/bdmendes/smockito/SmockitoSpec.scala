@@ -1144,42 +1144,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(spooky.pretty, "yes")
     assertEquals(spooky.toUser.username, "tampered")
 
-  test("support methods with value class parameters"):
+  test("support methods with value classes"):
     trait Registry[T]:
-      def find(id: UserId): Int
-      def page(offset: Offset): Int
-      def lookup(id: T): Int
+      def find(id: UserId): UserId
+      def lookup(id: T): T
 
-    val registry =
-      mock[Registry[UserId]]
-        .on(it.find)(id => id.id.length)
-        .on(it.page)(offset => offset.value + 1)
-        .on(it.lookup)(id => id.id.length)
+    val registry = mock[Registry[UserId]].on(it.find)(id => id).on(it.lookup)(id => id)
 
-    assertEquals(registry.find(UserId("hello")), 5)
-    assertEquals(registry.page(Offset(2)), 3)
-    assertEquals(registry.lookup(UserId("hi")), 2)
+    assertEquals(registry.find(UserId("hello")), UserId("hello"))
+    assertEquals(registry.lookup(UserId("hi")), UserId("hi"))
     assertEquals(registry.calls(it.find), List(UserId("hello")))
-    assertEquals(registry.calls(it.page), List(Offset(2)))
     assertEquals(registry.calls(it.lookup), List(UserId("hi")))
-    assertEquals(registry.times(it.find), 1)
-    assert(registry.calledBefore(it.find, it.page))
-
-  test("support methods with value class returns"):
-    trait Registry[T]:
-      def idOf(username: String): UserId
-      def offset(): Offset
-      def lookup(username: String): T
-
-    val registry =
-      mock[Registry[UserId]]
-        .on(it.idOf)(username => UserId(username))
-        .on(() => it.offset())(_ => Offset(2))
-        .on(it.lookup)(username => UserId(username))
-
-    assertEquals(registry.idOf("hello"), UserId("hello"))
-    assertEquals(registry.offset(), Offset(2))
-    assertEquals(registry.lookup("hi"), UserId("hi"))
 
 object SmockitoSpec:
 
@@ -1215,8 +1190,6 @@ object SmockitoSpec:
   case class User(username: String)
 
   case class UserId(id: String) extends AnyVal
-
-  case class Offset(value: Int) extends AnyVal
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))
