@@ -1,6 +1,7 @@
 package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Mock.mapper.anyMatcher
+import com.bdmendes.smockito.Mock.unwrap
 import com.bdmendes.smockito.Mock.withCleanup
 import com.bdmendes.smockito.Smockito.SmockitoException.*
 import com.bdmendes.smockito.internal.meta
@@ -26,7 +27,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
       invocation =>
         val call = callCount.incrementAndGet()
         val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
-        val arguments = meta.unwrap[A](invocation.getRawArguments, info.parameterTypes)
+        val arguments = unwrap[A](invocation.getRawArguments, info.parameterTypes)
         info.unboxResult(
           f.applyOrElse(
             Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
