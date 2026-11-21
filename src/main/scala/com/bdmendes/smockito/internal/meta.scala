@@ -24,6 +24,13 @@ object meta:
     val parameterTypes: IndexedSeq[MethodParameterType]
     val unboxResult: Any => Any
 
+  private type MethodInfo = (
+      name: String,
+      paramNames: List[String],
+      paramTypes: List[Expr[MethodParameterType]],
+      unboxResult: Expr[Any => Any]
+  )
+
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
       case _: EmptyTuple =>
@@ -153,13 +160,6 @@ object meta:
       List(defn.AnyClass, defn.ObjectClass)
         .flatMap(_.declaredMethods)
         .filterNot(_.name == "toString")
-
-    type MethodInfo = (
-        name: String,
-        paramNames: List[String],
-        paramTypes: List[Expr[MethodParameterType]],
-        unboxResult: Expr[Any => Any]
-    )
 
     def checkAndReturn(method: Term): Option[MethodInfo] =
       // As declared in the type.
