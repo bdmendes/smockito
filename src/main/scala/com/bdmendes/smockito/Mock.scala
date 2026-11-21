@@ -285,8 +285,12 @@ private object Mock:
     lazy val anyMatcher =
       [X] =>
         (ct: ClassTag[X]) ?=>
-          if ct.runtimeClass.isArray then
-            ArgumentMatchers.any(ct.runtimeClass).asInstanceOf[X]
+          val cls = ct.runtimeClass
+          if cls.isArray then
+            // Keep the array type for Java varargs matching.
+            AdditionalMatchers
+              .or(ArgumentMatchers.isNull(cls), ArgumentMatchers.any(cls))
+              .asInstanceOf[X]
           else
             ArgumentMatchers.any[X]().asInstanceOf[X]
 
