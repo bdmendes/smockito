@@ -625,6 +625,20 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(foo.equals(foo))
     assertEquals(foo.times(foo.equals(_: Foo)), 1)
 
+  test("support nullable array arguments"):
+    trait Store:
+      def save(key: String, entries: Array[String] | Null): Boolean
+      def flush(): Unit
+
+    val store = mock[Store].on(it.save)(_ => true).on(() => it.flush())(_ => ())
+
+    assert(store.save("empty", null))
+    store.flush()
+
+    assertEquals(store.calls(it.save), List(("empty", null)))
+    assertEquals(store.times(it.save), 1)
+    assert(store.calledBefore(it.save, () => it.flush()))
+
   test("support Java varargs methods"):
     val stream =
       mock[java.io.PrintStream].on((f: String, as: Array[AnyRef]) => it.printf(f, as*))(_ => it)
