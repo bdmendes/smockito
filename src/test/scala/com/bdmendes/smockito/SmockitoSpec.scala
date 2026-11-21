@@ -196,6 +196,14 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(foo.bar(() => 1), 1)
 
+  test("set up method stubs on methods with by-name array parameters"):
+    trait Store:
+      def save(key: String, entries: => Array[String]): Int
+
+    val store = mock[Store].on(it.save(_: String, _: Array[String]))((_, entries) => entries.length)
+
+    assertEquals(store.save("key", Array("entry", "other")), 2)
+
   test("set up method stubs on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on(it.containsOneOf(_*)): names =>
@@ -325,6 +333,21 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     assertEquals(foo.bar(() => 1), 1)
     assertEquals(foo.calls(it.bar(_: (() => Int))).map(_.apply()), List(1))
+
+  test("inspect calls on methods with by-name array parameters"):
+    class Store:
+      def save(key: String, entries: => Array[String]): String = s"$key:${entries.length}"
+
+    val store = spy(new Store)
+
+    assertEquals(store.save("key", Array("entry", "other")), "key:2")
+
+    assertEquals(
+      store
+        .calls(it.save(_: String, _: Array[String]))
+        .map((key, entries) => (key, entries.toList)),
+      List(("key", List("entry", "other")))
+    )
 
   test("inspect calls on methods with by-name parameters, caching the arguments"):
     var counter = 0
@@ -468,6 +491,18 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(repository.hasCount(2))
 
     assertEquals(repository.times(it.hasCount(_: Int)), 2)
+
+  test("count calls on methods with by-name array parameters"):
+    class Store:
+      def count(entries: => Array[String]): Int = entries.length
+      def save(key: String, entries: => Array[String]): String = s"$key:${entries.length}"
+
+    val store = spy(new Store)
+    val _ = store.count(Array("entry"))
+    val _ = store.save("key", Array("entry", "other"))
+
+    assertEquals(store.times(it.count(_: Array[String])), 1)
+    assertEquals(store.times(it.save(_: String, _: Array[String])), 1)
 
   test("count calls on methods with variable arguments"):
     val repository =
