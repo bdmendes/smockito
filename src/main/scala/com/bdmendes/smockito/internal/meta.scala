@@ -1,34 +1,46 @@
 package com.bdmendes.smockito.internal
 
+import java.lang.reflect.Modifier
 import scala.compiletime.*
 import scala.quoted.*
 import scala.reflect.ClassTag
 
 object meta:
 
-  enum MethodParameterType:
+  enum TypeType:
     case Regular
     case ByName
-    case ValueClass(box: Any => Any)
+    case ValueClass(cls: Class[?])
 
     def maybeBox(value: Object): Object =
       this match
-        case ValueClass(box) =>
-          box(value).asInstanceOf[Object]
+        case ValueClass(cls) if !cls.isInstance(value) =>
+          val constructor = cls.getDeclaredConstructors.head
+          constructor.setAccessible(true)
+          constructor.newInstance(value)
+        case _ =>
+          value
+
+    def maybeUnbox(value: Object, target: Class[?]): Object =
+      this match
+        case ValueClass(cls) if cls.isInstance(value) && !target.isInstance(value) =>
+          val field = cls.getDeclaredFields.filterNot(f => Modifier.isStatic(f.getModifiers)).head
+          field.setAccessible(true)
+          field.get(value)
         case _ =>
           value
 
   trait MatchedMethodInfo:
     type ParameterNames <: Tuple
     val name: String
-    val parameterTypes: IndexedSeq[MethodParameterType]
-    val unboxResult: Any => Any
+    val parameterTypes: IndexedSeq[TypeType]
+    val resultType: TypeType
 
   private type MethodInfo = (
       name: String,
       paramNames: List[String],
-      paramTypes: List[Expr[MethodParameterType]],
-      unboxResult: Expr[Any => Any]
+      paramTypes: List[Expr[TypeType]],
+      resultType: Expr[TypeType]
   )
 
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
@@ -98,41 +110,26 @@ object meta:
         case t =>
           t
 
-    def valueClass(t: TypeRepr): Option[(box: Expr[Any => Any], unbox: Expr[Any => Any])] =
-      // Value classes compile to their underlying type, so box and unbox them manually.
-      val tpe = t.dealias
-      tpe
+    def valueClass(t: TypeRepr): Expr[TypeType] =
+      t.dealias
         .classSymbol
         .filter(cls =>
           cls.typeRef.baseClasses.contains(defn.AnyValClass) &&
             !(defn.AnyValClass :: defn.ScalaPrimitiveValueClasses).contains(cls)
         )
-        .map: cls =>
-          val field = cls.declaredFields.head
-          (tpe.asType, tpe.memberType(field).asType).runtimeChecked match
-            case ('[v], '[u]) =>
-              (
-                '{ (x: Any) =>
-                  ${
-                    New(Inferred(tpe))
-                      .select(cls.primaryConstructor)
-                      .appliedToTypes(tpe.typeArgs)
-                      .appliedTo(
-                        '{
-                          x.asInstanceOf[u]
-                        }.asTerm
-                      )
-                      .asExpr
-                  }
-                },
-                '{ (x: Any) =>
-                  ${
-                    '{
-                      x.asInstanceOf[v]
-                    }.asTerm.select(field).asExpr
-                  }
-                }
-              )
+        .fold(
+          '{
+            TypeType.Regular
+          }
+        )(cls =>
+          '{
+            TypeType.ValueClass(
+              ${
+                Literal(ClassOfConstant(cls.typeRef)).asExprOf[Class[?]]
+              }
+            )
+          }
+        )
 
     def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
       expected.dealias.asMatchable match
@@ -185,39 +182,18 @@ object meta:
             s"but received function returns ${receivedReturnType.show}"
         )
 
-      // Only value classes in the declaration use the underlying JVM representation.
-      // Type parameters erase to boxed instances.
-      val declared = methodSignature(sym.termRef.widen)
       val parameterTypes =
         signature
           .paramTypes
-          .zip(declared.paramTypes)
           .map:
-            case (_: ByNameType, _) =>
+            case _: ByNameType =>
               '{
-                MethodParameterType.ByName
+                TypeType.ByName
               }
-            case (_, param) =>
-              valueClass(param).fold(
-                '{
-                  MethodParameterType.Regular
-                }
-              )(vc =>
-                '{
-                  MethodParameterType.ValueClass(
-                    ${
-                      vc.box
-                    }
-                  )
-                }
-              )
-      val unboxResult =
-        valueClass(declared.returnType.widenByName).fold(
-          '{
-            identity[Any]
-          }
-        )(_.unbox)
-      Some((sym.name, signature.paramNames, parameterTypes, unboxResult))
+            case param =>
+              valueClass(param)
+      val resultType = valueClass(signature.returnType.widenByName)
+      Some((sym.name, signature.paramNames, parameterTypes, resultType))
 
     def findAndCheck(term: Term): Option[MethodInfo] =
       term match
@@ -241,7 +217,7 @@ object meta:
           None
 
     findAndCheck(expr.asTerm) match
-      case Some((methodName, methodParameterNames, parameterTypeExprs, unboxResultExpr)) =>
+      case Some((methodName, methodParameterNames, parameterTypeExprs, resultTypeExpr)) =>
         // Singleton string types retain field names through the transparent inline API.
         val namesType =
           methodParameterNames.foldRight(TypeRepr.of[EmptyTuple]): (name, tail) =>
@@ -261,7 +237,7 @@ object meta:
                       Varargs(parameterTypeExprs)
                     }*
                   )
-                val unboxResult = $unboxResultExpr
+                val resultType = $resultTypeExpr
             }
       case None =>
         report.errorAndAbort(

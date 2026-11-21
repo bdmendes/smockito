@@ -233,7 +233,7 @@ private object Mock:
 
   inline def unwrap[A <: Tuple](
       originalArguments: Array[Object],
-      parameterTypes: IndexedSeq[meta.MethodParameterType],
+      parameterTypes: IndexedSeq[meta.TypeType],
       index: Int = 0,
       arguments: Array[Object] = Array.empty,
       needsCloning: Boolean = true
@@ -258,7 +258,7 @@ private object Mock:
               // By-name parameters desugar to nullary functions, so apply and cache the result.
               case f: Function0[?] =>
                 parameterTypes(index) match
-                  case meta.MethodParameterType.ByName =>
+                  case meta.TypeType.ByName =>
                     val v = f.apply()
                     val cachedF = () => v
                     originalArguments.update(index, cachedF)
