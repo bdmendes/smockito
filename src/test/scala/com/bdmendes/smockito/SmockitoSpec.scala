@@ -1133,6 +1133,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       compileErrors("""mock[User | Repository[User]]"""),
       "User | Repository[User]"
     )
+    assertNotSingleType(
+      compileErrors("""spy[User | Repository[User]](User("bdmendes"))"""),
+      "User | Repository[User]"
+    )
 
     // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
     // This should be used as a last resort; depend on an interface instead.
