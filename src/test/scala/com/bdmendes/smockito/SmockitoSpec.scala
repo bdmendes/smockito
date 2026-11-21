@@ -1174,6 +1174,17 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(registry.find(UserId("hello")), UserId("hello!"))
     assertEquals(registry.calls(it.find), List(UserId("hello")))
 
+  test("support methods with value classes erased to Object"):
+    trait Inbox:
+      def peek: Payload
+      def push(payload: Payload, priority: Int): Unit
+
+    val inbox = mock[Inbox].on(it.peek)(_ => Payload("hello")).on(it.push)(_ => ())
+    inbox.push(Payload(Payload("hi")), 1)
+
+    assertEquals(inbox.peek.value, "hello")
+    assertEquals(inbox.calls(it.push).map(_.payload), List(Payload(Payload("hi"))))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -1208,6 +1219,8 @@ object SmockitoSpec:
   case class User(username: String)
 
   case class UserId(id: String) extends AnyVal
+
+  case class Payload(value: Any) extends AnyVal
 
   class Token private (private val value: String) extends AnyVal:
     def show: String = value

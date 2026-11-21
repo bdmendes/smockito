@@ -10,11 +10,11 @@ object meta:
   enum TypeType:
     case Regular
     case ByName
-    case ValueClass(cls: Class[?])
+    case ValueClass(cls: Class[?], declared: Boolean)
 
     def maybeBox(value: Object): Object =
       this match
-        case ValueClass(cls) if !cls.isInstance(value) =>
+        case ValueClass(cls, declared) if declared || !cls.isInstance(value) =>
           val constructor = cls.getDeclaredConstructors.head
           constructor.setAccessible(true)
           constructor.newInstance(value)
@@ -23,7 +23,8 @@ object meta:
 
     def maybeUnbox(value: Object, target: Class[?]): Object =
       this match
-        case ValueClass(cls) if cls.isInstance(value) && !target.isInstance(value) =>
+        case ValueClass(cls, declared)
+            if cls.isInstance(value) && (declared || !target.isInstance(value)) =>
           val field = cls.getDeclaredFields.filterNot(f => Modifier.isStatic(f.getModifiers)).head
           field.setAccessible(true)
           field.get(value)
@@ -110,7 +111,7 @@ object meta:
         case t =>
           t
 
-    def valueClass(t: TypeRepr): Expr[TypeType] =
+    def valueClass(t: TypeRepr, declared: TypeRepr): Expr[TypeType] =
       t.dealias
         .classSymbol
         .filter(cls =>
@@ -126,6 +127,9 @@ object meta:
             TypeType.ValueClass(
               ${
                 Literal(ClassOfConstant(cls.typeRef)).asExprOf[Class[?]]
+              },
+              ${
+                Expr(declared.dealias.classSymbol.contains(cls))
               }
             )
           }
@@ -182,17 +186,19 @@ object meta:
             s"but received function returns ${receivedReturnType.show}"
         )
 
+      val declared = methodSignature(sym.termRef.widen)
       val parameterTypes =
         signature
           .paramTypes
+          .zip(declared.paramTypes)
           .map:
-            case _: ByNameType =>
+            case (_: ByNameType, _) =>
               '{
                 TypeType.ByName
               }
-            case param =>
-              valueClass(param)
-      val resultType = valueClass(signature.returnType.widenByName)
+            case (param, declaredParam) =>
+              valueClass(param, declaredParam)
+      val resultType = valueClass(signature.returnType.widenByName, declared.returnType.widenByName)
       Some((sym.name, signature.paramNames, parameterTypes, resultType))
 
     def findAndCheck(term: Term): Option[MethodInfo] =
