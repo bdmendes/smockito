@@ -74,10 +74,10 @@ private trait MockSyntax:
       *   the mocked type.
       */
     inline def real[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Mock[T] =
-      val _ = validateAndRetrieveMethodInfo(method)
+      val info = validateAndRetrieveMethodInfo(method)
       Mock.withCleanup:
         val target = method(using Mockito.doCallRealMethod().when(mock))
-        target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+        target(Tuple.fromArray(mapArguments[A, Any](info)(anyMatcher)).asInstanceOf[A])
       mock
 
     /** Yields the arguments received by a method, per invocation, in chronological order.
@@ -96,7 +96,7 @@ private trait MockSyntax:
         case _ =>
           inline validateAndRetrieveMethodInfo(method) match
             case info: meta.MatchedMethodInfo =>
-              val argCaptors = meta.mapTuple[A, ArgumentCaptor[?]](captor)
+              val argCaptors = mapArguments[A, ArgumentCaptor[?]](info)(captor)
               Mock.withCleanup:
                 val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
                 target(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
@@ -120,31 +120,18 @@ private trait MockSyntax:
       *   [[calls]] if you need the exact received arguments per invocation.
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
-      val _ = validateAndRetrieveMethodInfo(method)
-      inline erasedValue[A] match
-        case _: EmptyTuple =>
-          // Mockito has no verification mode that yields the number of calls, so we roll our own.
-          var count = 0
-          val counting: VerificationMode =
-            data =>
-              val matching = data.getAllInvocations.asScala.filter(data.getTarget.matches)
-              // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
-              matching.foreach(_.markVerified())
-              count = matching.size
-          Mock.withCleanup:
-            val target = method(using Mockito.verify(mock, counting))
-            target(EmptyTuple.asInstanceOf[A])
-          count
-        case _: (h *: t) =>
-          // Non-nullary methods may be overloaded, so we resort to a little trick here: we capture
-          // the first argument only, which is enough for counting the number of calls.
-          val cap = meta.mapTuple[h *: EmptyTuple, ArgumentCaptor[?]](captor).head
-          Mock.withCleanup:
-            val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-            target(
-              Tuple.fromArray(cap.capture() +: meta.mapTuple[t, Any](anyMatcher)).asInstanceOf[A]
-            )
-          cap.getAllValues.size
+      val info = validateAndRetrieveMethodInfo(method)
+      var count = 0
+      val counting: VerificationMode =
+        data =>
+          val matching = data.getAllInvocations.asScala.filter(data.getTarget.matches)
+          // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
+          matching.foreach(_.markVerified())
+          count = matching.size
+      Mock.withCleanup:
+        val target = method(using Mockito.verify(mock, counting))
+        target(Tuple.fromArray(mapArguments[A, Any](info)(anyMatcher)).asInstanceOf[A])
+      count
 
     /** Sets up a stub for a method that calls the respective method of a real instance.
       *
@@ -184,14 +171,14 @@ private trait MockSyntax:
         inline a: Mock[T] ?=> MockedMethod[A1, R1],
         inline b: Mock[T] ?=> MockedMethod[A2, R2]
     ): Boolean =
-      val _ = validateAndRetrieveMethodInfo(a)
-      val _ = validateAndRetrieveMethodInfo(b)
+      val infoA = validateAndRetrieveMethodInfo(a)
+      val infoB = validateAndRetrieveMethodInfo(b)
       val ordered = Mockito.inOrder(mock)
       Mock.verifies:
         val targetA = a(using ordered.verify(mock, Mockito.atLeastOnce))
-        targetA(Tuple.fromArray(meta.mapTuple[A1, Any](anyMatcher)).asInstanceOf[A1])
+        targetA(Tuple.fromArray(mapArguments[A1, Any](infoA)(anyMatcher)).asInstanceOf[A1])
         val targetB = b(using ordered.verify(mock, Mockito.atLeastOnce))
-        targetB(Tuple.fromArray(meta.mapTuple[A2, Any](anyMatcher)).asInstanceOf[A2])
+        targetB(Tuple.fromArray(mapArguments[A2, Any](infoB)(anyMatcher)).asInstanceOf[A2])
 
     /** Whether the last invocation of method `a` happened after the last invocation of method `b`,
       * provided both methods were called at least once. Same as `calledBefore(b, a)`.
@@ -247,6 +234,11 @@ private object Mock:
         case _: (h *: t) =>
           val unwrapped =
             parameterTypes(index).maybeBox(arguments(index)) match
+              // By-name parameters desugar to nullary functions, so apply and cache the result.
+              case f: Function0[?] if parameterTypes(index) == meta.TypeType.ByName =>
+                val v = f.apply()
+                originalArguments.update(index, () => v)
+                v
               // Mockito captures a single Java vararg by itself, rather than within its array.
               case element
                   if element != null && !element.getClass.isArray &&
@@ -255,16 +247,6 @@ private object Mock:
                 val array = java.lang.reflect.Array.newInstance(componentType, 1)
                 java.lang.reflect.Array.set(array, 0, element)
                 array
-              // By-name parameters desugar to nullary functions, so apply and cache the result.
-              case f: Function0[?] =>
-                parameterTypes(index) match
-                  case meta.TypeType.ByName =>
-                    val v = f.apply()
-                    val cachedF = () => v
-                    originalArguments.update(index, cachedF)
-                    v
-                  case _ =>
-                    f
               case other =>
                 other
           val typeCheckedValue =
@@ -281,6 +263,18 @@ private object Mock:
           unwrap[t](originalArguments, parameterTypes, index + 1, arguments, false)
 
   object mapper:
+
+    inline def mapArguments[A <: Tuple, R: ClassTag](info: meta.MatchedMethodInfo)(
+        inline f: [X] => (ClassTag[X]) ?=> R
+    ): Array[R] =
+      val parameterTypes = info.parameterTypes.iterator
+      meta.mapTuple[A, R]([X] =>
+        (ct: ClassTag[X]) ?=>
+          if parameterTypes.next() == meta.TypeType.ByName then
+            f[() => Any]
+          else
+            f[X](using ct)
+      )
 
     lazy val anyMatcher =
       [X] =>

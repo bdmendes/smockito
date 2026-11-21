@@ -1,6 +1,7 @@
 package com.bdmendes.smockito
 
 import com.bdmendes.smockito.Mock.mapper.anyMatcher
+import com.bdmendes.smockito.Mock.mapper.mapArguments
 import com.bdmendes.smockito.Mock.unwrap
 import com.bdmendes.smockito.Mock.withCleanup
 import com.bdmendes.smockito.Smockito.SmockitoException.*
@@ -40,7 +41,7 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
           )
     withCleanup:
       val target = method(using Mockito.doAnswer(answer).when(mock))
-      target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
+      target(Tuple.fromArray(mapArguments[A, Any](info)(anyMatcher)).asInstanceOf[A])
     mock
 
 object Stubber:
