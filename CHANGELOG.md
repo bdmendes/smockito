@@ -14,6 +14,28 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 3.1.0 - 2026-11-21
+
+This release includes improved support for Java variable arguments, Scala value classes and a bunch of bug fixes. It also updates the Mockito engine to 5.24.0.
+
+### What's Changed
+* Update mockito-core to 5.24.0 by @scala-steward in https://github.com/bdmendes/smockito/pull/313
+* Add regression test for spy piggyback semantics by @bdmendes in https://github.com/bdmendes/smockito/pull/318
+* Provide own custom VerificationMode for more resilient nullary times by @bdmendes in https://github.com/bdmendes/smockito/pull/322
+* Reject mocking `equals` and `hashCode` at compile time by @bdmendes in https://github.com/bdmendes/smockito/pull/323
+* Re-evaluate parameterless defs on forward by @bdmendes in https://github.com/bdmendes/smockito/pull/324
+* Clear Mockito errors at exception throw time by @bdmendes in https://github.com/bdmendes/smockito/pull/325
+* Answer toString by default by @bdmendes in https://github.com/bdmendes/smockito/pull/326
+* Reject union and intersection types by @bdmendes in https://github.com/bdmendes/smockito/pull/327
+* Cache by name arguments in stubs by @bdmendes in https://github.com/bdmendes/smockito/pull/330
+* Preserve actual Function0 overrides by @bdmendes in https://github.com/bdmendes/smockito/pull/331
+* Reject mocking all default methods of base types by @bdmendes in https://github.com/bdmendes/smockito/pull/332
+* Support value classes argument and return values by @bdmendes in https://github.com/bdmendes/smockito/pull/333
+* Support mocking Java methods with varargs by @bdmendes in https://github.com/bdmendes/smockito/pull/334
+* Strenghten boxing and unboxing by @bdmendes in https://github.com/bdmendes/smockito/pull/335
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v3.0.0...v3.1.0
+
 ## 3.0.0 - 2026-09-22
 
 Smockito 3 aims to make mocking even more straightforward.
