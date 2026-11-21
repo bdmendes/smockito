@@ -1152,6 +1152,39 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(registry.calls(it.find), List(UserId("hello")))
     assertEquals(registry.calls(it.lookup), List(UserId("hi")))
 
+  test("support methods with value classes with private members"):
+    trait Vault:
+      def rotate(token: Token): Token
+
+    val vault = mock[Vault].on(it.rotate)(token => Token.of(s"${token.show}!"))
+
+    assertEquals(vault.rotate(Token.of("secret")).show, "secret!")
+    assertEquals(vault.calls(it.rotate).map(_.show), List("secret"))
+
+  test("support methods with value classes on mocks widened to a generic type"):
+    trait Registry[T]:
+      def find(id: T): T
+
+    class UserRegistry extends Registry[UserId]:
+      override def find(id: UserId): UserId = id
+
+    val registry: Mock[Registry[UserId]] = mock[UserRegistry]
+    val _ = registry.on(it.find)(id => UserId(s"${id.id}!"))
+
+    assertEquals(registry.find(UserId("hello")), UserId("hello!"))
+    assertEquals(registry.calls(it.find), List(UserId("hello")))
+
+  test("support methods with value classes erased to Object"):
+    trait Inbox:
+      def peek: Payload
+      def push(payload: Payload, priority: Int): Unit
+
+    val inbox = mock[Inbox].on(it.peek)(_ => Payload("hello")).on(it.push)(_ => ())
+    inbox.push(Payload(Payload("hi")), 1)
+
+    assertEquals(inbox.peek.value, "hello")
+    assertEquals(inbox.calls(it.push).map(_.payload), List(Payload(Payload("hi"))))
+
 object SmockitoSpec:
 
   abstract class Repository[T](val name: String):
@@ -1186,6 +1219,14 @@ object SmockitoSpec:
   case class User(username: String)
 
   case class UserId(id: String) extends AnyVal
+
+  case class Payload(value: Any) extends AnyVal
+
+  class Token private (private val value: String) extends AnyVal:
+    def show: String = value
+
+  object Token:
+    def of(value: String): Token = Token(value)
 
   private val mockUsers =
     List(User("bdmendes"), User("apmendes"), User("sirze01"), User("fernandorego"))

@@ -28,12 +28,16 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
         val call = callCount.incrementAndGet()
         val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
         val arguments = unwrap[A](invocation.getRawArguments, info.parameterTypes)
-        info.unboxResult(
-          f.applyOrElse(
-            Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
-            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+        info
+          .resultType
+          .maybeUnbox(
+            f.applyOrElse(
+                Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
+                _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+              )
+              .asInstanceOf[Object],
+            invocation.getMethod.getReturnType
           )
-        )
     withCleanup:
       val target = method(using Mockito.doAnswer(answer).when(mock))
       target(Tuple.fromArray(meta.mapTuple[A, Any](anyMatcher)).asInstanceOf[A])
