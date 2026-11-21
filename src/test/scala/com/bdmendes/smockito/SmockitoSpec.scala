@@ -625,24 +625,20 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assert(foo.equals(foo))
     assertEquals(foo.times(foo.equals(_: Foo)), 1)
 
-  test("reject Java varargs methods"):
-    def assertHasRejection(errors: String) =
-      assert(
-        errors.contains(
-          "Method printf in PrintStream takes Java varargs, which Smockito does not support"
-        ),
-        errors
-      )
+  test("support Java varargs methods"):
+    val stream =
+      mock[java.io.PrintStream].on((f: String, as: Array[AnyRef]) => it.printf(f, as*))(_ => it)
 
-    assertHasRejection(
-      compileErrors(
-        """mock[java.io.PrintStream].on((f: String, as: Seq[AnyRef]) => it.printf(f, as*))(_ => it)"""
-      )
-    )
-    assertHasRejection(
-      compileErrors(
-        """mock[java.io.PrintStream].times((f: String, as: Seq[AnyRef]) => it.printf(f, as*))"""
-      )
+    val _ = stream.printf("none")
+    val _ = stream.printf("%s", "a")
+    val _ = stream.printf("%s %s", "a", "b")
+
+    assertEquals(stream.times((f: String, as: Array[AnyRef]) => it.printf(f, as*)), 3)
+    assertEquals(
+      stream
+        .calls((f: String, as: Array[AnyRef]) => it.printf(f, as*))
+        .map((f, as) => (f, as.toSeq)),
+      List(("none", Seq()), ("%s", Seq("a")), ("%s %s", Seq("a", "b")))
     )
 
   test("dispatch a method with 0 parameters to a real instance"):

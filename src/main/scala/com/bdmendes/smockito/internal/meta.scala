@@ -84,21 +84,19 @@ object meta:
           // Values.
           (Nil, Nil, t)
 
-    def normalize(t: TypeRepr): TypeRepr =
-      // Desugar for varargs, compiled to a Seq.
+    def normalize(t: TypeRepr, javaDefined: Boolean = false): TypeRepr =
+      // Desugar for varargs, compiled to a Seq in Scala and to an array in Java.
       t.widenTermRefByName.widenByName.asMatchable match
         case AppliedType(tycon, arg :: Nil) if tycon.typeSymbol == defn.RepeatedParamClass =>
-          TypeRepr.of[Seq].appliedTo(arg)
+          if javaDefined then
+            TypeRepr.of[Array].appliedTo(arg)
+          else
+            TypeRepr.of[Seq].appliedTo(arg)
+        // Java members under explicit nulls.
+        case FlexibleType(t) if t.typeSymbol == defn.RepeatedParamClass =>
+          normalize(t, javaDefined)
         case t =>
           t
-
-    def isRepeated(t: TypeRepr): Boolean =
-      t match
-        // Java members under explicit nulls.
-        case FlexibleType(t) =>
-          isRepeated(t)
-        case t =>
-          t.typeSymbol == defn.RepeatedParamClass
 
     def valueClass(t: TypeRepr): Option[(box: Expr[Any => Any], unbox: Expr[Any => Any])] =
       // Value classes compile to their underlying type, so box and unbox them manually.
@@ -172,21 +170,14 @@ object meta:
       // As seen from the mock type, with the method's type arguments applied.
       val signature = methodSignature(normalize(method.tpe))
 
-      // Java compiles varargs to an array, which Mockito only matches with a dedicated matcher.
-      if sym.flags.is(Flags.JavaDefined) && signature.paramTypes.exists(isRepeated) then
-        report.errorAndAbort(
-          s"Method ${sym.name} in ${rawTargetType.show} takes Java varargs, " +
-            "which Smockito does not support; wrap in a Scala trait"
-        )
-
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
-      val methodParamTypes = signature.paramTypes.map(normalize)
+      val methodParamTypes = signature.paramTypes.map(normalize(_, sym.flags.is(Flags.JavaDefined)))
       if !methodParamTypes.corresponds(receivedParamTypes)(isCompatible) then
         report.errorAndAbort(
           s"Method ${sym.name} in ${rawTargetType.show} expects ${showTypes(methodParamTypes)} " +
-            s"but received function expects ${showTypes(receivedParamTypes.map(normalize))}"
+            s"but received function expects ${showTypes(receivedParamTypes.map(normalize(_)))}"
         )
       if !(receivedReturnType <:< signature.returnType) then
         report.errorAndAbort(

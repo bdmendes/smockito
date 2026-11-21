@@ -247,6 +247,15 @@ private object Mock:
         case _: (h *: t) =>
           val unwrapped =
             parameterTypes(index).maybeBox(arguments(index)) match
+              // Mockito captures a single Java vararg by itself, rather than within its array.
+              case element
+                  if element != null && !element.getClass.isArray &&
+                    summonInline[ClassTag[h]].runtimeClass.isArray =>
+                val componentType = summonInline[ClassTag[h]].runtimeClass.getComponentType
+                val array = java.lang.reflect.Array.newInstance(componentType, 1)
+                java.lang.reflect.Array.set(array, 0, element)
+                array
+              // By-name parameters desugar to nullary functions, so apply and cache the result.
               case f: Function0[?] =>
                 parameterTypes(index) match
                   case meta.MethodParameterType.ByName =>
@@ -272,10 +281,22 @@ private object Mock:
           unwrap[t](originalArguments, parameterTypes, index + 1, arguments, false)
 
   object mapper:
-    lazy val anyMatcher = [X] => (_: ClassTag[X]) ?=> ArgumentMatchers.any[X]().asInstanceOf[X]
+
+    lazy val anyMatcher =
+      [X] =>
+        (ct: ClassTag[X]) ?=>
+          if ct.runtimeClass.isArray then
+            ArgumentMatchers.any(ct.runtimeClass).asInstanceOf[X]
+          else
+            ArgumentMatchers.any[X]().asInstanceOf[X]
 
     lazy val captor =
-      [X] => (_: ClassTag[X]) ?=> ArgumentCaptor.captor[X]().asInstanceOf[ArgumentCaptor[X]]
+      [X] =>
+        (ct: ClassTag[X]) ?=>
+          if ct.runtimeClass.isArray then
+            ArgumentCaptor.forClass(ct.runtimeClass).asInstanceOf[ArgumentCaptor[X]]
+          else
+            ArgumentCaptor.captor[X]().asInstanceOf[ArgumentCaptor[X]]
 
   def apply[T <: AnyRef](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
