@@ -245,29 +245,29 @@ private object Mock:
         case _: EmptyTuple =>
           arguments
         case _: (h *: t) =>
+          val unwrapped =
+            parameterTypes(index).maybeBox(arguments(index)) match
+              case f: Function0[?] =>
+                parameterTypes(index) match
+                  case meta.MethodParameterType.ByName =>
+                    val v = f.apply()
+                    val cachedF = () => v
+                    originalArguments.update(index, cachedF)
+                    v
+                  case _ =>
+                    f
+              case other =>
+                other
           val typeCheckedValue =
-            parameterTypes(index) match
-              case meta.MethodParameterType.ValueClass(box) =>
-                box(arguments(index))
-              case parameterType =>
-                val unwrapped =
-                  arguments(index) match
-                    case f: Function0[?] if parameterType == meta.MethodParameterType.ByName =>
-                      val v = f.apply()
-                      val cachedF = () => v
-                      originalArguments.update(index, cachedF)
-                      v
-                    case other =>
-                      other
-                if unwrapped != null then
-                  try
-                    unwrapped.asInstanceOf[h]
-                  catch
-                    case _: ClassCastException =>
-                      val expected = summonInline[ClassTag[h]].runtimeClass
-                      throw UnexpectedType(unwrapped, expected)
-                else
-                  unwrapped
+            if unwrapped != null then
+              try
+                unwrapped.asInstanceOf[h]
+              catch
+                case _: ClassCastException =>
+                  val expected = summonInline[ClassTag[h]].runtimeClass
+                  throw UnexpectedType(unwrapped, expected)
+            else
+              unwrapped
           arguments.update(index, typeCheckedValue.asInstanceOf[Object])
           unwrap[t](originalArguments, parameterTypes, index + 1, arguments, false)
 

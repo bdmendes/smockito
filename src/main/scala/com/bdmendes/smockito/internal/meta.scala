@@ -11,6 +11,13 @@ object meta:
     case ByName
     case ValueClass(box: Any => Any)
 
+    def maybeBox(value: Object): Object =
+      this match
+        case ValueClass(box) =>
+          box(value).asInstanceOf[Object]
+        case _ =>
+          value
+
   trait MatchedMethodInfo:
     type ParameterNames <: Tuple
     val name: String
