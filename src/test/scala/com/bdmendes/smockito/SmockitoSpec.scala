@@ -1115,25 +1115,12 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
         def pretty = "yes"
         def toUser: User = u
 
-    trait Registry[T]:
-      def find(id: UserId): Int
-      def idOf(username: String): UserId
-
     def assertNotAnyRef(errors: String) =
       assert(errors.contains("does not conform to upper bound AnyRef"), errors)
 
     def assertNotSingleType(errors: String, tpe: String) =
       assert(
-        errors.contains(s"Cannot mock $tpe; Mockito does not support union or intersection types"),
-        errors
-      )
-
-    def assertValueClass(errors: String, method: String, tpe: String) =
-      assert(
-        errors.contains(
-          s"Method $method in $tpe uses value class UserId, " +
-            "which Smockito does not support; use a regular class"
-        ),
+        errors.contains(s"Mocking union or intersection types such as $tpe is not supported"),
         errors
       )
 
@@ -1151,22 +1138,23 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
       "User | Repository[User]"
     )
 
-    assertValueClass(
-      compileErrors("""mock[Registry[UserId]].on(it.find)(_ => 1)"""),
-      "find",
-      "Registry[UserId]"
-    )
-    assertValueClass(
-      compileErrors("""mock[Registry[UserId]].times(it.idOf)"""),
-      "idOf",
-      "Registry[UserId]"
-    )
-
     // Of course, with inside knowledge, we can tricky the compiler into mocking opaque types.
     // This should be used as a last resort; depend on an interface instead.
     val spooky = mock[User].on(it.username)(_ => "tampered").asInstanceOf[Outer.SpookyUser]
     assertEquals(spooky.pretty, "yes")
     assertEquals(spooky.toUser.username, "tampered")
+
+  test("support methods with value classes"):
+    trait Registry[T]:
+      def find(id: UserId): UserId
+      def lookup(id: T): T
+
+    val registry = mock[Registry[UserId]].on(it.find)(id => id).on(it.lookup)(id => id)
+
+    assertEquals(registry.find(UserId("hello")), UserId("hello"))
+    assertEquals(registry.lookup(UserId("hi")), UserId("hi"))
+    assertEquals(registry.calls(it.find), List(UserId("hello")))
+    assertEquals(registry.calls(it.lookup), List(UserId("hi")))
 
 object SmockitoSpec:
 

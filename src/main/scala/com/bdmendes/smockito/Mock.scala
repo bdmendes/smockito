@@ -238,7 +238,6 @@ private object Mock:
       arguments: Array[Object] = Array.empty,
       needsCloning: Boolean = true
   ): Array[Object] =
-    // By-name parameters are compiled as nullary functions, hence the special treatment.
     if needsCloning then
       unwrap[A](originalArguments, parameterTypes, index, originalArguments.clone(), false)
     else
@@ -247,7 +246,7 @@ private object Mock:
           arguments
         case _: (h *: t) =>
           val unwrapped =
-            arguments(index) match
+            parameterTypes(index).maybeBox(arguments(index)) match
               case f: Function0[?] =>
                 parameterTypes(index) match
                   case meta.MethodParameterType.ByName =>
@@ -255,7 +254,7 @@ private object Mock:
                     val cachedF = () => v
                     originalArguments.update(index, cachedF)
                     v
-                  case meta.MethodParameterType.Regular =>
+                  case _ =>
                     f
               case other =>
                 other

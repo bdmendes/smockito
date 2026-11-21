@@ -23,14 +23,16 @@ class Stubber[T <: AnyRef, N <: Tuple, A <: Tuple, R] @publicInBinary private[sm
       inline stub: Mock[T] ?=> PartialFunction[Int, PartialFunction[Arguments[N, A], R]]
   ): Mock[T] =
     val callCount = AtomicInteger(0)
-    val answer: Answer[R] =
+    val answer: Answer[Any] =
       invocation =>
         val call = callCount.incrementAndGet()
         val f = stub(using mock).applyOrElse(call, _ => throw UnexpectedCallNumber(call))
         val arguments = unwrap[A](invocation.getRawArguments, info.parameterTypes)
-        f.applyOrElse(
-          Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
-          _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+        info.unboxResult(
+          f.applyOrElse(
+            Arguments[N, A](Tuple.fromArray(arguments).asInstanceOf[A]),
+            _ => throw UnexpectedArguments(invocation.getMethod, arguments)
+          )
         )
     withCleanup:
       val target = method(using Mockito.doAnswer(answer).when(mock))

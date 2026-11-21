@@ -7,13 +7,29 @@ import scala.reflect.ClassTag
 object meta:
 
   enum MethodParameterType:
-    case ByName
     case Regular
+    case ByName
+    case ValueClass(box: Any => Any)
+
+    def maybeBox(value: Object): Object =
+      this match
+        case ValueClass(box) =>
+          box(value).asInstanceOf[Object]
+        case _ =>
+          value
 
   trait MatchedMethodInfo:
     type ParameterNames <: Tuple
     val name: String
     val parameterTypes: IndexedSeq[MethodParameterType]
+    val unboxResult: Any => Any
+
+  private type MethodInfo = (
+      name: String,
+      paramNames: List[String],
+      paramTypes: List[Expr[MethodParameterType]],
+      unboxResult: Expr[Any => Any]
+  )
 
   inline def mapTuple[T <: Tuple, R: ClassTag](inline f: [X] => (ClassTag[X]) ?=> R): Array[R] =
     inline erasedValue[T] match
@@ -33,8 +49,8 @@ object meta:
     TypeRepr.of[T].dealias match
       case t @ (_: AndType | _: OrType) =>
         report.errorAndAbort(
-          s"Cannot mock ${t.show(using Printer.TypeReprShortCode)}; " +
-            "Mockito does not support union or intersection types"
+          "Mocking union or intersection types such as " +
+            s"${t.show(using Printer.TypeReprShortCode)} is not supported"
         )
       case _ =>
         '{
@@ -84,17 +100,41 @@ object meta:
         case t =>
           t.typeSymbol == defn.RepeatedParamClass
 
-    def isValueClass(t: TypeRepr): Boolean =
-      t match
-        // By-name parameters compile to functions, which box their result.
-        case _: ByNameType =>
-          false
-        case _ =>
-          t.classSymbol
-            .exists(cls =>
-              cls.typeRef.baseClasses.contains(defn.AnyValClass) &&
-                !(defn.AnyValClass :: defn.ScalaPrimitiveValueClasses).contains(cls)
-            )
+    def valueClass(t: TypeRepr): Option[(box: Expr[Any => Any], unbox: Expr[Any => Any])] =
+      // Value classes compile to their underlying type, so box and unbox them manually.
+      val tpe = t.dealias
+      tpe
+        .classSymbol
+        .filter(cls =>
+          cls.typeRef.baseClasses.contains(defn.AnyValClass) &&
+            !(defn.AnyValClass :: defn.ScalaPrimitiveValueClasses).contains(cls)
+        )
+        .map: cls =>
+          val field = cls.declaredFields.head
+          (tpe.asType, tpe.memberType(field).asType).runtimeChecked match
+            case ('[v], '[u]) =>
+              (
+                '{ (x: Any) =>
+                  ${
+                    New(Inferred(tpe))
+                      .select(cls.primaryConstructor)
+                      .appliedToTypes(tpe.typeArgs)
+                      .appliedTo(
+                        '{
+                          x.asInstanceOf[u]
+                        }.asTerm
+                      )
+                      .asExpr
+                  }
+                },
+                '{ (x: Any) =>
+                  ${
+                    '{
+                      x.asInstanceOf[v]
+                    }.asTerm.select(field).asExpr
+                  }
+                }
+              )
 
     def isCompatible(actual: TypeRepr, expected: TypeRepr): Boolean =
       expected.dealias.asMatchable match
@@ -121,9 +161,7 @@ object meta:
         .flatMap(_.declaredMethods)
         .filterNot(_.name == "toString")
 
-    def checkAndReturn(
-        method: Term
-    ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
+    def checkAndReturn(method: Term): Option[MethodInfo] =
       // As declared in the type.
       val sym = method.symbol
 
@@ -141,17 +179,6 @@ object meta:
             "which Smockito does not support; wrap in a Scala trait"
         )
 
-      // The JVM signature has the underlying type of value classes, unlike the instances stubs
-      // handle. Type parameters erase to boxed instances, so check the declared signature.
-      val declared = methodSignature(sym.termRef.widen)
-      (declared.returnType.widenByName :: declared.paramTypes)
-        .find(isValueClass)
-        .foreach: t =>
-          report.errorAndAbort(
-            s"Method ${sym.name} in ${rawTargetType.show} uses value class ${t.show}, " +
-              "which Smockito does not support; use a regular class"
-          )
-
       // Eta-expansion in Scala has its quirks, such as capturing contextual arguments,
       // effectively returning a function whose shape does not exist in the class byte code.
       // This hints the user to eta-expand manually at compile time.
@@ -166,11 +193,42 @@ object meta:
           s"Method ${sym.name} in ${rawTargetType.show} returns ${signature.returnType.show} " +
             s"but received function returns ${receivedReturnType.show}"
         )
-      Some((sym.name, signature.paramNames, signature.paramTypes))
 
-    def findAndCheck(
-        term: Term
-    ): Option[(name: String, paramNames: List[String], paramTypes: List[TypeRepr])] =
+      // Only value classes in the declaration use the underlying JVM representation.
+      // Type parameters erase to boxed instances.
+      val declared = methodSignature(sym.termRef.widen)
+      val parameterTypes =
+        signature
+          .paramTypes
+          .zip(declared.paramTypes)
+          .map:
+            case (_: ByNameType, _) =>
+              '{
+                MethodParameterType.ByName
+              }
+            case (_, param) =>
+              valueClass(param).fold(
+                '{
+                  MethodParameterType.Regular
+                }
+              )(vc =>
+                '{
+                  MethodParameterType.ValueClass(
+                    ${
+                      vc.box
+                    }
+                  )
+                }
+              )
+      val unboxResult =
+        valueClass(declared.returnType.widenByName).fold(
+          '{
+            identity[Any]
+          }
+        )(_.unbox)
+      Some((sym.name, signature.paramNames, parameterTypes, unboxResult))
+
+    def findAndCheck(term: Term): Option[MethodInfo] =
       term match
         // Method selection.
         case tapp @ TypeApply(s @ Select(prefix, _), _)
@@ -192,17 +250,7 @@ object meta:
           None
 
     findAndCheck(expr.asTerm) match
-      case Some((methodName, methodParameterNames, parameterTypes)) =>
-        val parameterTypeExprs =
-          parameterTypes.map:
-            case _: ByNameType =>
-              '{
-                MethodParameterType.ByName
-              }
-            case _ =>
-              '{
-                MethodParameterType.Regular
-              }
+      case Some((methodName, methodParameterNames, parameterTypeExprs, unboxResultExpr)) =>
         // Singleton string types retain field names through the transparent inline API.
         val namesType =
           methodParameterNames.foldRight(TypeRepr.of[EmptyTuple]): (name, tail) =>
@@ -222,6 +270,7 @@ object meta:
                       Varargs(parameterTypeExprs)
                     }*
                   )
+                val unboxResult = $unboxResultExpr
             }
       case None =>
         report.errorAndAbort(
