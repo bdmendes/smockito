@@ -49,8 +49,8 @@ object meta:
     TypeRepr.of[T].dealias match
       case t @ (_: AndType | _: OrType) =>
         report.errorAndAbort(
-          s"Cannot mock ${t.show(using Printer.TypeReprShortCode)}; " +
-            "Mockito does not support union or intersection types"
+          "Mocking union or intersection types such as " +
+            s"${t.show(using Printer.TypeReprShortCode)} is not supported"
         )
       case _ =>
         '{

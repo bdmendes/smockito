@@ -1120,7 +1120,7 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
 
     def assertNotSingleType(errors: String, tpe: String) =
       assert(
-        errors.contains(s"Cannot mock $tpe; Mockito does not support union or intersection types"),
+        errors.contains(s"Mocking union or intersection types such as $tpe is not supported"),
         errors
       )
 
