@@ -239,14 +239,6 @@ private object Mock:
                 val v = f.apply()
                 originalArguments.update(index, () => v)
                 v
-              // Mockito captures a single Java vararg by itself, rather than within its array.
-              case element
-                  if element != null && !element.getClass.isArray &&
-                    summonInline[ClassTag[h]].runtimeClass.isArray =>
-                val componentType = summonInline[ClassTag[h]].runtimeClass.getComponentType
-                val array = java.lang.reflect.Array.newInstance(componentType, 1)
-                java.lang.reflect.Array.set(array, 0, element)
-                array
               case other =>
                 other
           val typeCheckedValue =
