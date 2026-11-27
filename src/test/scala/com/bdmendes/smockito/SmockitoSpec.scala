@@ -383,6 +383,10 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(reader.calls(it.read(_: Int)), List(2))
     assertEquals(reader.calls(it.read(_: Int)), List(2))
     assertEquals(counter, 2)
+    assertEquals(reader.read(next()), 3)
+    assertEquals(reader.calls(it.read(_: Int)), List(2, 4))
+    assertEquals(reader.calls(it.read(_: Int)), List(2, 4))
+    assertEquals(counter, 4)
 
   test("inspect calls on methods with variable arguments"):
     val repository =
