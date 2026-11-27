@@ -207,11 +207,12 @@ private object Mock:
       mock: Mock[T],
       inline method: Mock[T] ?=> MockedMethod[A, R],
       info: meta.MatchedMethodInfo
-  ): Seq[Invocation] =
-    var matching: Seq[Invocation] = Seq.empty
+  ): collection.Seq[Invocation] =
+    var matching: collection.Seq[Invocation] = Seq.empty
     val collect: VerificationMode =
       data =>
-        matching = data.getAllInvocations.asScala.filter(data.getTarget.matches).toSeq
+        // Make sure not to perform any collection copies here, e.g. via `toSeq`.
+        matching = data.getAllInvocations.asScala.filter(data.getTarget.matches)
         // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
         matching.foreach(_.markVerified())
     withCleanup:
