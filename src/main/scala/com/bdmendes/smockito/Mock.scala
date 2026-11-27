@@ -6,6 +6,7 @@ import com.bdmendes.smockito.internal.DefaultAnswer
 import com.bdmendes.smockito.internal.meta
 import org.mockito.*
 import org.mockito.exceptions.base.MockitoAssertionError
+import org.mockito.invocation.Invocation
 import org.mockito.verification.VerificationMode
 import scala.compiletime.*
 import scala.jdk.CollectionConverters.*
@@ -96,19 +97,13 @@ private trait MockSyntax:
         case _ =>
           inline validateAndRetrieveMethodInfo(method) match
             case info: meta.MatchedMethodInfo =>
-              val argCaptors = mapArguments[A, ArgumentCaptor[?]](info)(captor)
-              Mock.withCleanup:
-                val target = method(using Mockito.verify(mock, Mockito.atLeast(0)))
-                target(Tuple.fromArray(argCaptors.map(_.capture())).asInstanceOf[A])
-              argCaptors
-                .map(_.getAllValues.toArray)
-                .transpose
+              Mock
+                .matchingInvocations(mock, method, info)
+                .iterator
+                .map: invocation =>
+                  val args = Mock.unwrap[A](invocation.getRawArguments, info.parameterTypes)
+                  Arguments[info.ParameterNames, A](Tuple.fromArray(args).asInstanceOf[A])
                 .toList
-                .map(args =>
-                  Arguments[info.ParameterNames, A](
-                    Tuple.fromArray(Mock.unwrap[A](args, info.parameterTypes)).asInstanceOf[A]
-                  )
-                )
 
     /** Yields the number of times a method was called.
       *
@@ -121,17 +116,7 @@ private trait MockSyntax:
       */
     inline def times[A <: Tuple, R](inline method: Mock[T] ?=> MockedMethod[A, R]): Int =
       val info = validateAndRetrieveMethodInfo(method)
-      var count = 0
-      val counting: VerificationMode =
-        data =>
-          val matching = data.getAllInvocations.asScala.filter(data.getTarget.matches)
-          // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
-          matching.foreach(_.markVerified())
-          count = matching.size
-      Mock.withCleanup:
-        val target = method(using Mockito.verify(mock, counting))
-        target(Tuple.fromArray(mapArguments[A, Any](info)(anyMatcher)).asInstanceOf[A])
-      count
+      Mock.matchingInvocations(mock, method, info).size
 
     /** Sets up a stub for a method that calls the respective method of a real instance.
       *
@@ -218,6 +203,22 @@ private object Mock:
         val _ = Iterator.continually(Try(Mockito.validateMockitoUsage())).take(32).find(_.isSuccess)
         throw e
 
+  inline def matchingInvocations[T <: AnyRef, A <: Tuple, R](
+      mock: Mock[T],
+      inline method: Mock[T] ?=> MockedMethod[A, R],
+      info: meta.MatchedMethodInfo
+  ): Seq[Invocation] =
+    var matching: Seq[Invocation] = Seq.empty
+    val collect: VerificationMode =
+      data =>
+        matching = data.getAllInvocations.asScala.filter(data.getTarget.matches).toSeq
+        // Like Mockito's own modes, so that `verifyNoMoreInteractions` accounts for them.
+        matching.foreach(_.markVerified())
+    withCleanup:
+      val target = method(using Mockito.verify(mock, collect))
+      target(Tuple.fromArray(mapArguments[A, Any](info)(anyMatcher)).asInstanceOf[A])
+    matching
+
   inline def unwrap[A <: Tuple](
       originalArguments: Array[Object],
       parameterTypes: IndexedSeq[meta.TypeType],
@@ -268,7 +269,7 @@ private object Mock:
             f[X](using ct)
       )
 
-    lazy val anyMatcher =
+    val anyMatcher =
       [X] =>
         (ct: ClassTag[X]) ?=>
           val cls = ct.runtimeClass
@@ -279,14 +280,6 @@ private object Mock:
               .asInstanceOf[X]
           else
             ArgumentMatchers.any[X]().asInstanceOf[X]
-
-    lazy val captor =
-      [X] =>
-        (ct: ClassTag[X]) ?=>
-          if ct.runtimeClass.isArray then
-            ArgumentCaptor.forClass(ct.runtimeClass).asInstanceOf[ArgumentCaptor[X]]
-          else
-            ArgumentCaptor.captor[X]().asInstanceOf[ArgumentCaptor[X]]
 
   def apply[T <: AnyRef](using ct: ClassTag[T]): Mock[T] =
     Mockito.mock(
