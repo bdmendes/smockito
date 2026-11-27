@@ -54,7 +54,7 @@ A `Mock[T]` is a `T` both at compile time and runtime.
   assert(repository.getWith("john", "doe") == List(User("johndoe")))
 ```
 
-You may reason about method interactions with `calls` and `times`. If arguments are not needed, `times` is more efficient.
+You may reason about method interactions with `calls` and `times`. If arguments are not needed, `times` is more efficient, as it does not unwrap arguments.
 
 ```scala
   assert(repository.calls(it.getWith) == List(("john", "doe")))

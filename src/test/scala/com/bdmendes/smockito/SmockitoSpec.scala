@@ -366,6 +366,28 @@ class SmockitoSpec extends munit.FunSuite with Smockito:
     assertEquals(getter.calls(it.tell(_: Int)), List(1))
     assertEquals(getter.calls(it.tell(_: Int)), List(1))
 
+  test("cache a spy's by-name argument on first inspection"):
+    class Reader:
+      def read(value: => Int): Int = value
+
+    val reader = spy(new Reader)
+    var counter = 0
+    def next(): Int =
+      counter += 1
+      counter
+
+    // Our API forces the evaluation of by-name parameters, so there's really no way
+    // to avoid the first `calls` effect without modifying the original method semantics.
+    // Even so, check that our implementation caches the first inspection value.
+    assertEquals(reader.read(next()), 1)
+    assertEquals(reader.calls(it.read(_: Int)), List(2))
+    assertEquals(reader.calls(it.read(_: Int)), List(2))
+    assertEquals(counter, 2)
+    assertEquals(reader.read(next()), 3)
+    assertEquals(reader.calls(it.read(_: Int)), List(2, 4))
+    assertEquals(reader.calls(it.read(_: Int)), List(2, 4))
+    assertEquals(counter, 4)
+
   test("inspect calls on methods with variable arguments"):
     val repository =
       mock[Repository[User]].on(it.containsOneOf(_*)): names =>
