@@ -14,6 +14,18 @@ Description.
 **Full Changelog**: https://github.com/bdmendes/smockito/compare/<prev>...<this>
 -->
 
+## 3.2.0 - 2026-11-27
+
+This release reduces the memory usage of `calls`, updates the Mockito engine to 5.25.0 and includes some bug fixes.
+
+### What's Changed
+* Disallow overriding spy type parameter to union or intersection types by @bdmendes in https://github.com/bdmendes/smockito/pull/336
+* Support null arrays; unify times and fix by-name array parameters by @bdmendes in https://github.com/bdmendes/smockito/pull/337
+* Unify `calls` implementation with `times`; cache spy by-name inspections by @bdmendes in https://github.com/bdmendes/smockito/pull/343
+* Update Mockito to 5.25 by @bdmendes in https://github.com/bdmendes/smockito/pull/344
+
+**Full Changelog**: https://github.com/bdmendes/smockito/compare/v3.1.0...v3.2.0
+
 ## 3.1.0 - 2026-11-21
 
 This release includes improved support for Java variable arguments, Scala value classes and a bunch of bug fixes. It also updates the Mockito engine to 5.24.0.
